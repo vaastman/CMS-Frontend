@@ -58,7 +58,7 @@ const Header = () => {
               </p>
               </div>
               <div>
-                <button className="px-3 py-2 bg-red-700 text-white rounded-md hover:bg-red-800">
+                <button className="px-3 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 cursor-pointer text-sm font-medium">
                   Online Admission
                 </button>
               </div>
