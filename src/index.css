@@ -19,3 +19,26 @@ body {
   -ms-overflow-style: none; 
   scrollbar-width: none;  
 }
+/* For Marquess */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+}
+
+/* Enable 3D rotation */
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+
+button{
+  cursor: pointer;
+}
