@@ -7,6 +7,8 @@ import Login from "../pages/Login";
 import Campus from "../pages/Campus";
 import Gallery from "../components/Gallery";
 import NotFound from "../components/common/NotFound";
+import AboutCollege from "../pages/about/AboutCollege";
+import VisionMission from "../pages/about/VisionMission";
 
 function PublicRoutes() {
   return (
@@ -17,6 +19,8 @@ function PublicRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/gallery" element={<Gallery />} />
       <Route path="/campus" element={<Campus />} />
+      <Route path="/about_college" element={<AboutCollege />} />
+      <Route path="/vision-mission" element={<VisionMission />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

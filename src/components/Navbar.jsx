@@ -1,90 +1,169 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiMenu, FiX, FiChevronDown } from "react-icons/fi";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [mobileDropdown, setMobileDropdown] = useState(null);
 
-  const navItems = [
-    { to: "/", label: "Home" },
-    { to: "/mou", label: "MOUs" },
-    { to: "/campus", label: "Campus" },
-    { to: "/contact", label: "Contact Us" },
-    { to: "/gallery", label: "Gallery" },
+  const menu = [
+    { label: "Home", to: "/" },
+    {
+      label: "About Us",
+      dropdown: [
+        { label: "About College", to: "/about_college" },
+        { label: "Vision & Mission", to: "/vision-mission" },
+      ],
+    },
+    {
+      label: "Admissions",
+      dropdown: [
+        { label: "Courses Offered", to: "/courses" },
+        { label: "Admission Process", to: "/admissions" },
+      ],
+    },
+    {
+      label: "Academics",
+      dropdown: [
+        { label: "Faculty", to: "/faculty" },
+        { label: "Administrative Staff", to: "/staff" },
+        { label: "Holiday List", to: "/holidays" },
+        { label: "Certificate Courses", to: "/certificates" },
+        { label: "Academic Calendar", to: "/calendar" },
+      ],
+    },
+    { label: "Examination", to: "/examination" },
+    {
+      label: "Student Support",
+      dropdown: [
+        { label: "Scholarship", to: "/scholarship" },
+        { label: "Grievance Cell", to: "/grievance" },
+      ],
+    },
+    { label: "Gallery", to: "/gallery" },
+    { label: "Contact Us", to: "/contact" },
   ];
 
   return (
     <>
-      {/* NAVBAR - Desktop remains the same */}
-      <nav className="backdrop-blur-xl hidden md:block py-1 bg-white/60 shadow-sm z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between ">
-          {/* Desktop Menu CENTERED */}
-          <ul className="hidden md:flex items-center gap-10 absolute left-1/2 transform -translate-x-1/2 text-[15px] font-medium">
-            {navItems.map((item) => (
-              <li key={item.to}>
+      {/* DESKTOP NAVBAR */}
+      <nav className="hidden md:block bg-[#1A237E] text-white shadow-md z-50">
+        <ul className="flex justify-center items-center gap-8 py-3 text-sm font-medium">
+          {menu.map((item, i) => (
+            <li key={i} className="relative group">
+              {item.dropdown ? (
+                <>
+                  <span className="flex items-center gap-1 cursor-pointer hover:text-yellow-400">
+                    {item.label}
+                    <FiChevronDown />
+                  </span>
+
+                  {/* DROPDOWN */}
+                  <ul className="absolute top-full left-0 mt-3 w-56 bg-white text-slate-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    {item.dropdown.map((sub, j) => (
+                      <li key={j}>
+                        <NavLink
+                          to={sub.to}
+                          className="block px-4 py-2 hover:bg-slate-100"
+                        >
+                          {sub.label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
                     isActive
-                      ? "text-[#1A237E] font-semibold border-b-2 border-[#1A237E] pb-1"
-                      : "text-slate-700 hover:text-[#1A237E] hover:border-b-2 hover:border-[#1A237E] pb-1 transition-all"
+                      ? "text-yellow-400"
+                      : "hover:text-yellow-400"
                   }
                 >
                   {item.label}
                 </NavLink>
-              </li>
-            ))}
-          </ul>
-        </div>
+              )}
+            </li>
+          ))}
+        </ul>
       </nav>
 
-      {/* MOBILE/TABLET Hamburger */}
+      {/* MOBILE MENU BUTTON */}
       <button
+        className="md:hidden fixed top-3 left-3 z-50 text-3xl text-yellow-400"
         onClick={() => setOpen(true)}
-        className="md:hidden fixed top-2 left-1 z-50 text-4xl text-slate-700 "
       >
         <FiMenu />
       </button>
 
       {/* MOBILE SIDEBAR */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-50 transform transition-transform duration-300 ${
-          open ? "translate-x-0" : "-translate-x-64"
+        className={`fixed top-0 left-0 h-full w-72 bg-white z-50 shadow-lg transform transition-transform ${
+          open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Close Button */}
-        <div className="flex items-center justify-between px-4 py-4 border-b">
-          <button onClick={() => setOpen(false)} className="text-3xl text-slate-700">
-            <FiX />
-          </button>
+        <div className="flex justify-between items-center px-4 py-4 border-b">
+          <span className="font-semibold text-lg">Sant Sandhya Das Mahavidyalaya</span>
+          <FiX
+            className="text-2xl cursor-pointer"
+            onClick={() => setOpen(false)}
+          />
         </div>
 
-        {/* Sidebar Links */}
-        <ul className="flex flex-col gap-6 px-6 mt-6 font-medium text-[16px]">
-          {navItems.map((item) => (
-            <li key={item.to}>
-              <NavLink
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-[#1A237E] font-semibold border-l-4 border-[#1A237E] pl-3"
-                    : "text-slate-700 hover:text-[#1A237E] pl-3 transition-all"
-                }
-              >
-                {item.label}
-              </NavLink>
+        <ul className="flex flex-col px-4 py-4 gap-2">
+          {menu.map((item, i) => (
+            <li key={i}>
+              {item.dropdown ? (
+                <>
+                  <button
+                    className="flex justify-between w-full py-2 font-medium"
+                    onClick={() =>
+                      setMobileDropdown(
+                        mobileDropdown === i ? null : i
+                      )
+                    }
+                  >
+                    {item.label}
+                    <FiChevronDown />
+                  </button>
+
+                  {mobileDropdown === i && (
+                    <ul className="ml-4">
+                      {item.dropdown.map((sub, j) => (
+                        <li key={j}>
+                          <NavLink
+                            to={sub.to}
+                            onClick={() => setOpen(false)}
+                            className="block py-1 text-slate-600"
+                          >
+                            {sub.label}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              ) : (
+                <NavLink
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  className="block py-2 font-medium"
+                >
+                  {item.label}
+                </NavLink>
+              )}
             </li>
           ))}
         </ul>
       </div>
 
-      {/* BG Overlay for mobile */}
+      {/* OVERLAY */}
       {open && (
         <div
+          className="fixed inset-0 bg-black/40 z-40"
           onClick={() => setOpen(false)}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
-        ></div>
+        />
       )}
     </>
   );
