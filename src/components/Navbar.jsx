@@ -13,13 +13,15 @@ const Navbar = () => {
       dropdown: [
         { label: "About College", to: "/about_college" },
         { label: "Vision & Mission", to: "/vision-mission" },
+        { label: "Principal Desk", to: "/principle-desk" }
       ],
     },
     {
       label: "Admissions",
       dropdown: [
-        { label: "Courses Offered", to: "/courses" },
-        { label: "Admission Process", to: "/admissions" },
+        { label: "Online Admission Form", to: "/Online-admission-form" },
+        { label: "Course And Subject", to: "/courses-and-subject" },
+        { label: "Admission Process", to: "/admissions-process" },
       ],
     },
     {
