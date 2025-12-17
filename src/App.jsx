@@ -1,16 +1,16 @@
-import Header from "./components/Header";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+// import Header from "./components/Header";
+// import Navbar from "./components/Navbar";
+// import Footer from "./components/Footer";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTopButton from "./components/common/ScrollToTopButton";
 
 function App() {
   return (
     <>
-      <Header />
-      <Navbar />
+      {/* <Header />
+      <Navbar /> */}
       <AppRoutes />
-      <Footer />
+      {/* <Footer /> */}
 
       {/* GLOBAL SCROLL TO TOP BUTTON */}
       <ScrollToTopButton />
