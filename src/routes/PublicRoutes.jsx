@@ -17,6 +17,7 @@ import Staff from "../pages/academics/Staff";
 import Holidays from "../pages/academics/Holidays";
 import Certificates from "../pages/academics/Certificates";
 import Calendar from "../pages/academics/Calender";
+import Examination from "../pages/examination/Examination";
 // import Examination from "../pages/academics/Examination";
 // import Scholarship from "../pages/academics/Scholarship";
 // import Grievance from "../pages/academics/Grievance";
@@ -41,8 +42,8 @@ function PublicRoutes() {
       <Route path="/holidays" element={<Holidays />}/>
       <Route path="/certificates" element={<Certificates />}/>
       <Route path="/calendar" element={<Calendar />}/>
-      {/* <Route path="/examination" element={<Examination />}/>
-      <Route path="/scholarship" element={<Scholarship />}/>
+      <Route path="/examination" element={<Examination />}/>
+     {/*  <Route path="/scholarship" element={<Scholarship />}/>
       <Route path="/grievance" element={<Grievance />}/> */}
       <Route path="*" element={<NotFound />} />
     </Routes>
