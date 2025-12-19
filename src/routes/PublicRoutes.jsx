@@ -21,9 +21,10 @@ import Examination from "../pages/examination/Examination";
 // import Examination from "../pages/academics/Examination";
 // import Scholarship from "../pages/academics/Scholarship";
 // import Grievance from "../pages/academics/Grievance";
-
+import PublicLayout from "../components/layout/PublicLayout";
 function PublicRoutes() {
   return (
+    <PublicLayout>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
@@ -47,6 +48,7 @@ function PublicRoutes() {
       <Route path="/grievance" element={<Grievance />}/> */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </PublicLayout>
   );
 }
 
