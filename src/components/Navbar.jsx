@@ -38,8 +38,10 @@ const Navbar = () => {
     {
       label: "Student Support",
       dropdown: [
-        { label: "Scholarship", to: "/scholarship" },
-        { label: "Grievance Cell", to: "/grievance" },
+        { label: "Attendence", to: "/attendence" },
+        { label: "Anti-Ragging", to: "/anti-ragging" },
+        { label: "Rules & Regulations", to: "/rules-regulations" },
+        { label: "Student Grievance", to: "/student-grievance" },
       ],
     },
     { label: "Gallery", to: "/gallery" },
