@@ -2,9 +2,12 @@ import Sidebar from "./Sidebar";
 
 const AdminLayout = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="h-screen flex overflow-hidden">
+      {/* Sidebar */}
       <Sidebar />
-      <main className="flex-1 p-6 overflow-y-auto">
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto bg-[color:var(--color-background)] p-6">
         {children}
       </main>
     </div>
