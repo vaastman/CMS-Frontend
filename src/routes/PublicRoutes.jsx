@@ -26,6 +26,7 @@ import Attendence from "../pages/Student Support/Attendence";
 import AntiRagging from "../pages/Student Support/AntiRagging";
 import RulesRegulations from "../pages/Student Support/RulesRegulations";
 import StudentGrievance from "../pages/Student Support/StudentGrievance";
+import OnlineAdmission from "../pages/admission/OnlineAdmission";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -39,7 +40,7 @@ function PublicRoutes() {
       <Route path="/about_college" element={<AboutCollege />} />
       <Route path="/vision-mission" element={<VisionMission />} />
       <Route path="/principle-desk" element={<PrincipalDesk />} />
-      <Route path="/Online-admission-form" element={<Home />} />
+      <Route path="/Online-admission-form" element={<OnlineAdmission />} />
       <Route path="/courses-and-subject" element={<Courses />} />
       <Route path="/admissions-process" element={<Admission />} />
       <Route path="/faculty" element={<Faculty />}/>
