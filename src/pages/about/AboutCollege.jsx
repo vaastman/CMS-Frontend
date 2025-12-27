@@ -4,50 +4,57 @@ import { FaChevronRight } from "react-icons/fa";
 
 const AboutCollege = () => {
   return (
-    <div className="w-full">
+    <div className="w-full bg-[color:var(--color-page)]">
+
       {/* ===== HERO SECTION ===== */}
       <div
-        className="relative h-[320px] flex items-center"
+        className="relative h-[320px] flex items-center bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
         }}
       >
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <h1 className="text-white text-4xl font-bold">About Us</h1>
+          <h1 className="text-white text-4xl md:text-5xl font-semibold">
+            About Us
+          </h1>
         </div>
       </div>
 
       {/* ===== ANNOUNCEMENT BAR ===== */}
-      <div className="bg-[#d4a017] text-white py-3">
+      <div className="bg-[color:var(--color-secondary)] text-white py-3 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 flex items-center gap-4 text-sm">
           <span className="font-semibold whitespace-nowrap">
             IMPORTANT ANNOUNCEMENTS
           </span>
           <span className="opacity-80">|</span>
-          <marquee className="whitespace-nowrap">
-            UG Regular Sem-1 (2025) › Regarding Admission of 2nd Sem-2025 ›
-            Regarding Admission Payment of 4th Sem (2025)
-          </marquee>
+
+          {/* Marquee replacement */}
+          <div className="relative overflow-hidden w-full">
+            <div className="whitespace-nowrap animate-marquee">
+              UG Regular Sem-1 (2025) › Regarding Admission of 2nd Sem-2025 ›
+              Regarding Admission Payment of 4th Sem (2025)
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ===== BREADCRUMB ===== */}
-      <div className="max-w-7xl mx-auto px-6 py-4 text-sm text-gray-600">
+      <div className="max-w-7xl mx-auto px-6 py-4 text-sm text-[color:var(--color-text-secondary)]">
         Home <FaChevronRight className="inline mx-2 text-xs" /> Academics
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+
         {/* ===== LEFT SIDEBAR ===== */}
         <aside className="md:col-span-1">
-          <h3 className="text-blue-700 font-semibold mb-4 border-b pb-2">
+          <h3 className="font-semibold mb-4 pb-2 border-b border-[color:var(--color-divider)] text-[color:var(--color-primary)]">
             Sub Menu
           </h3>
-          <ul className="space-y-2 text-sm">
+
+          <ul className="space-y-3 text-sm">
             {[
               "About College",
               "Academics",
@@ -62,7 +69,7 @@ const AboutCollege = () => {
               <li key={i}>
                 <NavLink
                   to="#"
-                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                  className="block text-[color:var(--color-text-primary)] hover:text-[color:var(--color-primary)] transition"
                 >
                   • {item}
                 </NavLink>
@@ -72,7 +79,7 @@ const AboutCollege = () => {
         </aside>
 
         {/* ===== RIGHT CONTENT ===== */}
-        <section className="md:col-span-3 text-gray-800 leading-7 text-[15px]">
+        <section className="md:col-span-3 p-8 leading-7 text-[color:var(--color-text-primary)]">
           <p className="mb-4">
             Sant Sandhya Das Mahila College, Barh (Patna) received affiliation
             up to graduate prestige level by Patliputra University, Patna and
@@ -90,9 +97,13 @@ const AboutCollege = () => {
 
           <p className="mb-4">
             It is an immortal symbol and has its limitless potential for
-            expansion embedded in its numbers. (a) Affiliated college with wide
-            land of the college, playground, well-organized laboratory, library
-            and good educational environment up to graduate prestige level.
+            expansion embedded in its numbers.
+          </p>
+
+          <p className="mb-4">
+            (a) Affiliated college with wide land of the college, playground,
+            well-organized laboratory, library and good educational environment
+            up to graduate prestige level.
           </p>
 
           <p className="mb-4">
@@ -107,8 +118,7 @@ const AboutCollege = () => {
           </p>
         </section>
       </div>
-
-         </div>
+    </div>
   );
 };
 
