@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -7,27 +7,40 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const { login } = useAuth();
+  const { login, isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  /* 🔒 If already logged in, redirect */
+  useEffect(() => {
+    if (isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [isAdmin, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const success = login(username, password);
 
     if (success) {
-      navigate("/admin");
+      navigate("/admin", { replace: true });
     } else {
       setError("Invalid username or password");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-[color:var(--color-background)] px-4">
+
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow w-full max-w-md"
+        className="
+          bg-[color:var(--color-surface)]
+          p-8 rounded-2xl shadow-md
+          w-full max-w-md
+        "
       >
-        <h2 className="text-2xl font-semibold text-center mb-6">
+        <h2 className="text-2xl font-semibold text-center mb-6 text-[color:var(--color-text-primary)]">
           Admin Login
         </h2>
 
@@ -37,31 +50,55 @@ const AdminLogin = () => {
           </p>
         )}
 
+        {/* Username */}
         <div className="mb-4">
           <label className="block text-sm mb-1">Username</label>
           <input
             type="text"
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="
+              w-full border rounded-lg px-3 py-2
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[color:var(--color-primary)]
+            "
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setError("");
+            }}
             required
           />
         </div>
 
+        {/* Password */}
         <div className="mb-6">
           <label className="block text-sm mb-1">Password</label>
           <input
             type="password"
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="
+              w-full border rounded-lg px-3 py-2
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[color:var(--color-primary)]
+            "
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+            }}
             required
           />
         </div>
 
+        {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-2 rounded transition"
+          className="
+            w-full
+            bg-[color:var(--color-primary)]
+            hover:opacity-90
+            text-white py-2 rounded-lg transition
+          "
         >
           Login
         </button>

@@ -22,6 +22,11 @@ import Examination from "../pages/examination/Examination";
 // import Scholarship from "../pages/academics/Scholarship";
 // import Grievance from "../pages/academics/Grievance";
 import PublicLayout from "../components/layout/PublicLayout";
+import Attendence from "../pages/Student Support/Attendence";
+import AntiRagging from "../pages/Student Support/AntiRagging";
+import RulesRegulations from "../pages/Student Support/RulesRegulations";
+import StudentGrievance from "../pages/Student Support/StudentGrievance";
+import OnlineAdmission from "../pages/admission/OnlineAdmission";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -35,7 +40,7 @@ function PublicRoutes() {
       <Route path="/about_college" element={<AboutCollege />} />
       <Route path="/vision-mission" element={<VisionMission />} />
       <Route path="/principle-desk" element={<PrincipalDesk />} />
-      <Route path="/Online-admission-form" element={<Home />} />
+      <Route path="/Online-admission-form" element={<OnlineAdmission />} />
       <Route path="/courses-and-subject" element={<Courses />} />
       <Route path="/admissions-process" element={<Admission />} />
       <Route path="/faculty" element={<Faculty />}/>
@@ -44,8 +49,10 @@ function PublicRoutes() {
       <Route path="/certificates" element={<Certificates />}/>
       <Route path="/calendar" element={<Calendar />}/>
       <Route path="/examination" element={<Examination />}/>
-     {/*  <Route path="/scholarship" element={<Scholarship />}/>
-      <Route path="/grievance" element={<Grievance />}/> */}
+      <Route path="/attendence" element={<Attendence />}/>
+      <Route path="/anti-ragging" element={<AntiRagging />}/>
+      <Route path="/rules-regulations" element={<RulesRegulations />}/>
+      <Route path="/student-grievance" element={<StudentGrievance />}/>
       <Route path="*" element={<NotFound />} />
     </Routes>
     </PublicLayout>
