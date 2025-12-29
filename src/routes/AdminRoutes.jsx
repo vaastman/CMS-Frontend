@@ -16,6 +16,7 @@ import Payments from "../pages/Admin/Payments/Payments";
 import Receipts from "../pages/Admin/Payments/Receipts";
 import Departments from "../pages/Admin/Departments/Departments";
 import AuditLogs from "../pages/Admin/AuditLogs";
+import Sessions from "../pages/Admin/Sessions";
 
 const AdminRoutes = () => {
   return (
@@ -38,6 +39,7 @@ const AdminRoutes = () => {
         <Route path="exams" element={<Exams />} />
         <Route path="notices" element={<Notices />} />
         <Route path="settings" element={<Setting />} />
+        <Route path="sessions" element={<Sessions />} />
 
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>

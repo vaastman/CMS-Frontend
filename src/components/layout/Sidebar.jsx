@@ -11,6 +11,7 @@ import {
   FaUniversity,
   FaCogs,
   FaHistory,
+  FaGlobe
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -96,6 +97,11 @@ const Sidebar = () => {
           name: "Notices",
           path: "/admin/notices",
           icon: <FaBullhorn />,
+        },
+        {
+          name: "Sessions",
+          path: "/admin/sessions",
+          icon: <FaGlobe />,
         },
       ],
     },
