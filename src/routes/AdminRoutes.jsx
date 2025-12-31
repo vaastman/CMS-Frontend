@@ -17,6 +17,8 @@ import Receipts from "../pages/Admin/Payments/Receipts";
 import Departments from "../pages/Admin/Departments/Departments";
 import AuditLogs from "../pages/Admin/AuditLogs";
 import Sessions from "../pages/Admin/Sessions";
+// import DCRSection from "../pages/Admin/Payments/DCRSection";
+import Finance from "../pages/Admin/Payments/Finance";
 
 const AdminRoutes = () => {
   return (
@@ -40,6 +42,7 @@ const AdminRoutes = () => {
         <Route path="notices" element={<Notices />} />
         <Route path="settings" element={<Setting />} />
         <Route path="sessions" element={<Sessions />} />
+        <Route path="dcr-section" element={<Finance />} />
 
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>

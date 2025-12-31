@@ -70,19 +70,19 @@ const Sessions = () => {
         <div className="flex gap-3">
           <button
             onClick={() => setView("card")}
-            className={`p-2 rounded ${view === "card" && "bg-blue-600 text-white"}`}
+            className={`p-2 rounded ${view === "card" && "bg-[color:var(--color-primary)] text-white px-5 py-2 rounded-lg hover:opacity-90 transition"}`}
           >
             <FaThLarge />
           </button>
           <button
             onClick={() => setView("table")}
-            className={`p-2 rounded ${view === "table" && "bg-blue-600 text-white"}`}
+            className={`p-2 rounded ${view === "table" && "bg-[color:var(--color-primary)] text-white px-5 py-2 rounded-lg hover:opacity-90 transition"}`}
           >
             <FaTable />
           </button>
           <button
             onClick={() => setView("calendar")}
-            className={`p-2 rounded ${view === "calendar" && "bg-blue-600 text-white"}`}
+            className={`p-2 rounded ${view === "calendar" && "bg-[color:var(--color-primary)] text-white px-5 py-2 rounded-lg hover:opacity-90 transition"}`}
           >
             <FaCalendar />
           </button>
@@ -92,7 +92,9 @@ const Sessions = () => {
               setForm({});
               setModalOpen(true);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+            className="bg-[color:var(--color-primary)]
+            text-white px-5 py-2 rounded-lg
+            hover:opacity-90 transition"
           >
             + Create
           </button>

@@ -59,6 +59,21 @@ const Sidebar = () => {
           path: "/admin/receipts",
           icon: <FaReceipt />,
         },
+        {
+          name: "DCR1",
+          path: "/admin/dcr1",
+          icon: <FaReceipt />,
+        },
+        {
+          name: "DCR2",
+          path: "/admin/dcr2",
+          icon: <FaReceipt />,
+        },
+        {
+          name: "DCR Section",
+          path: "/admin/dcr-section",
+          icon: <FaReceipt />,
+        },
       ],
     },
 
