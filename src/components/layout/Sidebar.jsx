@@ -70,11 +70,11 @@ const Sidebar = () => {
           path: "/admin/dcr2",
           icon: <FaReceipt />,
         },
-        {
-          name: "DCR Section",
-          path: "/admin/dcr-section",
-          icon: <FaReceipt />,
-        },
+        // {
+        //   name: "DCR Section",
+        //   path: "/admin/dcr-section",
+        //   icon: <FaReceipt />,
+        // },
       ],
     },
 
