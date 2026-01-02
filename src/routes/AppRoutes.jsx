@@ -11,10 +11,10 @@ function AppRoutes() {
       {/* 🌐 Public Website */}
       <Route path="/*" element={<PublicRoutes />} />
 
-      {/* 🔐 Admin Login (PUBLIC) */}
+      {/* 🔓 Admin Login (PUBLIC) */}
       <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* 🛡️ Admin Panel (PROTECTED) */}
+      {/* 🔐 Admin Panel (PROTECTED) */}
       <Route
         path="/admin/*"
         element={

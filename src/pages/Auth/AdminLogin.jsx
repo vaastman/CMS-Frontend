@@ -10,7 +10,7 @@ const AdminLogin = () => {
   const { login, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  /* 🔒 If already logged in, redirect */
+  /* 🔒 If already logged in, redirect to admin dashboard */
   useEffect(() => {
     if (isAdmin) {
       navigate("/admin", { replace: true });
@@ -22,25 +22,26 @@ const AdminLogin = () => {
 
     const success = login(username, password);
 
-    if (success) {
-      navigate("/admin", { replace: true });
-    } else {
+    if (!success) {
       setError("Invalid username or password");
     }
+    // ✅ success case handled by useEffect redirect
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[color:var(--color-background)] px-4">
-
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: "var(--color-page)" }}
+    >
       <form
         onSubmit={handleSubmit}
-        className="
-          bg-[color:var(--color-surface)]
-          p-8 rounded-2xl shadow-md
-          w-full max-w-md
-        "
+        className="p-8 rounded-2xl shadow-md w-full max-w-md"
+        style={{ backgroundColor: "var(--color-surface)" }}
       >
-        <h2 className="text-2xl font-semibold text-center mb-6 text-[color:var(--color-text-primary)]">
+        <h2
+          className="text-2xl font-semibold text-center mb-6"
+          style={{ color: "var(--color-text-primary)" }}
+        >
           Admin Login
         </h2>
 
@@ -52,15 +53,16 @@ const AdminLogin = () => {
 
         {/* Username */}
         <div className="mb-4">
-          <label className="block text-sm mb-1">Username</label>
+          <label
+            className="block text-sm mb-1"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            Username
+          </label>
           <input
             type="text"
-            className="
-              w-full border rounded-lg px-3 py-2
-              focus:outline-none
-              focus:ring-2
-              focus:ring-[color:var(--color-primary)]
-            "
+            className="w-full rounded-lg px-3 py-2 text-sm outline-none border"
+            style={{ borderColor: "var(--color-divider)" }}
             value={username}
             onChange={(e) => {
               setUsername(e.target.value);
@@ -72,15 +74,16 @@ const AdminLogin = () => {
 
         {/* Password */}
         <div className="mb-6">
-          <label className="block text-sm mb-1">Password</label>
+          <label
+            className="block text-sm mb-1"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            Password
+          </label>
           <input
             type="password"
-            className="
-              w-full border rounded-lg px-3 py-2
-              focus:outline-none
-              focus:ring-2
-              focus:ring-[color:var(--color-primary)]
-            "
+            className="w-full rounded-lg px-3 py-2 text-sm outline-none border"
+            style={{ borderColor: "var(--color-divider)" }}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -93,17 +96,16 @@ const AdminLogin = () => {
         {/* Submit */}
         <button
           type="submit"
-          className="
-            w-full
-            bg-[color:var(--color-primary)]
-            hover:opacity-90
-            text-white py-2 rounded-lg transition
-          "
+          className="w-full py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
+          style={{ backgroundColor: "var(--color-primary)" }}
         >
           Login
         </button>
 
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p
+          className="text-xs text-center mt-4"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
           Demo Login → <b>admin / admin123</b>
         </p>
       </form>
