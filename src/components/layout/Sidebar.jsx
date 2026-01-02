@@ -14,8 +14,18 @@ import {
   FaGlobe,
   FaSignOutAlt
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 
 const Sidebar = () => {
+  const { logout, admin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();                 // 🔐 clear localStorage + state
+    navigate("/admin/login", { replace: true }); // 🔁 redirect
+  };
+
   const menu = [
     /* ===== CORE ===== */
     {
@@ -70,11 +80,11 @@ const Sidebar = () => {
           path: "/admin/dcr2",
           icon: <FaReceipt />,
         },
-        {
-          name: "DCR Section",
-          path: "/admin/dcr-section",
-          icon: <FaReceipt />,
-        },
+        // {
+        //   name: "DCR Section",
+        //   path: "/admin/dcr-section",
+        //   icon: <FaReceipt />,
+        // },
       ],
     },
 
@@ -88,8 +98,8 @@ const Sidebar = () => {
           icon: <FaUniversity />,
         },
         {
-          name: "Staff",
-          path: "/admin/staff",
+          name: "Students",
+          path: "/admin/students",
           icon: <FaUserTie />,
         },
         {
@@ -183,35 +193,36 @@ const Sidebar = () => {
 
       {/* Footer (Fixed) */}
       <div className="px-6 py-4 border-t border-white/20 shrink-0">
-  <div className="flex items-center justify-between">
-    
-    {/* User Info */}
-    <div className="flex items-center gap-3">
-      <img
-        src="https://i.pravatar.cc/40"
-        alt="Admin"
-        className="w-10 h-10 rounded-full object-cover"
-      />
-      <div className="leading-tight">
-        <h4 className="text-sm font-semibold text-white">
-          Rohit Sharma
-        </h4>
-        <p className="text-xs text-white/70">
-          Super Admin
-        </p>
+      <div className="flex items-center justify-between">
+
+        {/* User Info */}
+        <div className="flex items-center gap-3">
+          <img
+            src="https://i.pravatar.cc/40"
+            alt="Admin"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div className="leading-tight">
+            <h4 className="text-sm font-semibold text-white">
+              {admin?.username || "Admin"}
+            </h4>
+            <p className="text-xs text-white/70">
+              Super Admin
+            </p>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="text-white/70 hover:text-red-400 transition"
+          title="Logout"
+        >
+          <FaSignOutAlt />
+        </button>
+
       </div>
     </div>
-
-    {/* Logout */}
-    <button
-      className="text-white/70 hover:text-red-400 transition"
-      title="Logout"
-    >
-      <FaSignOutAlt />
-    </button>
-
-  </div>
-</div>
 
     </aside>
 

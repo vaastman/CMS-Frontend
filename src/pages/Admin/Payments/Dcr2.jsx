@@ -1,18 +1,30 @@
-import React,{useState} from 'react'
+import CollectionCard from "../../../components/CollectionCard";
+import TransactionTable from "../../../components/TransactionTable";
 
-// reusable card
-const StatCard = ({title,amount})=>{
-    <div className='bg-white rounded-2xl shadow p-5'>
-        <h3>{title}</h3>
-        <p>{amount}</p>
-        <button>Export Report</button>
-    </div>
-}
+const transactions = [
+  {
+    id: "TXN101",
+    student: "Amit Singh",
+    date: "14 Sep 2025",
+    amount: 15000,
+    mode: "Card",
+  },
+];
 
 const Dcr2 = () => {
   return (
-    <div>Dcr2</div>
-  )
-}
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">DCR 2</h1>
 
-export default Dcr2
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <CollectionCard title="Total Collection" amount={320000} />
+        <CollectionCard title="This Month Collection" amount={98000} />
+        <CollectionCard title="Today's Collection" amount={6000} />
+      </div>
+
+      <TransactionTable data={transactions} />
+    </div>
+  );
+};
+
+export default Dcr2;

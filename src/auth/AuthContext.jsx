@@ -1,28 +1,54 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(
-    localStorage.getItem("isAdmin") === "true"
-  );
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [admin, setAdmin] = useState(null);
 
-  const login = (username, password) => {
-    if (username === "admin" && password === "admin123") {
+  /* 🔁 Restore admin session on page reload */
+  useEffect(() => {
+    const storedAdmin = localStorage.getItem("admin");
+    if (storedAdmin) {
+      setAdmin(JSON.parse(storedAdmin));
       setIsAdmin(true);
-      localStorage.setItem("isAdmin", "true");
+    }
+  }, []);
+
+  /* 🔐 Login */
+  const login = (username, password) => {
+    // Demo credentials (replace later with API)
+    if (username === "admin" && password === "admin123") {
+      const adminData = {
+        username,
+        role: "ADMIN",
+        loginAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem("admin", JSON.stringify(adminData));
+      setAdmin(adminData);
+      setIsAdmin(true);
       return true;
     }
     return false;
   };
 
+  /* 🚪 Logout */
   const logout = () => {
+    localStorage.removeItem("admin");
+    setAdmin(null);
     setIsAdmin(false);
-    localStorage.removeItem("isAdmin");
   };
 
   return (
-    <AuthContext.Provider value={{ isAdmin, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAdmin,
+        admin,     // 👈 admin details available everywhere
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

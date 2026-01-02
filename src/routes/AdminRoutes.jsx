@@ -1,14 +1,13 @@
+// src/routes/AdminRoutes.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "../components/layout/AdminLayout";
 
 import AdminDashboard from "../pages/Admin/AdminDashboard";
-import Staff from "../pages/Admin/Staff";
 import Course from "../pages/Admin/Course";
 import Exams from "../pages/Admin/Exams";
 import Notices from "../pages/Admin/Notices";
 import Setting from "../pages/Admin/Setting";
 
-/* NEW */
 import Admissions from "../pages/Admin/Admissions/Admissions";
 import AdmissionDetails from "../pages/Admin/Admissions/AdmissionDetails";
 import VerifyDocuments from "../pages/Admin/Admissions/VerifyDocuments";
@@ -17,33 +16,41 @@ import Receipts from "../pages/Admin/Payments/Receipts";
 import Departments from "../pages/Admin/Departments/Departments";
 import AuditLogs from "../pages/Admin/AuditLogs";
 import Sessions from "../pages/Admin/Sessions";
-// import DCRSection from "../pages/Admin/Payments/DCRSection";
-import Finance from "../pages/Admin/Payments/Finance";
+import Students from "../pages/Admin/academics/Students";
+import Dcr1 from "../pages/Admin/Payments/Dcr1";
+import Dcr2 from "../pages/Admin/Payments/Dcr2";
 
 const AdminRoutes = () => {
   return (
     <AdminLayout>
       <Routes>
+        {/* Dashboard */}
         <Route index element={<AdminDashboard />} />
 
+        {/* Admissions */}
         <Route path="admissions" element={<Admissions />} />
         <Route path="admissions/:id" element={<AdmissionDetails />} />
         <Route path="admissions/:id/verify" element={<VerifyDocuments />} />
 
+        {/* Payments */}
         <Route path="payments" element={<Payments />} />
         <Route path="receipts" element={<Receipts />} />
+        <Route path="dcr1" element={<Dcr1 />} />
+        <Route path="dcr2" element={<Dcr2 />} />
 
-        <Route path="departments" element={<Departments />} />
-        <Route path="audit-logs" element={<AuditLogs />} />
-
-        <Route path="staff" element={<Staff />} />
+        {/* Academics */}
+        <Route path="students" element={<Students />} />
         <Route path="courses" element={<Course />} />
         <Route path="exams" element={<Exams />} />
+        <Route path="sessions" element={<Sessions />} />
+
+        {/* Others */}
+        <Route path="departments" element={<Departments />} />
+        <Route path="audit-logs" element={<AuditLogs />} />
         <Route path="notices" element={<Notices />} />
         <Route path="settings" element={<Setting />} />
-        <Route path="sessions" element={<Sessions />} />
-        <Route path="dcr-section" element={<Finance />} />
 
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>
