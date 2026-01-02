@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "../components/layout/AdminLayout";
 
 import AdminDashboard from "../pages/Admin/AdminDashboard";
-import Staff from "../pages/Admin/Staff";
 import Course from "../pages/Admin/Course";
 import Exams from "../pages/Admin/Exams";
 import Notices from "../pages/Admin/Notices";
@@ -19,6 +18,7 @@ import AuditLogs from "../pages/Admin/AuditLogs";
 import Sessions from "../pages/Admin/Sessions";
 // import DCRSection from "../pages/Admin/Payments/DCRSection";
 import Finance from "../pages/Admin/Payments/Finance";
+import Students from "../pages/Admin/academics/Students";
 
 const AdminRoutes = () => {
   return (
@@ -36,7 +36,7 @@ const AdminRoutes = () => {
         <Route path="departments" element={<Departments />} />
         <Route path="audit-logs" element={<AuditLogs />} />
 
-        <Route path="staff" element={<Staff />} />
+        <Route path="students" element={<Students />} />
         <Route path="courses" element={<Course />} />
         <Route path="exams" element={<Exams />} />
         <Route path="notices" element={<Notices />} />

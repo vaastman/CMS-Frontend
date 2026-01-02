@@ -88,8 +88,8 @@ const Sidebar = () => {
           icon: <FaUniversity />,
         },
         {
-          name: "Staff",
-          path: "/admin/staff",
+          name: "Students",
+          path: "/admin/students",
           icon: <FaUserTie />,
         },
         {
