@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const studentsData = [
   {
@@ -31,13 +31,21 @@ const StudentTable = ({ search, filters }) => {
   const [page, setPage] = useState(1);
   const perPage = 5;
 
-  const filtered = studentsData.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) &&
-      (filters.course ? s.course === filters.course : true) &&
-      (filters.session ? s.session === filters.session : true) &&
-      (filters.status ? s.status === filters.status : true)
-  );
+  /* ===== FILTER DATA ===== */
+  const filtered = useMemo(() => {
+    return studentsData.filter(
+      (s) =>
+        s.name.toLowerCase().includes(search.toLowerCase()) &&
+        (filters.course ? s.course === filters.course : true) &&
+        (filters.session ? s.session === filters.session : true) &&
+        (filters.status ? s.status === filters.status : true)
+    );
+  }, [search, filters]);
+
+  /* ===== RESET PAGE ON FILTER CHANGE ===== */
+  useEffect(() => {
+    setPage(1);
+  }, [search, filters]);
 
   const totalPages = Math.ceil(filtered.length / perPage);
 
@@ -103,11 +111,16 @@ const StudentTable = ({ search, filters }) => {
                     {s.status}
                   </span>
                 </td>
-                <td
-                  className="text-center"
-                  onClick={(e) => e.stopPropagation()}
-                >
+
+                {/* ===== ACTION ===== */}
+                <td className="text-center">
                   <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(
+                        `/admin/students/${s.id}?mode=edit`
+                      );
+                    }}
                     className="text-sm font-medium hover:underline"
                     style={{ color: "var(--color-primary)" }}
                   >

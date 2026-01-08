@@ -19,6 +19,7 @@ import Sessions from "../pages/Admin/Sessions";
 import Students from "../pages/Admin/academics/Students";
 import Dcr1 from "../pages/Admin/Payments/Dcr1";
 import Dcr2 from "../pages/Admin/Payments/Dcr2";
+import StudentDetails from "../pages/Admin/academics/StudentDetails";
 
 const AdminRoutes = () => {
   return (
@@ -40,9 +41,12 @@ const AdminRoutes = () => {
 
         {/* Academics */}
         <Route path="students" element={<Students />} />
+        <Route path="students/:id" element={<StudentDetails />} />
         <Route path="courses" element={<Course />} />
         <Route path="exams" element={<Exams />} />
         <Route path="sessions" element={<Sessions />} />
+
+
 
         {/* Others */}
         <Route path="departments" element={<Departments />} />
