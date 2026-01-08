@@ -27,7 +27,7 @@ const Slider = ({ images, autoPlay = true, interval = 4000 }) => {
   };
 
   return (
-    <div className="relative w-full h-[280px] mb-24 md:h-[520px] overflow-hidden rounded-xl shadow-lg">
+    <div className="relative w-full h-[280px]  md:h-[520px] overflow-hidden shadow-lg">
 
       {/* Images */}
       <div
@@ -47,7 +47,7 @@ const Slider = ({ images, autoPlay = true, interval = 4000 }) => {
       {/* Prev Button */}
       <button
         onClick={prevSlide}
-        className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white px-3 py-1 rounded-full text-lg"
+        className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white px-3 py-1  text-lg"
       >
         ❮
       </button>
