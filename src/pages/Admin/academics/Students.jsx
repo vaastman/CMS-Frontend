@@ -1,24 +1,127 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 import StudentTable from "../../../components/StudentTable";
 import StudentFilters from "../../../components/StudentFilters";
 
+
 const Students = () => {
+  const initialForm = {
+    name: "",
+    email: "",
+    phone: "",
+    dob: "",
+    fatherName: "",
+    gender: "",
+    category: "",
+    address: "",
+    courseId: "",
+    sessionId: "",
+  };
+
+  const [form, setForm] = useState(initialForm);
+  const [photo, setPhoto] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [openStudentModal, setOpenStudentModal] = useState(false);
   const [search, setSearch] = useState("");
+  const [submitStatus, setSubmitStatus] = useState("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [filters, setFilters] = useState({
     course: "",
     session: "",
     status: "",
   });
 
-  const [openStudentModal, setOpenStudentModal] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(null);
-  const [documents, setDocuments] = useState([]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Student Registered");
-    setOpenStudentModal(false);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+
+  const handleSubmit = async (e) => {
+    console.log("Submit clicked");
+
+    e.preventDefault();
+
+    if (
+      !form.name ||
+      !form.email ||
+      !form.phone ||
+      !form.courseId ||
+      !form.sessionId
+    ) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    setLoading(true);
+    const toastId = toast.loading("Registering student...");
+
+    try {
+      const formData = new FormData();
+
+      Object.keys(form).forEach((key) => {
+        if (form[key]) {
+          formData.append(key, form[key]);
+        }
+      });
+
+      if (photo) formData.append("photo", photo);
+
+      documents.forEach((file) => {
+        formData.append("documents", file);
+      });
+
+      await axios.post(
+        "http://localhost:5000/api/students",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      toast.update(toastId, {
+        render: "Student registered successfully 🎉",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      // Reset UI
+      setForm(initialForm);
+      setPhoto(null);
+      setDocuments([]);
+      setPhotoPreview(null);
+      setOpenStudentModal(false);
+
+    } catch (error) {
+      toast.update(toastId, {
+        render:
+          error.response?.data?.message || "Student registration failed",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleDocumentsChange = (e) => {
+    const files = Array.from(e.target.files);
+    setDocuments((prev) => [...prev, ...files]);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -90,28 +193,82 @@ const Students = () => {
             >
               {/* ================= GENERAL INFO ================= */}
               <section>
-                <h4 className="font-semibold mb-4">
-                  General Information
-                </h4>
-
+                <h4 className="font-semibold mb-4">General Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input className="input" placeholder="Full Name" />
+                  <input
+                    className="input"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Full Name"
+                    required
+                  />
+
                   <input
                     className="input"
                     type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
                     placeholder="Email"
+                    required
                   />
-                  <input className="input" placeholder="Phone" />
+
                   <input
                     className="input"
+                    name="phone"
+                    value={form.phone}
+                    onChange={(e) => {
+                      if (/^\d{0,10}$/.test(e.target.value)) {
+                        handleChange(e);
+                      }
+                    }}
+                    placeholder="Phone (10 digits)"
+                    required
+                  />
+
+                  <input
+                    className="input"
+                    name="fatherName"
+                    value={form.fatherName}
+                    onChange={handleChange}
                     placeholder="Father's Name"
                   />
-                  <input className="input" placeholder="UAN" />
+
                   <input
                     className="input"
-                    placeholder="Registration No (optional)"
+                    type="date"
+                    name="dob"
+                    value={form.dob}
+                    onChange={handleChange}
                   />
-                  <input className="input" type="date" />
+
+                  <select
+                    className="input"
+                    name="gender"
+                    value={form.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+
+                  <select
+                    className="input"
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Category</option>
+                    <option value="GENERAL">General</option>
+                    <option value="BC_I">BC-I</option>
+                    <option value="BC_II">BC-II</option>
+                    <option value="SC">SC</option>
+                    <option value="ST">ST</option>
+                    <option value="EWS">EWS</option>
+                  </select>
 
                   {/* Photo Upload */}
                   <div className="flex items-center gap-6 md:col-span-2">
@@ -124,9 +281,7 @@ const Students = () => {
                         />
                       ) : (
                         <span className="text-xs text-gray-400 text-center">
-                          Upload
-                          <br />
-                          Photo
+                          Upload<br />Photo
                         </span>
                       )}
                     </div>
@@ -136,13 +291,10 @@ const Students = () => {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) =>
-                          setPhotoPreview(
-                            URL.createObjectURL(
-                              e.target.files[0]
-                            )
-                          )
-                        }
+                        onChange={(e) => {
+                          setPhoto(e.target.files[0]);
+                          setPhotoPreview(URL.createObjectURL(e.target.files[0]));
+                        }}
                       />
                       <span className="px-4 py-2 border rounded-lg text-sm">
                         Choose Photo
@@ -153,6 +305,9 @@ const Students = () => {
                   <textarea
                     rows="2"
                     className="input md:col-span-2"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
                     placeholder="Address"
                   />
                 </div>
@@ -160,47 +315,35 @@ const Students = () => {
 
               {/* ================= ACADEMIC INFO ================= */}
               <section>
-                <h4 className="font-semibold mb-4">
-                  Academic Information
-                </h4>
-
+                <h4 className="font-semibold mb-4">Academic Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <select className="input">
-                    <option>Department</option>
-                    <option>CSE</option>
-                    <option>Mechanical</option>
+                  <select
+                    className="input"
+                    name="courseId"
+                    value={form.courseId}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Course</option>
+                    <option value="COURSE_UUID">B.Tech</option>
                   </select>
 
-                  <select className="input">
-                    <option>Session</option>
-                    <option>2023–2027</option>
-                    <option>2024–2028</option>
+                  <select
+                    className="input"
+                    name="sessionId"
+                    value={form.sessionId}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Session</option>
+                    <option value="SESSION_UUID">2024–2028</option>
                   </select>
-
-                  <select className="input">
-                    <option>Course</option>
-                    <option>B.Tech</option>
-                    <option>M.Tech</option>
-                  </select>
-
-                  <select className="input">
-                    <option>Semester</option>
-                    <option>1</option>
-                    <option>2</option>
-                  </select>
-
-                  <input
-                    className="input md:col-span-2"
-                    placeholder="Subjects (comma separated)"
-                  />
                 </div>
               </section>
 
               {/* ================= DOCUMENTS ================= */}
               <section>
-                <h4 className="font-semibold mb-4">
-                  Upload Documents
-                </h4>
+                <h4 className="font-semibold mb-4">Upload Documents</h4>
 
                 <label className="block cursor-pointer">
                   <div className="border-2 border-dashed rounded-xl p-6 text-center">
@@ -208,16 +351,9 @@ const Students = () => {
                       type="file"
                       multiple
                       className="hidden"
-                      onChange={(e) =>
-                        setDocuments((prev) => [
-                          ...prev,
-                          ...Array.from(e.target.files),
-                        ])
-                      }
+                      onChange={handleDocumentsChange}
                     />
-                    <p className="text-sm">
-                      Click or drag files to upload
-                    </p>
+                    <p className="text-sm">Click or drag files to upload</p>
                     <p className="text-xs text-gray-400">
                       PDF, JPG, PNG (Max 5MB)
                     </p>
@@ -226,9 +362,9 @@ const Students = () => {
 
                 {documents.length > 0 && (
                   <ul className="mt-4 space-y-2">
-                    {documents.map((file, i) => (
+                    {documents.map((file, index) => (
                       <li
-                        key={i}
+                        key={index}
                         className="flex justify-between items-center border rounded-lg px-3 py-2 text-sm"
                       >
                         <span className="truncate">{file.name}</span>
@@ -236,8 +372,8 @@ const Students = () => {
                           type="button"
                           className="text-red-500 text-xs"
                           onClick={() =>
-                            setDocuments((d) =>
-                              d.filter((_, idx) => idx !== i)
+                            setDocuments((prev) =>
+                              prev.filter((_, i) => i !== index)
                             )
                           }
                         >
@@ -248,7 +384,29 @@ const Students = () => {
                   </ul>
                 )}
               </section>
+
+              {/* ===== ✅ SUBMIT BUTTON (INSIDE FORM) ===== */}
+              <div className="flex justify-end gap-3 pt-6 border-t">
+                <button
+                  type="button"
+                  onClick={() => setOpenStudentModal(false)}
+                  className="px-4 py-2 border rounded-lg text-sm"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-5 py-2 rounded-lg text-sm text-white"
+                  style={{ backgroundColor: "var(--color-primary)" }}
+                >
+                  {loading ? "Registering..." : "Register Student"}
+                </button>
+              </div>
             </form>
+
+
 
             {/* ===== MODAL FOOTER (STICKY) ===== */}
             <div
@@ -258,20 +416,7 @@ const Students = () => {
                 borderColor: "var(--color-divider)",
               }}
             >
-              <button
-                type="button"
-                onClick={() => setOpenStudentModal(false)}
-                className="px-4 py-2 border rounded-lg text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-5 py-2 rounded-lg text-sm text-white"
-                style={{ backgroundColor: "var(--color-primary)" }}
-              >
-                Register Student
-              </button>
+           
             </div>
           </div>
         </div>
