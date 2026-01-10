@@ -1,33 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
+import {getCourses, createCourse} from '@/api/course.api';
 
 const Course = () => {
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      name: "B.Sc Computer Science",
-      duration: "3 Years",
-      department: "Science",
-      seats: 60,
-    },
-    {
-      id: 2,
-      name: "B.A English",
-      duration: "3 Years",
-      department: "Arts",
-      seats: 80,
-    },
-  ]);
-
+  const [courses, setCourses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
-    duration: "",
-    department: "",
-    seats: "",
+    code: "",
+    durationYears: "",
+    departmentId: "",
   });
+
+  /* ================= FETCH COURSES ================= */
+  const fetchCourses = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/courses");
+      setCourses(res.data);
+    } catch (err) {
+      toast.error("Failed to load courses");
+    }
+  };
+
+  useEffect(() => {
+    getCourses().then((res) => setCourses(res.data));
+  }, []);
 
   /* ================= HANDLERS ================= */
 
@@ -35,43 +37,75 @@ const Course = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleAddOrUpdate = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingCourse) {
-      setCourses(
-        courses.map((course) =>
-          course.id === editingCourse.id
-            ? { ...course, ...formData }
-            : course
-        )
-      );
-    } else {
-      setCourses([
-        ...courses,
-        { id: Date.now(), ...formData },
-      ]);
+    if (
+      !formData.name ||
+      !formData.code ||
+      !formData.durationYears ||
+      !formData.departmentId
+    ) {
+      toast.error("All fields are required");
+      return;
     }
 
-    setFormData({
-      name: "",
-      duration: "",
-      department: "",
-      seats: "",
-    });
-    setEditingCourse(null);
-    setShowForm(false);
+    setLoading(true);
+
+    try {
+      if (editingCourse) {
+        // UPDATE
+        await axios.put(
+          `http://localhost:5000/api/courses/${editingCourse.id}`,
+          formData
+        );
+        toast.success("Course updated successfully");
+      } else {
+        // CREATE
+        await axios.post(
+          "http://localhost:5000/api/courses",
+          formData
+        );
+        toast.success("Course added successfully");
+      }
+
+      setShowForm(false);
+      setEditingCourse(null);
+      setFormData({
+        name: "",
+        code: "",
+        durationYears: "",
+        departmentId: "",
+      });
+      fetchCourses();
+
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (course) => {
     setEditingCourse(course);
-    setFormData(course);
+    setFormData({
+      name: course.name,
+      code: course.code,
+      durationYears: course.durationYears,
+      departmentId: course.departmentId,
+    });
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      setCourses(courses.filter((course) => course.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this course?")) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/api/courses/${id}`);
+      toast.success("Course deleted");
+      fetchCourses();
+    } catch {
+      toast.error("Delete failed");
     }
   };
 
@@ -81,11 +115,9 @@ const Course = () => {
       {/* ================= HEADER ================= */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
-            Course Management
-          </h1>
-          <p className="text-sm text-[color:var(--color-text-secondary)]">
-            Manage academic courses offered by the college
+          <h1 className="text-2xl font-semibold">Course Management</h1>
+          <p className="text-sm text-gray-500">
+            Manage academic courses offered by the institution
           </p>
         </div>
 
@@ -95,73 +127,76 @@ const Course = () => {
             setEditingCourse(null);
             setFormData({
               name: "",
-              duration: "",
-              department: "",
-              seats: "",
+              code: "",
+              durationYears: "",
+              departmentId: "",
             });
           }}
-          className="
-            flex items-center gap-2
-            bg-[color:var(--color-primary)]
-            text-white px-5 py-2 rounded-lg
-            hover:opacity-90 transition
-          "
+          className="flex items-center gap-2 text-white px-5 py-2 rounded-lg"
+          style={{ backgroundColor: "var(--color-primary)" }}
         >
           <FaPlus /> Add Course
         </button>
       </div>
 
-      {/* ================= ADD / EDIT FORM ================= */}
+      {/* ================= FORM ================= */}
       {showForm && (
         <form
-          onSubmit={handleAddOrUpdate}
-          className="bg-[color:var(--color-surface)] p-6 rounded-2xl shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4"
+          onSubmit={handleSubmit}
+          className="bg-white p-6 rounded-2xl shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4"
         >
           <input
             name="name"
             value={formData.name}
             onChange={handleChange}
             placeholder="Course Name"
-            required
             className="border p-3 rounded-lg"
           />
+
           <input
-            name="duration"
-            value={formData.duration}
+            name="code"
+            value={formData.code}
             onChange={handleChange}
-            placeholder="Duration (e.g. 3 Years)"
-            required
+            placeholder="Course Code (CS101)"
             className="border p-3 rounded-lg"
           />
+
           <input
-            name="department"
-            value={formData.department}
-            onChange={handleChange}
-            placeholder="Department"
-            required
-            className="border p-3 rounded-lg"
-          />
-          <input
-            name="seats"
+            name="durationYears"
             type="number"
-            value={formData.seats}
+            value={formData.durationYears}
             onChange={handleChange}
-            placeholder="Total Seats"
-            required
+            placeholder="Duration (Years)"
+            className="border p-3 rounded-lg"
+          />
+
+          <input
+            name="departmentId"
+            value={formData.departmentId}
+            onChange={handleChange}
+            placeholder="Department UUID"
             className="border p-3 rounded-lg"
           />
 
           <div className="md:col-span-4 flex gap-4 mt-4">
             <button
               type="submit"
-              className="bg-green-600 text-white px-6 py-2 rounded-lg"
+              disabled={loading}
+              className="text-white px-6 py-2 rounded-lg"
+              style={{backgroundColor:"var(--color-primary)"}}
             >
-              {editingCourse ? "Update Course" : "Add Course"}
+              {loading
+                ? "Saving..."
+                : editingCourse
+                ? "Update Course"
+                : "Add Course"}
             </button>
+
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="bg-gray-500 text-white px-6 py-2 rounded-lg"
+              className="bg-red-500 text-white px-6 py-2 rounded-lg"
+              style={{ backgroundColor: "var(--color-danger)" }}
             >
               Cancel
             </button>
@@ -169,38 +204,35 @@ const Course = () => {
         </form>
       )}
 
-      {/* ================= COURSE TABLE ================= */}
-      <div className="bg-[color:var(--color-surface)] rounded-2xl shadow-sm overflow-x-auto">
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="text-left p-4">Course Name</th>
-              <th className="text-left p-4">Duration</th>
-              <th className="text-left p-4">Department</th>
-              <th className="text-left p-4">Seats</th>
-              <th className="text-center p-4">Actions</th>
+              <th className="p-4 text-left">Name</th>
+              <th className="p-4 text-left">Code</th>
+              <th className="p-4 text-left">Duration</th>
+              <th className="p-4 text-left">Department</th>
+              <th className="p-4 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {courses.map((course) => (
-              <tr
-                key={course.id}
-                className="border-t hover:bg-gray-50"
-              >
+              <tr key={course.id} className="border-t">
                 <td className="p-4">{course.name}</td>
-                <td className="p-4">{course.duration}</td>
-                <td className="p-4">{course.department}</td>
-                <td className="p-4">{course.seats}</td>
-                <td className="p-4 text-center flex justify-center gap-4">
+                <td className="p-4">{course.code}</td>
+                <td className="p-4">{course.durationYears} Years</td>
+                <td className="p-4">{course.departmentId}</td>
+                <td className="p-4 flex justify-center gap-4">
                   <button
                     onClick={() => handleEdit(course)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-blue-600"
                   >
                     <FaEdit />
                   </button>
                   <button
                     onClick={() => handleDelete(course.id)}
-                    className="text-red-600 hover:text-red-800"
+                    className="text-red-600"
                   >
                     <FaTrash />
                   </button>
@@ -210,8 +242,8 @@ const Course = () => {
 
             {courses.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center p-6 text-gray-500">
-                  No courses available.
+                <td colSpan="5" className="p-6 text-center text-gray-500">
+                  No courses found
                 </td>
               </tr>
             )}

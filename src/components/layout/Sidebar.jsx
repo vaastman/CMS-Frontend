@@ -107,11 +107,11 @@ const Sidebar = () => {
           path: "/admin/courses",
           icon: <FaBook />,
         },
-        {
-          name: "Examinations",
-          path: "/admin/exams",
-          icon: <FaFileAlt />,
-        },
+        // {
+        //   name: "Examinations",
+        //   path: "/admin/exams",
+        //   icon: <FaFileAlt />,
+        // },
       ],
     },
 

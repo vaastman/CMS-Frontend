@@ -1,0 +1,15 @@
+import api from "./api";
+
+export const getStudents = (params) =>
+  api.get("/students", { params });
+
+export const createStudent = (data) =>
+  api.post("/students", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const updateStudent = (id, data) =>
+  api.put(`/students/${id}`, data);
+
+export const deleteStudent = (id) =>
+  api.delete(`/students/${id}`);
