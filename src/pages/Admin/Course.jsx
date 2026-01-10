@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
+import {getCourses, createCourse} from '@/api/course.api';
 
 const Course = () => {
   const [courses, setCourses] = useState([]);
@@ -27,7 +28,7 @@ const Course = () => {
   };
 
   useEffect(() => {
-    fetchCourses();
+    getCourses().then((res) => setCourses(res.data));
   }, []);
 
   /* ================= HANDLERS ================= */
@@ -131,7 +132,8 @@ const Course = () => {
               departmentId: "",
             });
           }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg"
+          className="flex items-center gap-2 text-white px-5 py-2 rounded-lg"
+          style={{ backgroundColor: "var(--color-primary)" }}
         >
           <FaPlus /> Add Course
         </button>
@@ -180,7 +182,8 @@ const Course = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg"
+              className="text-white px-6 py-2 rounded-lg"
+              style={{backgroundColor:"var(--color-primary)"}}
             >
               {loading
                 ? "Saving..."
@@ -192,7 +195,8 @@ const Course = () => {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="bg-gray-500 text-white px-6 py-2 rounded-lg"
+              className="bg-red-500 text-white px-6 py-2 rounded-lg"
+              style={{ backgroundColor: "var(--color-danger)" }}
             >
               Cancel
             </button>
