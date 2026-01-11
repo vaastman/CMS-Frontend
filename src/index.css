@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ================= THEME TOKENS (Tailwind v4) ================= */
-@theme {
+/* @theme {
   --color-primary: #0B3A6F;
   --color-secondary: #d4a017;
 
@@ -12,7 +12,34 @@
   --color-text-secondary: #6B7280;
   --color-divider: #E5E7EB;
   --color-danger: #DC2626;
+} */
+ /* ================= PRIMARY LIGHT COLLEGE THEME ================= */
+/* ================= COLLEGE THEME ================= */
+@theme {
+  /* Brand Colors */
+  --color-primary: #0B3A6F;          /* Academic Blue */
+  --color-secondary: #D4A017;        /* Warm Gold Accent */
+
+  /* Backgrounds */
+  --color-page: #F9FAFB;             /* Page Background */
+  --color-surface: #FFFFFF;          /* Cards / Panels */
+
+  /* Text Colors */
+  --color-text-primary: #0F172A;     /* Main Text */
+  --color-text-secondary: #64748B;   /* Muted Text */
+
+  /* Borders & Dividers */
+  --color-divider: #E5E7EB;
+  --color-border: #CBD5E1;
+
+  /* Status Colors */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
 }
+
+
 
 /* ================= GLOBAL STYLES ================= */
 body {

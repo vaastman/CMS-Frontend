@@ -1,47 +1,55 @@
-import React, { useState } from 'react'
-import { assets } from '../assets/assest'
-import { FaFacebook, FaInstagramSquare, FaLinkedin, FaTwitter } from 'react-icons/fa'
+import React, { useState } from "react";
+import { assets } from "../assets/assest";
+import {
+  FaFacebook,
+  FaInstagramSquare,
+  FaLinkedin,
+  FaTwitter,
+} from "react-icons/fa";
 
 const Header = () => {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    setError("");
 
-    const formData = new FormData(e.target)
-    const data = Object.fromEntries(formData.entries())
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
 
-    // Basic validation
     if (!data.course || !data.name || !data.mobile || !data.email) {
-      alert('Please fill all fields')
-      return
+      setError("Please fill all required fields.");
+      return;
     }
 
-    console.log('Admission Enquiry:', data)
-
-    alert('Enquiry submitted successfully!')
-    setOpen(false)
-    e.target.reset()
-  }
+    console.log("Admission Enquiry:", data);
+    setOpen(false);
+    e.target.reset();
+  };
 
   return (
     <>
       {/* ================= HEADER ================= */}
-      <header className="w-full bg-white shadow-md py-4">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4">
+      <header className="w-full bg-[var(--color-surface)] border-b border-[var(--color-divider)] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-6">
 
             {/* LEFT */}
             <div className="flex items-center gap-4">
-              <img src={assets.nm_logo} alt="College Logo" className="w-20 h-20 object-contain" />
+              <img
+                src={assets.nm_logo}
+                alt="College Logo"
+                className="w-16 h-16 md:w-20 md:h-20 object-contain"
+              />
               <div>
-                <h2 className="text-sm md:text-xl font-bold">
+                <h2 className="text-sm md:text-lg font-bold text-[var(--color-text-primary)]">
                   संत संध्या दास महिला कॉलेज, बाढ़ (पटना)
                 </h2>
-                <h2 className="text-base md:text-xl font-bold">
+                <h2 className="text-sm md:text-lg font-bold text-[var(--color-text-primary)]">
                   Sant Sandhya Das Mahavidyalaya, Barh, Patna
                 </h2>
-                <p className="hidden md:block text-sm text-gray-600">
+                <p className="hidden md:block text-sm text-[var(--color-text-secondary)]">
                   Affiliated to Patliputra University, Patna
                 </p>
               </div>
@@ -49,32 +57,38 @@ const Header = () => {
 
             {/* RIGHT */}
             <div className="flex flex-col items-center md:items-end gap-3">
-              <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-                <a className="hover:text-blue-600 cursor-pointer">Admission Portal</a>
-                <a className="hover:text-blue-600 cursor-pointer">Gallery</a>
-                <a className="hover:text-blue-600 cursor-pointer">Feedback</a>
-                <a className="hover:text-blue-600 cursor-pointer">Location</a>
+              <nav className="hidden md:flex items-center gap-4 text-sm font-medium text-[var(--color-text-secondary)]">
+                <a className="hover:text-[var(--color-primary)] cursor-pointer">
+                  Admission Portal
+                </a>
+                <a className="hover:text-[var(--color-primary)] cursor-pointer">Gallery</a>
+                <a className="hover:text-[var(--color-primary)] cursor-pointer">Feedback</a>
+                <a className="hover:text-[var(--color-primary)] cursor-pointer">Location</a>
 
-                <FaFacebook className="text-blue-700 cursor-pointer" />
-                <FaTwitter className="text-blue-700 cursor-pointer" />
-                <FaInstagramSquare className="text-blue-700 cursor-pointer" />
-                <FaLinkedin className="text-blue-700 cursor-pointer" />
+                <FaFacebook className="hover:text-[var(--color-primary)] cursor-pointer" />
+                <FaTwitter className="hover:text-[var(--color-primary)] cursor-pointer" />
+                <FaInstagramSquare className="hover:text-[var(--color-primary)] cursor-pointer" />
+                <FaLinkedin className="hover:text-[var(--color-primary)] cursor-pointer" />
               </nav>
 
-              <div className="flex items-center gap-4 text-sm">
-                <div>
-                  <p className="font-semibold">Tel: +91-7549298333</p>
-                  <p className="font-semibold">Email: ssdmcollege78@gmail.com</p>
+              <div className="flex items-center gap-4 text-sm text-[var(--color-text-primary)]">
+                <div className="text-right">
+                  <p className="font-semibold">📞 +91-7549298333</p>
+                  <p className="font-semibold">✉ ssdmcollege78@gmail.com</p>
                 </div>
 
                 <button
                   onClick={() => setOpen(true)}
-                  className="px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800"
+                  className="px-4 py-2 rounded-md font-semibold text-white
+                             bg-[var(--color-primary)]
+                             hover:bg-[var(--color-secondary)]
+                             transition"
                 >
                   Online Admission
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </header>
@@ -82,56 +96,60 @@ const Header = () => {
       {/* ================= MODAL ================= */}
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+          <div className="bg-[var(--color-surface)] w-full max-w-md rounded-lg shadow-xl p-6 relative">
 
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-2 right-3 text-xl font-bold"
+              className="absolute top-2 right-3 text-xl font-bold
+                         text-[var(--color-text-secondary)]
+                         hover:text-[var(--color-danger)]"
             >
               ×
             </button>
 
-            <h2 className="text-xl font-bold text-center mb-4">
+            <h2 className="text-xl font-bold text-center text-[var(--color-text-primary)] mb-4">
               Online Admission Enquiry
             </h2>
 
+            {error && (
+              <p className="text-sm text-[var(--color-danger)] text-center mb-3">
+                {error}
+              </p>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
-
-              <select name="course" className="w-full border rounded-md px-3 py-2" required>
-                <option value="">Select Course</option>
-                <option>B.A</option>
-                <option>B.Sc</option>
-                <option>B.Com</option>
-                <option>M.A</option>
-              </select>
-
-              <input
-                name="name"
-                type="text"
-                placeholder="Student Name"
-                className="w-full border rounded-md px-3 py-2"
-                required
-              />
-
-              <input
-                name="mobile"
-                type="tel"
-                placeholder="Mobile Number"
-                className="w-full border rounded-md px-3 py-2"
-                required
-              />
-
-              <input
-                name="email"
-                type="email"
-                placeholder="Email Address"
-                className="w-full border rounded-md px-3 py-2"
-                required
-              />
+              {["course", "name", "mobile", "email"].map((field, i) =>
+                field === "course" ? (
+                  <select
+                    key={i}
+                    name="course"
+                    className="w-full border border-[var(--color-divider)] rounded-md px-3 py-2
+                               focus:ring-2 focus:ring-[var(--color-primary)]"
+                  >
+                    <option value="">Select Course</option>
+                    <option>B.A</option>
+                    <option>B.Sc</option>
+                    <option>B.Com</option>
+                    <option>M.A</option>
+                  </select>
+                ) : (
+                  <input
+                    key={i}
+                    name={field}
+                    type={field === "email" ? "email" : "text"}
+                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                    className="w-full border border-[var(--color-divider)] rounded-md px-3 py-2
+                               focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                )
+              )}
 
               <button
                 type="submit"
-                className="w-full bg-red-700 text-white py-2 rounded-md hover:bg-red-800"
+                className="w-full py-2 rounded-md font-semibold text-white
+                           bg-[var(--color-primary)]
+                           hover:bg-[var(--color-secondary)]
+                           transition"
               >
                 Submit Enquiry
               </button>
@@ -140,7 +158,7 @@ const Header = () => {
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
