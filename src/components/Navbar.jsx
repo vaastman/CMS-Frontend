@@ -71,7 +71,7 @@ const Navbar = () => {
                       <li key={j}>
                         <NavLink
                           to={sub.to}
-                          className="block px-4 py-2 text-sm hover:bg-[var(--color-page)]"
+                          className="block px-4 py-2 text-sm hover:bg-[var(--color-secondary)] hover:text-white transition"
                         >
                           {sub.label}
                         </NavLink>
@@ -150,7 +150,7 @@ const Navbar = () => {
                           <NavLink
                             to={sub.to}
                             onClick={() => setOpen(false)}
-                            className="block py-1 text-[var(--color-text-secondary)]"
+                            className="block py-1 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                           >
                             {sub.label}
                           </NavLink>

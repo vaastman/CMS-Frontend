@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { assets } from '../assets/assest'
+import React, { useState } from "react";
+import { assets } from "../assets/assest";
 
 const Events = () => {
   const [category, setCategory] = useState("all");
@@ -32,13 +32,17 @@ const Events = () => {
   ];
 
   const filtered =
-    category === "all" ? events : events.filter(e => e.category === category);
+    category === "all"
+      ? events
+      : events.filter((e) => e.category === category);
 
   return (
-    <div className="w-full px-4 py-16 bg-gradient-to-b from-blue-50 to-white">
+    <section className="w-full px-4 py-16 bg-[var(--color-page)]">
 
       {/* Heading */}
-      <h1 className="text-4xl sm:text-5xl font-serif font-bold text-center mb-12 text-neutral-900">
+      <h1 className="text-4xl sm:text-5xl font-serif font-bold
+                     text-center mb-12
+                     text-[var(--color-text-primary)]">
         Events & Activities
       </h1>
 
@@ -48,14 +52,12 @@ const Events = () => {
           <button
             key={tab}
             onClick={() => setCategory(tab)}
-            className={`
-              px-6 py-2 rounded-full border transition 
+            className={`px-6 py-2 rounded-full border text-sm font-semibold transition
               ${
                 category === tab
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-gray-400 text-gray-700 hover:bg-blue-600 hover:text-white"
-              }
-            `}
+                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+                  : "border-[var(--color-divider)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary)] hover:text-white"
+              }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
@@ -63,29 +65,31 @@ const Events = () => {
       </div>
 
       {/* Event Cards */}
-      <div className="
-        flex gap-6 
-        overflow-x-auto 
-        scroll-smooth 
-        no-scrollbar 
-        snap-x snap-mandatory 
-        pb-6
-      ">
+      <div
+        className="
+          flex gap-6
+          overflow-x-auto
+          scroll-smooth
+          no-scrollbar
+          snap-x snap-mandatory
+          pb-6
+        "
+      >
         {filtered.map((ev, i) => (
           <div
             key={i}
             className="
-              snap-center 
-              flex-shrink-0 
-              w-[85%]         
-              sm:w-[55%]      
-              lg:w-[30%]      
-              bg-white 
-              rounded-2xl 
-              shadow-lg 
-              p-5 
-              transition 
-              hover:-translate-y-2 
+              snap-center
+              flex-shrink-0
+              w-[85%]
+              sm:w-[55%]
+              lg:w-[30%]
+              bg-[var(--color-surface)]
+              rounded-2xl
+              shadow-lg
+              p-5
+              transition
+              hover:-translate-y-2
               hover:shadow-2xl
             "
           >
@@ -98,11 +102,24 @@ const Events = () => {
               />
             </div>
 
-            <h2 className="text-2xl font-bold text-center mb-2">{ev.title}</h2>
-            <p className="text-center text-gray-600 mb-6">{ev.desc}</p>
+            <h2 className="text-2xl font-bold text-center mb-2
+                           text-[var(--color-text-primary)]">
+              {ev.title}
+            </h2>
+
+            <p className="text-center text-[var(--color-text-secondary)] mb-6">
+              {ev.desc}
+            </p>
 
             <div className="text-center">
-              <button className="px-6 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white transition">
+              <button
+                className="px-6 py-2 rounded-md font-semibold
+                           border border-[var(--color-primary)]
+                           text-[var(--color-primary)]
+                           hover:bg-[var(--color-primary)]
+                           hover:text-white
+                           transition"
+              >
                 View Event
               </button>
             </div>
@@ -110,7 +127,7 @@ const Events = () => {
         ))}
       </div>
 
-    </div>
+    </section>
   );
 };
 

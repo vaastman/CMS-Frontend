@@ -23,7 +23,7 @@ const links = [
 
 const QuickLinks = () => {
   return (
-    <section className="w-full bg-[#0b3a67] py-14">
+    <section className="w-full bg-[var(--color-primary)] py-14">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-8 text-center">
 
         {links.map((item, index) => (
@@ -34,14 +34,15 @@ const QuickLinks = () => {
             {/* ICON CIRCLE */}
             <div
               className="
-                w-24 h-24 rounded-full border-4 border-white
+                w-24 h-24 rounded-full
+                border-4 border-white
                 flex items-center justify-center
                 bg-transparent
                 transition-colors duration-500
-                group-hover:bg-yellow-500
+                group-hover:bg-[var(--color-secondary)]
               "
             >
-              {/* ICON (ONLY THIS FLIPS) */}
+              {/* ICON (FLIP ON HOVER – SAME AS YOUR CODE) */}
               <div
                 className="
                   text-white
@@ -56,7 +57,10 @@ const QuickLinks = () => {
             </div>
 
             {/* TEXT */}
-            <p className="text-white text-sm font-semibold whitespace-pre-line group-hover:text-yellow-400">
+            <p className="
+              text-white text-sm font-semibold whitespace-pre-line
+              group-hover:text-[var(--color-secondary)]
+            ">
               {item.title}
             </p>
           </div>
