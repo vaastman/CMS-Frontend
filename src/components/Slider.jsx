@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 
-const Slider = ({ images, autoPlay = true, interval = 4000 }) => {
+const Slider = ({ images = [], autoPlay = true, interval = 4000 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // AutoPlay Effect
+  // ================= AUTOPLAY =================
   useEffect(() => {
-    if (!autoPlay) return;
+    if (!autoPlay || images.length <= 1) return;
 
-    const timer = setTimeout(() => {
-      nextSlide();
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) =>
+        prev === images.length - 1 ? 0 : prev + 1
+      );
     }, interval);
 
-    return () => clearTimeout(timer);
-  }, [currentIndex]);
+    return () => clearInterval(timer);
+  }, [autoPlay, interval, images.length]);
 
   const nextSlide = () => {
     setCurrentIndex((prev) =>
@@ -26,56 +28,72 @@ const Slider = ({ images, autoPlay = true, interval = 4000 }) => {
     );
   };
 
-  return (
-    <div className="relative w-full h-[280px]  md:h-[520px] overflow-hidden shadow-lg">
+  if (!images.length) return null;
 
-      {/* Images */}
+  return (
+    <div className="relative w-full h-[260px] md:h-[520px] overflow-hidden
+                    bg-[var(--color-surface)] shadow-lg">
+
+      {/* ================= SLIDES ================= */}
       <div
-        className="w-full h-full flex transition-transform duration-700"
+        className="flex h-full transition-transform duration-700 ease-in-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((src, index) => (
           <img
             key={index}
             src={src}
-            alt="slide"
-            className="w-full h-full object-cover object-contain  flex-shrink-0"
+            alt={`slide-${index + 1}`}
+            className="w-full h-full object-cover flex-shrink-0"
+            draggable="false"
           />
         ))}
       </div>
 
-      {/* Prev Button */}
+      {/* ================= PREV ================= */}
       <button
         onClick={prevSlide}
-        className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white px-3 py-1  text-lg"
+        aria-label="Previous Slide"
+        className="absolute left-4 top-1/2 -translate-y-1/2
+                   bg-black/40 hover:bg-black/60
+                   text-white w-10 h-10 rounded-full
+                   flex items-center justify-center
+                   transition"
       >
         ❮
       </button>
 
-      {/* Next Button */}
+      {/* ================= NEXT ================= */}
       <button
         onClick={nextSlide}
-        className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white px-3 py-1 rounded-full text-lg"
+        aria-label="Next Slide"
+        className="absolute right-4 top-1/2 -translate-y-1/2
+                   bg-black/40 hover:bg-black/60
+                   text-white w-10 h-10 rounded-full
+                   flex items-center justify-center
+                   transition"
       >
         ❯
       </button>
 
-      {/* Bottom Dots */}
-      <div className="absolute bottom-3 w-full flex justify-center gap-2">
+      {/* ================= DOTS ================= */}
+      <div className="absolute bottom-4 w-full flex justify-center gap-2">
         {images.map((_, index) => (
-          <div
+          <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-3 h-3 rounded-full cursor-pointer transition-all ${
-              currentIndex === index
-                ? "bg-white"
-                : "bg-white/50 hover:bg-white"
-            }`}
-          ></div>
+            aria-label={`Go to slide ${index + 1}`}
+            className={`h-2.5 rounded-full transition-all
+              ${
+                currentIndex === index
+                  ? "w-6 bg-[var(--color-secondary)]"
+                  : "w-2.5 bg-white/60 hover:bg-white"
+              }`}
+          />
         ))}
       </div>
     </div>
   );
-}
+};
 
-export default Slider
+export default Slider;
