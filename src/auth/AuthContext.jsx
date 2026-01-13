@@ -2,26 +2,36 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
+// 🔑 Demo admin credentials (frontend-only)
+const DEMO_ADMIN = {
+  email: "admin@test.com",
+  password: "admin123",
+  role: "ADMIN",
+};
+
 export const AuthProvider = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [admin, setAdmin] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   /* 🔁 Restore admin session on page reload */
   useEffect(() => {
     const storedAdmin = localStorage.getItem("admin");
     if (storedAdmin) {
-      setAdmin(JSON.parse(storedAdmin));
-      setIsAdmin(true);
+      const parsedAdmin = JSON.parse(storedAdmin);
+      setAdmin(parsedAdmin);
+      setIsAdmin(parsedAdmin.role === "ADMIN");
     }
   }, []);
 
-  /* 🔐 Login */
-  const login = (username, password) => {
-    // Demo credentials (replace later with API)
-    if (username === "admin" && password === "admin123") {
+  /* 🔐 Login (NO BACKEND – DEMO ONLY) */
+  const login = (email, password) => {
+    if (
+      email === DEMO_ADMIN.email &&
+      password === DEMO_ADMIN.password
+    ) {
       const adminData = {
-        username,
-        role: "ADMIN",
+        email: DEMO_ADMIN.email,
+        role: DEMO_ADMIN.role,
         loginAt: new Date().toISOString(),
       };
 
@@ -43,8 +53,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        isAdmin,
-        admin,     // 👈 admin details available everywhere
+        admin,    // admin details
+        isAdmin,  // boolean for route protection
         login,
         logout,
       }}
@@ -57,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };

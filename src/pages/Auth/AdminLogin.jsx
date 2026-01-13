@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
+  const { login, isAdmin } = useAuth();
+
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const { login, isAdmin } = useAuth();
-  const navigate = useNavigate();
-
-  /* 🔒 If already logged in, redirect to admin dashboard */
+  // 🔒 Auto redirect
   useEffect(() => {
     if (isAdmin) {
       navigate("/admin", { replace: true });
@@ -20,28 +20,19 @@ const AdminLogin = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const success = login(username, password);
-
+    const success = login(email, password);
     if (!success) {
-      setError("Invalid username or password");
+      setError("Invalid email or password");
     }
-    // ✅ success case handled by useEffect redirect
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: "var(--color-page)" }}
-    >
+    <div className="min-h-screen flex items-center justify-center px-4">
       <form
         onSubmit={handleSubmit}
-        className="p-8 rounded-2xl shadow-md w-full max-w-md"
-        style={{ backgroundColor: "var(--color-surface)" }}
+        className="p-8 rounded-xl shadow w-full max-w-md bg-white"
       >
-        <h2
-          className="text-2xl font-semibold text-center mb-6"
-          style={{ color: "var(--color-text-primary)" }}
-        >
+        <h2 className="text-2xl font-semibold text-center mb-6">
           Admin Login
         </h2>
 
@@ -51,39 +42,25 @@ const AdminLogin = () => {
           </p>
         )}
 
-        {/* Username */}
         <div className="mb-4">
-          <label
-            className="block text-sm mb-1"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Username
-          </label>
+          <label className="text-sm">Email</label>
           <input
-            type="text"
-            className="w-full rounded-lg px-3 py-2 text-sm outline-none border"
-            style={{ borderColor: "var(--color-divider)" }}
-            value={username}
+            type="email"
+            className="w-full px-3 py-2 border rounded"
+            value={email}
             onChange={(e) => {
-              setUsername(e.target.value);
+              setEmail(e.target.value);
               setError("");
             }}
             required
           />
         </div>
 
-        {/* Password */}
         <div className="mb-6">
-          <label
-            className="block text-sm mb-1"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Password
-          </label>
+          <label className="text-sm">Password</label>
           <input
             type="password"
-            className="w-full rounded-lg px-3 py-2 text-sm outline-none border"
-            style={{ borderColor: "var(--color-divider)" }}
+            className="w-full px-3 py-2 border rounded"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -93,20 +70,24 @@ const AdminLogin = () => {
           />
         </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          className="w-full py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
+        <button className="w-full py-2 rounded bg-blue-600 text-white">
           Login
         </button>
 
-        <p
-          className="text-xs text-center mt-4"
-          style={{ color: "var(--color-text-secondary)" }}
+        {/* Demo Fill */}
+        <button
+          type="button"
+          onClick={() => {
+            setEmail("admin@test.com");
+            setPassword("admin123");
+          }}
+          className="w-full mt-3 py-2 border rounded"
         >
-          Demo Login → <b>admin / admin123</b>
+          Use Demo Account
+        </button>
+
+        <p className="text-xs text-center mt-4 text-gray-500">
+          Demo → <b>admin@test.com / admin123</b>
         </p>
       </form>
     </div>
