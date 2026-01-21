@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import StudentTable from "../../../components/StudentTable";
 import StudentFilters from "../../../components/StudentFilters";
 import { createStudent } from "@/api/student.api";
+import { getCourses } from "@/api/course.api";
 
 const Students = () => {
   const initialForm = {
@@ -25,6 +26,28 @@ const Students = () => {
     status: "",
   });
   const [loading, setLoading] = useState(false);
+
+  /* 🔥 COURSES STATE */
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
+
+  /* ===== FETCH COURSES ===== */
+  useEffect(() => {
+    const loadCourses = async () => {
+      setCoursesLoading(true);
+      try {
+        const res = await getCourses();
+        setCourses(Array.isArray(res?.data?.data) ? res.data.data : []);
+      } catch {
+        toast.error("Failed to load courses");
+        setCourses([]);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+
+    loadCourses();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -113,11 +136,19 @@ const Students = () => {
               <input className="input" name="guardianName" placeholder="Guardian Name" onChange={handleChange} />
               <textarea className="input" name="address" placeholder="Address" onChange={handleChange} />
 
+              {/* 🔥 COURSE DROPDOWN */}
               <select className="input" name="courseId" onChange={handleChange} required>
-                <option value="">Select Course</option>
-                <option value="550e8400-e29b-41d4-a716-446655440000">B.Tech</option>
+                <option value="">
+                  {coursesLoading ? "Loading courses..." : "Select Course"}
+                </option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.name}
+                  </option>
+                ))}
               </select>
 
+              {/* SESSION (can be done same way later) */}
               <select className="input" name="sessionId" onChange={handleChange} required>
                 <option value="">Select Session</option>
                 <option value="7d444840-9dc0-11d1-b245-5ffdce74fad2">2024–2028</option>
@@ -127,8 +158,12 @@ const Students = () => {
                 <button type="button" onClick={() => setOpenStudentModal(false)} className="px-4 py-2 border rounded">
                   Cancel
                 </button>
-                <button type="submit" disabled={loading} className="px-5 py-2 rounded text-white"
-                  style={{ backgroundColor: "var(--color-primary)" }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-5 py-2 rounded text-white"
+                  style={{ backgroundColor: "var(--color-primary)" }}
+                >
                   {loading ? "Registering..." : "Register Student"}
                 </button>
               </div>
