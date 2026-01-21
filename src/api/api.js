@@ -2,18 +2,22 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Optional: auth token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
+
+  // ⛔ DO NOT attach token to login/register
+  if (
+    token &&
+    !config.url.includes("/auth/login") 
+  ) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 

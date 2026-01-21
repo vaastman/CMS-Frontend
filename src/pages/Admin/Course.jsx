@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
-import {getCourses, createCourse} from '@/api/course.api';
+import {
+  getCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+} from "@/api/course.api";
 
 const Course = () => {
   const [courses, setCourses] = useState([]);
@@ -10,31 +14,35 @@ const Course = () => {
   const [editingCourse, setEditingCourse] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const initialForm = {
     name: "",
     code: "",
     durationYears: "",
     departmentId: "",
-  });
+  };
+
+  const [formData, setFormData] = useState(initialForm);
 
   /* ================= FETCH COURSES ================= */
-  const fetchCourses = async () => {
+  const loadCourses = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/courses");
-      setCourses(res.data);
-    } catch (err) {
+      const res = await getCourses();
+      setCourses(Array.isArray(res?.data?.data) ? res.data.data : []);
+    } catch {
       toast.error("Failed to load courses");
+      setCourses([]);
     }
   };
 
   useEffect(() => {
-    getCourses().then((res) => setCourses(res.data));
+    loadCourses();
   }, []);
 
   /* ================= HANDLERS ================= */
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((p) => ({ ...p, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -54,33 +62,23 @@ const Course = () => {
 
     try {
       if (editingCourse) {
-        // UPDATE
-        await axios.put(
-          `http://localhost:5000/api/courses/${editingCourse.id}`,
-          formData
-        );
+        await updateCourse(editingCourse.id, formData);
         toast.success("Course updated successfully");
       } else {
-        // CREATE
-        await axios.post(
-          "http://localhost:5000/api/courses",
-          formData
-        );
+        await createCourse(formData);
         toast.success("Course added successfully");
       }
 
       setShowForm(false);
       setEditingCourse(null);
-      setFormData({
-        name: "",
-        code: "",
-        durationYears: "",
-        departmentId: "",
-      });
-      fetchCourses();
-
+      setFormData(initialForm);
+      loadCourses();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Operation failed");
+      toast.error(
+        err?.response?.data?.errors?.[0] ||
+          err?.response?.data?.message ||
+          "Operation failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -101,9 +99,9 @@ const Course = () => {
     if (!window.confirm("Delete this course?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/courses/${id}`);
+      await deleteCourse(id);
       toast.success("Course deleted");
-      fetchCourses();
+      loadCourses();
     } catch {
       toast.error("Delete failed");
     }
@@ -111,7 +109,6 @@ const Course = () => {
 
   return (
     <div className="space-y-8">
-
       {/* ================= HEADER ================= */}
       <div className="flex items-center justify-between">
         <div>
@@ -125,12 +122,7 @@ const Course = () => {
           onClick={() => {
             setShowForm(true);
             setEditingCourse(null);
-            setFormData({
-              name: "",
-              code: "",
-              durationYears: "",
-              departmentId: "",
-            });
+            setFormData(initialForm);
           }}
           className="flex items-center gap-2 text-white px-5 py-2 rounded-lg"
           style={{ backgroundColor: "var(--color-primary)" }}
@@ -183,7 +175,7 @@ const Course = () => {
               type="submit"
               disabled={loading}
               className="text-white px-6 py-2 rounded-lg"
-              style={{backgroundColor:"var(--color-primary)"}}
+              style={{ backgroundColor: "var(--color-primary)" }}
             >
               {loading
                 ? "Saving..."
@@ -195,7 +187,7 @@ const Course = () => {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg"
+              className="text-white px-6 py-2 rounded-lg"
               style={{ backgroundColor: "var(--color-danger)" }}
             >
               Cancel
@@ -217,40 +209,39 @@ const Course = () => {
             </tr>
           </thead>
           <tbody>
-            {courses.map((course) => (
-              <tr key={course.id} className="border-t">
-                <td className="p-4">{course.name}</td>
-                <td className="p-4">{course.code}</td>
-                <td className="p-4">{course.durationYears} Years</td>
-                <td className="p-4">{course.departmentId}</td>
-                <td className="p-4 flex justify-center gap-4">
-                  <button
-                    onClick={() => handleEdit(course)}
-                    className="text-blue-600"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(course.id)}
-                    className="text-red-600"
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-            {courses.length === 0 && (
+            {courses.length === 0 ? (
               <tr>
                 <td colSpan="5" className="p-6 text-center text-gray-500">
                   No courses found
                 </td>
               </tr>
+            ) : (
+              courses.map((course) => (
+                <tr key={course.id} className="border-t">
+                  <td className="p-4">{course.name}</td>
+                  <td className="p-4">{course.code}</td>
+                  <td className="p-4">{course.durationYears} Years</td>
+                  <td className="p-4">{course.departmentId}</td>
+                  <td className="p-4 flex justify-center gap-4">
+                    <button
+                      onClick={() => handleEdit(course)}
+                      className="text-blue-600"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(course.id)}
+                      className="text-red-600"
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
-
     </div>
   );
 };

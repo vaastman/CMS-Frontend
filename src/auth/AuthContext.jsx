@@ -1,63 +1,73 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { adminLoginApi } from "@/api/auth.api";
 
 const AuthContext = createContext(null);
 
-// 🔑 Demo admin credentials (frontend-only)
-const DEMO_ADMIN = {
-  email: "admin@test.com",
-  password: "admin123",
-  role: "ADMIN",
-};
+const ADMIN_ROLES = ["ADMIN", "HOD", "ACCOUNTANT"];
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  /* 🔁 Restore admin session on page reload */
+  /* 🔁 Restore session */
   useEffect(() => {
-    const storedAdmin = localStorage.getItem("admin");
-    if (storedAdmin) {
-      const parsedAdmin = JSON.parse(storedAdmin);
-      setAdmin(parsedAdmin);
-      setIsAdmin(parsedAdmin.role === "ADMIN");
+    try {
+      const storedUser = localStorage.getItem("admin");
+      const token = localStorage.getItem("token");
+
+      if (storedUser && token) {
+        const parsedUser = JSON.parse(storedUser);
+        setAdmin(parsedUser);
+        setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+      }
+    } catch (err) {
+      console.error("Session restore failed", err);
+      localStorage.clear();
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  /* 🔐 Login (NO BACKEND – DEMO ONLY) */
-  const login = (email, password) => {
-    if (
-      email === DEMO_ADMIN.email &&
-      password === DEMO_ADMIN.password
-    ) {
-      const adminData = {
-        email: DEMO_ADMIN.email,
-        role: DEMO_ADMIN.role,
-        loginAt: new Date().toISOString(),
-      };
+  /* 🔐 LOGIN */
+const login = async (email, password) => {
+  try {
+    const res = await adminLoginApi({ email, password });
 
-      localStorage.setItem("admin", JSON.stringify(adminData));
-      setAdmin(adminData);
-      setIsAdmin(true);
-      return true;
+    // ✅ MATCH BACKEND RESPONSE SHAPE
+    const user = res?.data?.data?.user;
+    const accessToken = res?.data?.data?.accessToken;
+
+    if (!user || !accessToken || !user.role) {
+      console.error("Invalid login response format", res.data);
+      return false;
     }
-    return false;
-  };
 
-  /* 🚪 Logout */
+    // ✅ STORE TOKEN + USER
+    localStorage.setItem("token", accessToken);
+    localStorage.setItem("admin", JSON.stringify(user));
+
+    setAdmin(user);
+    setIsAdmin(ADMIN_ROLES.includes(user.role));
+
+    return true;
+  } catch (error) {
+    console.error("Login failed:", error.response?.data || error.message);
+    return false;
+  }
+};
+
+
+  /* 🚪 LOGOUT */
   const logout = () => {
-    localStorage.removeItem("admin");
+    localStorage.clear();
     setAdmin(null);
     setIsAdmin(false);
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        admin,    // admin details
-        isAdmin,  // boolean for route protection
-        login,
-        logout,
-      }}
+      value={{ admin, isAdmin, login, logout, loading }}
     >
       {children}
     </AuthContext.Provider>
@@ -65,11 +75,9 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used inside AuthProvider");
   }
-  return context;
+  return ctx;
 };
-
-export default AuthProvider;
