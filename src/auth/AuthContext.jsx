@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { adminLoginApi } from "@/api";
+import { adminLoginApi } from "@/api/auth.api";
 
 const AuthContext = createContext(null);
+
+const ADMIN_ROLES = ["ADMIN", "HOD", "ACCOUNTANT"];
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
@@ -10,53 +12,62 @@ export const AuthProvider = ({ children }) => {
 
   /* 🔁 Restore session */
   useEffect(() => {
-    const storedUser = localStorage.getItem("admin");
-    const token = localStorage.getItem("token");
+    try {
+      const storedUser = localStorage.getItem("admin");
+      const token = localStorage.getItem("token");
 
-    if (storedUser && token) {
-      const parsedUser = JSON.parse(storedUser);
-      setAdmin(parsedUser);
-      setIsAdmin(parsedUser.role === "ADMIN");
+      if (storedUser && token) {
+        const parsedUser = JSON.parse(storedUser);
+        setAdmin(parsedUser);
+        setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+      }
+    } catch (err) {
+      console.error("Session restore failed", err);
+      localStorage.clear();
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   /* 🔐 LOGIN */
-  const login = async (email, password) => {
-    try {
-      const res = await adminLoginApi({ email, password });
+const login = async (email, password) => {
+  try {
+    const res = await adminLoginApi({ email, password });
 
-      const { token, user } = res.data;
+    // ✅ MATCH BACKEND RESPONSE SHAPE
+    const user = res?.data?.data?.user;
+    const accessToken = res?.data?.data?.accessToken;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("admin", JSON.stringify(user));
-
-      setAdmin(user);
-      setIsAdmin(user.role === "ADMIN");
-
-      return true;
-    } catch (error) {
+    if (!user || !accessToken || !user.role) {
+      console.error("Invalid login response format", res.data);
       return false;
     }
-  };
+
+    // ✅ STORE TOKEN + USER
+    localStorage.setItem("token", accessToken);
+    localStorage.setItem("admin", JSON.stringify(user));
+
+    setAdmin(user);
+    setIsAdmin(ADMIN_ROLES.includes(user.role));
+
+    return true;
+  } catch (error) {
+    console.error("Login failed:", error.response?.data || error.message);
+    return false;
+  }
+};
+
 
   /* 🚪 LOGOUT */
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("admin");
+    localStorage.clear();
     setAdmin(null);
     setIsAdmin(false);
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        admin,
-        isAdmin,
-        login,
-        logout,
-        loading,
-      }}
+      value={{ admin, isAdmin, login, logout, loading }}
     >
       {children}
     </AuthContext.Provider>

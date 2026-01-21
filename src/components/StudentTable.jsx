@@ -1,72 +1,68 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
-
-const studentsData = [
-  {
-    id: 1,
-    regNo: "TPS202467066",
-    name: "Sumit Kumar",
-    course: "BCA",
-    session: "2024-2028",
-    status: "Admitted",
-  },
-  {
-    id: 2,
-    regNo: "TPS202467055",
-    name: "Birendra Kumar",
-    course: "BSc",
-    session: "2024-2028",
-    status: "Applied",
-  },
-];
+import { useEffect, useState } from "react";
+import { fetchStudents } from "@/api/student.api";
+import { toast } from "react-toastify";
 
 const statusStyles = {
-  Admitted: "bg-green-100 text-green-700",
-  Applied: "bg-yellow-100 text-yellow-700",
-  Deleted: "bg-red-100 text-red-700",
+  ADMITTED: "bg-green-100 text-green-700",
+  APPLIED: "bg-yellow-100 text-yellow-700",
+  CANCELLED: "bg-red-100 text-red-700",
 };
 
 const StudentTable = ({ search, filters }) => {
   const navigate = useNavigate();
+
+  const [students, setStudents] = useState([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+
   const perPage = 5;
+  const { course, session, status } = filters;
 
-  /* ===== FILTER DATA ===== */
-  const filtered = useMemo(() => {
-    return studentsData.filter(
-      (s) =>
-        s.name.toLowerCase().includes(search.toLowerCase()) &&
-        (filters.course ? s.course === filters.course : true) &&
-        (filters.session ? s.session === filters.session : true) &&
-        (filters.status ? s.status === filters.status : true)
-    );
-  }, [search, filters]);
-
-  /* ===== RESET PAGE ON FILTER CHANGE ===== */
+  /* 🔁 Reset page on filter/search change */
   useEffect(() => {
     setPage(1);
-  }, [search, filters]);
+  }, [search, course, session, status]);
 
-  const totalPages = Math.ceil(filtered.length / perPage);
+  /* ===== FETCH STUDENTS ===== */
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
 
-  const paginated = filtered.slice(
-    (page - 1) * perPage,
-    page * perPage
-  );
+      try {
+        const res = await fetchStudents({
+          search,
+          courseId: course,
+          sessionId: session,
+          status,
+          page,
+          limit: perPage,
+        });
+
+        const list = Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data?.data?.rows)
+          ? res.data.data.rows
+          : [];
+
+        setStudents(list);
+        setTotalPages(res?.data?.pagination?.totalPages || 1);
+      } catch {
+        toast.error("Failed to load students");
+        setStudents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [search, course, session, status, page]);
 
   return (
-    <div
-      className="rounded-2xl border overflow-hidden"
-      style={{
-        backgroundColor: "var(--color-surface)",
-        borderColor: "var(--color-divider)",
-      }}
-    >
+    <div className="rounded-2xl border overflow-hidden bg-white">
       <table className="w-full text-sm">
-        <thead
-          className="border-b"
-          style={{ backgroundColor: "var(--color-page)" }}
-        >
+        <thead className="border-b bg-gray-50">
           <tr>
             <th className="p-4 text-left font-medium">Reg No</th>
             <th className="text-left font-medium">Name</th>
@@ -78,51 +74,41 @@ const StudentTable = ({ search, filters }) => {
         </thead>
 
         <tbody>
-          {paginated.length === 0 ? (
+          {loading ? (
             <tr>
-              <td
-                colSpan="6"
-                className="text-center py-10"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                No students found
-              </td>
+              <td colSpan="6" className="text-center py-10">Loading...</td>
+            </tr>
+          ) : students.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="text-center py-10">No students found</td>
             </tr>
           ) : (
-            paginated.map((s) => (
+            students.map((s) => (
               <tr
                 key={s.id}
-                className="border-b hover:bg-gray-50 transition cursor-pointer"
-                style={{ borderColor: "var(--color-divider)" }}
-                onClick={() =>
-                  navigate(`/academics/students/${s.id}`)
-                }
+                className="border-b hover:bg-gray-50 cursor-pointer"
+                onClick={() => navigate(`/admin/students/${s.id}`)}
               >
                 <td className="p-4">{s.regNo}</td>
                 <td>{s.name}</td>
-                <td>{s.course}</td>
-                <td>{s.session}</td>
+                <td>{s.course?.name || "-"}</td>
+                <td>{s.session?.name || "-"}</td>
                 <td>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      statusStyles[s.status]
+                      statusStyles[s.status] || ""
                     }`}
                   >
                     {s.status}
                   </span>
                 </td>
-
-                {/* ===== ACTION ===== */}
                 <td className="text-center">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(
-                        `/admin/students/${s.id}?mode=edit`
-                      );
+                      navigate(`/admin/students/${s.id}?mode=edit`);
                     }}
-                    className="text-sm font-medium hover:underline"
-                    style={{ color: "var(--color-primary)" }}
+                    className="text-sm font-medium text-blue-600 hover:underline"
                   >
                     Edit
                   </button>
@@ -133,36 +119,22 @@ const StudentTable = ({ search, filters }) => {
         </tbody>
       </table>
 
-      {/* ===== Pagination ===== */}
       {totalPages > 1 && (
-        <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{ backgroundColor: "var(--color-page)" }}
-        >
-          <p
-            className="text-sm"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Page {page} of {totalPages}
-          </p>
+        <div className="flex justify-between px-4 py-3 bg-gray-50">
+          <p className="text-sm">Page {page} of {totalPages}</p>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              onClick={() => setPage(p => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className="px-4 py-1.5 text-sm rounded-lg border disabled:opacity-50"
-              style={{ borderColor: "var(--color-divider)" }}
+              className="px-4 py-1.5 border rounded disabled:opacity-50"
             >
               Prev
             </button>
-
             <button
-              onClick={() =>
-                setPage((p) => Math.min(p + 1, totalPages))
-              }
+              onClick={() => setPage(p => Math.min(p + 1, totalPages))}
               disabled={page === totalPages}
-              className="px-4 py-1.5 text-sm rounded-lg border disabled:opacity-50"
-              style={{ borderColor: "var(--color-divider)" }}
+              className="px-4 py-1.5 border rounded disabled:opacity-50"
             >
               Next
             </button>

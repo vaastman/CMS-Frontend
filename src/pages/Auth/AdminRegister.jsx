@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminRegisterApi } from "@/api";
+// import { adminRegisterApi } from "@/api.auth.api";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 

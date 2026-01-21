@@ -1,18 +1,12 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
   const { isAdmin, loading } = useAuth();
 
-  // ⏳ Wait until auth state is restored
-  if (loading) return null;
+  if (loading) return null; // or loader
 
-  // ❌ Not admin → redirect
-  if (!isAdmin) {
-    return <Navigate to="/admin/login" replace />;
-  }
-
-  return children;
+  return isAdmin ? children : <Navigate to="/admin/login" replace />;
 };
 
 export default ProtectedRoute;

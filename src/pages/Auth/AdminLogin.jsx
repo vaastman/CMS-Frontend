@@ -1,38 +1,40 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
-
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login, isAdmin } = useAuth();
+  const { login, isAdmin, loading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  /* 🔒 Auto redirect */
+  /* 🔒 Redirect after login */
   useEffect(() => {
-    if (isAdmin) {
+    if (!loading && isAdmin) {
       navigate("/admin", { replace: true });
     }
-  }, [isAdmin, navigate]);
+  }, [isAdmin, loading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (submitting) return;
 
-    const success = await login(email, password);
+    setSubmitting(true);
+
+    const success = await login(email.trim(), password);
 
     if (!success) {
       toast.error("Invalid email or password");
-    } else {
-      toast.success("Login successful");
+      setSubmitting(false);
+      return;
     }
 
-    setLoading(false);
+    toast.success("Login successful");
+    setSubmitting(false);
+    // 🔁 redirect handled by useEffect
   };
 
   return (
@@ -68,12 +70,12 @@ const AdminLogin = () => {
         </div>
 
         <button
-          disabled={loading}
+          disabled={submitting}
           className="w-full py-2 rounded bg-blue-600 text-white disabled:opacity-60"
         >
-          {loading ? "Logging in..." : "Login"}
+          {submitting ? "Logging in..." : "Login"}
         </button>
-        {/* Not Registered */}
+
         <p className="text-sm text-center mt-4 text-gray-600">
           Not registered yet?{" "}
           <Link
@@ -83,7 +85,6 @@ const AdminLogin = () => {
             Register
           </Link>
         </p>
-
       </form>
     </div>
   );

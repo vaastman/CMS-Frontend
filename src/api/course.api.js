@@ -1,13 +1,28 @@
 import api from "./api";
 
-export const createCourse = (payload) =>
-  api.post("/courses", payload);
+/* ================= CREATE COURSE ================= */
+export const createCourse = (payload) => {
+  return api.post("/courses", payload);
+};
 
-export const updateCourse = (id, payload) =>
-  api.put(`/courses/${id}`, payload);
+/* ================= UPDATE COURSE ================= */
+export const updateCourse = (id, payload) => {
+  return api.put(`/courses/${id}`, payload);
+};
 
-export const getCourses = () =>
-  api.get("/courses");
+/* ================= GET ALL COURSES ================= */
+/**
+ * Optional params supported:
+ * - page
+ * - limit
+ * - status
+ * - search
+ */
+export const getCourses = (params = {}) => {
+  return api.get("/courses", { params });
+};
 
-export const getCourseById = (id) =>
-  api.get(`/courses/${id}`);
+/* ================= GET COURSE BY ID ================= */
+export const getCourseById = (id) => {
+  return api.get(`/courses/${id}`);
+};
