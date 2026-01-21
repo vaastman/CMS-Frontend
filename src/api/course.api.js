@@ -1,12 +1,13 @@
 import api from "./api";
 
-export const getCourses = () => api.get("/courses");
+export const createCourse = (payload) =>
+  api.post("/courses", payload);
 
-export const createCourse = (data) =>
-  api.post("/courses", data);
+export const updateCourse = (id, payload) =>
+  api.put(`/courses/${id}`, payload);
 
-export const updateCourse = (id, data) =>
-  api.put(`/courses/${id}`, data);
+export const getCourses = () =>
+  api.get("/courses");
 
-export const deleteCourse = (id) =>
-  api.delete(`/courses/${id}`);
+export const getCourseById = (id) =>
+  api.get(`/courses/${id}`);

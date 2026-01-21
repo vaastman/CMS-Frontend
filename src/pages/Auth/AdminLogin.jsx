@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "@/auth/AuthContext";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -8,22 +11,28 @@ const AdminLogin = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // 🔒 Auto redirect
+  /* 🔒 Auto redirect */
   useEffect(() => {
     if (isAdmin) {
       navigate("/admin", { replace: true });
     }
   }, [isAdmin, navigate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    const success = login(email, password);
+    const success = await login(email, password);
+
     if (!success) {
-      setError("Invalid email or password");
+      toast.error("Invalid email or password");
+    } else {
+      toast.success("Login successful");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -36,22 +45,13 @@ const AdminLogin = () => {
           Admin Login
         </h2>
 
-        {error && (
-          <p className="bg-red-100 text-red-600 px-3 py-2 rounded mb-4 text-sm">
-            {error}
-          </p>
-        )}
-
         <div className="mb-4">
           <label className="text-sm">Email</label>
           <input
             type="email"
             className="w-full px-3 py-2 border rounded"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError("");
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -62,33 +62,28 @@ const AdminLogin = () => {
             type="password"
             className="w-full px-3 py-2 border rounded"
             value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setError("");
-            }}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        <button className="w-full py-2 rounded bg-blue-600 text-white">
-          Login
-        </button>
-
-        {/* Demo Fill */}
         <button
-          type="button"
-          onClick={() => {
-            setEmail("admin@test.com");
-            setPassword("admin123");
-          }}
-          className="w-full mt-3 py-2 border rounded"
+          disabled={loading}
+          className="w-full py-2 rounded bg-blue-600 text-white disabled:opacity-60"
         >
-          Use Demo Account
+          {loading ? "Logging in..." : "Login"}
         </button>
-
-        <p className="text-xs text-center mt-4 text-gray-500">
-          Demo → <b>admin@test.com / admin123</b>
+        {/* Not Registered */}
+        <p className="text-sm text-center mt-4 text-gray-600">
+          Not registered yet?{" "}
+          <Link
+            to="/admin/register"
+            className="text-blue-600 font-medium hover:underline"
+          >
+            Register
+          </Link>
         </p>
+
       </form>
     </div>
   );

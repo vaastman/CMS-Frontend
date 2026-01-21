@@ -1,50 +1,48 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { adminLoginApi } from "@/api";
 
 const AuthContext = createContext(null);
-
-// 🔑 Demo admin credentials (frontend-only)
-const DEMO_ADMIN = {
-  email: "admin@test.com",
-  password: "admin123",
-  role: "ADMIN",
-};
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  /* 🔁 Restore admin session on page reload */
+  /* 🔁 Restore session */
   useEffect(() => {
-    const storedAdmin = localStorage.getItem("admin");
-    if (storedAdmin) {
-      const parsedAdmin = JSON.parse(storedAdmin);
-      setAdmin(parsedAdmin);
-      setIsAdmin(parsedAdmin.role === "ADMIN");
+    const storedUser = localStorage.getItem("admin");
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
+      const parsedUser = JSON.parse(storedUser);
+      setAdmin(parsedUser);
+      setIsAdmin(parsedUser.role === "ADMIN");
     }
+    setLoading(false);
   }, []);
 
-  /* 🔐 Login (NO BACKEND – DEMO ONLY) */
-  const login = (email, password) => {
-    if (
-      email === DEMO_ADMIN.email &&
-      password === DEMO_ADMIN.password
-    ) {
-      const adminData = {
-        email: DEMO_ADMIN.email,
-        role: DEMO_ADMIN.role,
-        loginAt: new Date().toISOString(),
-      };
+  /* 🔐 LOGIN */
+  const login = async (email, password) => {
+    try {
+      const res = await adminLoginApi({ email, password });
 
-      localStorage.setItem("admin", JSON.stringify(adminData));
-      setAdmin(adminData);
-      setIsAdmin(true);
+      const { token, user } = res.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("admin", JSON.stringify(user));
+
+      setAdmin(user);
+      setIsAdmin(user.role === "ADMIN");
+
       return true;
+    } catch (error) {
+      return false;
     }
-    return false;
   };
 
-  /* 🚪 Logout */
+  /* 🚪 LOGOUT */
   const logout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("admin");
     setAdmin(null);
     setIsAdmin(false);
@@ -53,10 +51,11 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider
       value={{
-        admin,    // admin details
-        isAdmin,  // boolean for route protection
+        admin,
+        isAdmin,
         login,
         logout,
+        loading,
       }}
     >
       {children}
@@ -65,11 +64,9 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used inside AuthProvider");
   }
-  return context;
+  return ctx;
 };
-
-export default AuthProvider;

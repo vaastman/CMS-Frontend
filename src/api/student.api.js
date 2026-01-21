@@ -1,15 +1,21 @@
 import api from "./api";
 
-export const getStudents = (params) =>
-  api.get("/students", { params });
+// CREATE student
+export const createStudent = (payload) =>
+  api.post("/students", payload);
 
-export const createStudent = (data) =>
-  api.post("/students", data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+// UPDATE student
+export const updateStudent = (id, payload) =>
+  api.put(`/students/${id}`, payload);
 
-export const updateStudent = (id, data) =>
-  api.put(`/students/${id}`, data);
+// ASSIGN semester
+export const assignSemester = (id, payload) =>
+  api.post(`/students/${id}/semester`, payload);
 
-export const deleteStudent = (id) =>
-  api.delete(`/students/${id}`);
+// GET all students
+export const getStudents = () =>
+  api.get("/students");
+
+// GET single student
+export const getStudentById = (id) =>
+  api.get(`/students/${id}`);

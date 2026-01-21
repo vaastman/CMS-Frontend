@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { adminRegisterApi } from "@/api";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+
 
 const AdminRegister = () => {
   const navigate = useNavigate();
@@ -11,33 +14,40 @@ const AdminRegister = () => {
     password: "",
     phone: "",
     role: "ADMIN",
-    accessPassword: ""
+    accessPassword: "",
   });
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+
+    // 🧠 Frontend validation (mirror backend)
+    if (form.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (!form.accessPassword) {
+      toast.error("Access password is required");
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      await axios.post("http://localhost:5000/api/auth/register", form);
+      await adminRegisterApi(form);
 
-      setSuccess("Account created successfully");
-      setTimeout(() => navigate("/admin/login"), 1500);
+      toast.success("Admin account created successfully");
+      setTimeout(() => navigate("/admin/login"), 1200);
     } catch (err) {
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Registration failed");
-      }
+      toast.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,18 +64,6 @@ const AdminRegister = () => {
         <h2 className="text-2xl font-semibold text-center mb-6">
           Admin Registration
         </h2>
-
-        {error && (
-          <p className="bg-red-100 text-red-600 px-3 py-2 rounded mb-4 text-sm">
-            {error}
-          </p>
-        )}
-
-        {success && (
-          <p className="bg-green-100 text-green-600 px-3 py-2 rounded mb-4 text-sm">
-            {success}
-          </p>
-        )}
 
         {/* Name */}
         <div className="mb-4">
@@ -106,7 +104,7 @@ const AdminRegister = () => {
           />
         </div>
 
-        {/* Phone (Optional) */}
+        {/* Phone */}
         <div className="mb-4">
           <label className="text-sm">Phone (optional)</label>
           <input
@@ -115,7 +113,6 @@ const AdminRegister = () => {
             className="w-full px-3 py-2 rounded border text-sm"
             value={form.phone}
             onChange={handleChange}
-            placeholder="10 digit number"
           />
         </div>
 
@@ -148,12 +145,24 @@ const AdminRegister = () => {
         </div>
 
         <button
+          disabled={loading}
           type="submit"
-          className="w-full py-2 rounded-lg text-white text-sm font-medium"
+          className="w-full py-2 rounded-lg text-white text-sm font-medium disabled:opacity-60"
           style={{ backgroundColor: "var(--color-primary)" }}
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
+        {/* Already Registered */}
+        <p className="text-sm text-center mt-4 text-gray-600">
+          Already registered?{" "}
+          <Link
+            to="/admin/login"
+            className="text-blue-600 font-medium hover:underline"
+          >
+            Login
+          </Link>
+        </p>
+
       </form>
     </div>
   );

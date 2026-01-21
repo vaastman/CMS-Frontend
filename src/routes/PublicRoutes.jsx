@@ -27,6 +27,8 @@ import AntiRagging from "../pages/Student Support/AntiRagging";
 import RulesRegulations from "../pages/Student Support/RulesRegulations";
 import StudentGrievance from "../pages/Student Support/StudentGrievance";
 import OnlineAdmission from "../pages/admission/OnlineAdmission";
+import AdminRegister from "../pages/Auth/AdminRegister";
+import AdminLogin from "../pages/Auth/AdminLogin";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -34,7 +36,8 @@ function PublicRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<ContactUs />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<AdminLogin />} />
+       <Route path="/admin/register" element={<AdminRegister />} />
       <Route path="/gallery" element={<Gallery />} />
       <Route path="/campus" element={<Campus />} />
       <Route path="/about_college" element={<AboutCollege />} />

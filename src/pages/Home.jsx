@@ -32,34 +32,34 @@ const Home = () => {
       </section>
 
       {/* ================= NOTICE + PRINCIPAL ================= */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 py-16">
+      <section className=" mx-auto px-4 md:px-8 lg:px-16 ">
         <NoticeAndPrincipal />
       </section>
 
       {/* ================= ABOUT ================= */}
       <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
+        <div className=" mx-auto px-4 md:px-8 lg:px-16">
           <About />
         </div>
       </section>
 
       {/* ================= PROGRAMS ================= */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
+        <div className=" mx-auto px-4 md:px-8 lg:px-16">
           <Programs />
         </div>
       </section>
 
       {/* ================= QUICK LINKS ================= */}
-      <section className="bg-[var(--color-surface)] py-16">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
+      <section className="bg-[var(--color-surface)] ">
+        <div className=" mx-auto px-4 md:px-8 lg:px-16">
           <QuickLinks />
         </div>
       </section>
 
       {/* ================= EVENTS ================= */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
+        <div className=" mx-auto px-4 md:px-8 lg:px-16">
           <Events />
         </div>
       </section>
