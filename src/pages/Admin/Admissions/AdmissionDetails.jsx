@@ -1,145 +1,149 @@
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FaUserGraduate,
   FaFileAlt,
   FaCheckCircle,
   FaTimesCircle,
-  FaMoneyCheckAlt,
 } from "react-icons/fa";
+
+import {
+  getAdmissionById,
+  updateAdmissionStatus,
+} from "@/api/admissions.api";
+
+const statusBadge = (status) => {
+  switch (status) {
+    case "APPLIED":
+      return "bg-blue-100 text-blue-700";
+    case "UNDER_VERIFICATION":
+      return "bg-yellow-100 text-yellow-700";
+    case "VERIFIED":
+      return "bg-purple-100 text-purple-700";
+    case "APPROVED":
+      return "bg-green-100 text-green-700";
+    case "REJECTED":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+};
 
 const AdmissionDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const [admission, setAdmission] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAdmission();
+  }, [id]);
+
+  const fetchAdmission = async () => {
+    try {
+      setLoading(true);
+      const { data } = await getAdmissionById(id);
+      setAdmission(data.data);
+    } catch (error) {
+      console.error("Failed to load admission", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changeStatus = async (status) => {
+    try {
+      await updateAdmissionStatus(id, status);
+      fetchAdmission();
+    } catch (error) {
+      console.error("Status update failed", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading admission details...
+      </div>
+    );
+  }
+
+  if (!admission) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Admission not found
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
 
-      {/* ================= HEADER ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
+          <h1 className="text-2xl font-semibold">
             Admission Application
           </h1>
-          <p className="text-sm text-[color:var(--color-text-secondary)]">
-            Application ID: #{id}
+          <p className="text-sm text-gray-500">
+            ID: #{admission.id}
           </p>
         </div>
 
-        {/* Status Badge */}
         <span
-          className="
-            inline-flex items-center gap-2
-            px-4 py-2 rounded-full text-sm font-medium
-            bg-yellow-100 text-yellow-800
-          "
+          className={`px-4 py-2 rounded-full text-sm font-medium ${statusBadge(
+            admission.status
+          )}`}
         >
-          UNDER VERIFICATION
+          {admission.status.replaceAll("_", " ")}
         </span>
       </div>
 
-      {/* ================= MAIN GRID ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* STUDENT INFO */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <FaUserGraduate />
+          Student Details
+        </h3>
 
-        {/* ===== LEFT : STUDENT DETAILS ===== */}
-        <div
-          className="
-            lg:col-span-2
-            bg-[color:var(--color-surface)]
-            rounded-2xl shadow-sm p-6
-          "
-        >
-          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-            <FaUserGraduate />
-            Student Details
-          </h3>
+        <p><b>Name:</b> {admission.student?.name}</p>
+        <p><b>Email:</b> {admission.student?.email}</p>
+        <p><b>Course:</b> {admission.course?.name}</p>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
-            <p><b>Name:</b> Rohit Kumar</p>
-            <p><b>Course:</b> B.Sc Computer Science</p>
-            <p><b>Email:</b> rohit@gmail.com</p>
-            <p><b>Mobile:</b> 9876543210</p>
-            <p><b>Applied On:</b> 12 Jan 2025</p>
-            <p><b>Category:</b> General</p>
-          </div>
+      {/* ACTIONS */}
+      <div className="flex gap-4">
 
-          {/* Documents */}
-          <div className="mt-6">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <FaFileAlt />
-              Submitted Documents
-            </h4>
-
-            <ul className="space-y-2 text-sm">
-              {[
-                "Aadhar Card",
-                "10+2 Marksheet",
-                "Passport Size Photo",
-              ].map((doc, i) => (
-                <li
-                  key={i}
-                  className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
-                >
-                  <span>{doc}</span>
-                  <span className="text-green-600 font-medium">
-                    Uploaded
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* ===== RIGHT : ACTION PANEL ===== */}
-        <div
-          className="
-            bg-[color:var(--color-surface)]
-            rounded-2xl shadow-sm p-6
-            flex flex-col gap-4
-          "
-        >
-          <h3 className="font-semibold text-lg">
-            Application Actions
-          </h3>
-
+        {admission.status === "UNDER_VERIFICATION" && (
           <button
             onClick={() => navigate(`/admin/admissions/${id}/verify`)}
-            className="
-              flex items-center gap-3
-              bg-blue-600 text-white px-4 py-3 rounded-lg
-              hover:bg-blue-700 transition
-            "
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
           >
-            <FaCheckCircle />
+            <FaFileAlt />
             Verify Documents
           </button>
+        )}
 
+        {admission.status === "VERIFIED" && (
           <button
-            className="
-              flex items-center gap-3
-              bg-green-600 text-white px-4 py-3 rounded-lg
-              hover:bg-green-700 transition
-            "
+            onClick={() => changeStatus("APPROVED")}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded"
           >
-            <FaMoneyCheckAlt />
-            Approve for Payment
+            <FaCheckCircle />
+            Approve Admission
           </button>
+        )}
 
+        {admission.status !== "REJECTED" && (
           <button
-            className="
-              flex items-center gap-3
-              bg-red-600 text-white px-4 py-3 rounded-lg
-              hover:bg-red-700 transition
-            "
+            onClick={() => changeStatus("REJECTED")}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded"
           >
             <FaTimesCircle />
-            Reject Application
+            Reject Admission
           </button>
-
-          <div className="text-xs text-gray-500 mt-2">
-            Actions will be logged in Audit Logs
-          </div>
-        </div>
-
+        )}
       </div>
     </div>
   );

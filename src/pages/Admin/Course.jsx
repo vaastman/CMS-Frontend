@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
+
 import {
   getCourses,
   createCourse,
@@ -8,8 +9,16 @@ import {
   deleteCourse,
 } from "@/api/course.api";
 
+import { getDepartments } from "@/api/department.api";
+import { getSessions } from "@/api/session.api";
+
 const Course = () => {
+  /* ================= STATES ================= */
+  const [sessions, setSessions] = useState([]);
+  const [sessionId, setSessionId] = useState("");
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -23,23 +32,81 @@ const Course = () => {
 
   const [formData, setFormData] = useState(initialForm);
 
-  /* ================= FETCH COURSES ================= */
-  const loadCourses = async () => {
+  /* ================= FETCH SESSIONS ================= */
+  const loadSessions = async () => {
     try {
-      const res = await getCourses();
-      setCourses(Array.isArray(res?.data?.data) ? res.data.data : []);
+      const res = await getSessions();
+
+      const list =
+        Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res?.data?.data?.sessions)
+          ? res.data.data.sessions
+          : [];
+
+      setSessions(list);
     } catch {
-      toast.error("Failed to load courses");
+      toast.error("Failed to load sessions");
+      setSessions([]);
+    }
+  };
+
+  /* ================= FETCH COURSES ================= */
+  const loadCourses = async (activeSession) => {
+    if (!activeSession) {
+      setCourses([]);
+      return;
+    }
+
+    try {
+      const res = await getCourses({ sessionId: activeSession });
+
+      const list =
+        Array.isArray(res?.data?.data?.courses)
+          ? res.data.data.courses
+          : Array.isArray(res?.data?.courses)
+          ? res.data.courses
+          : [];
+
+      setCourses(list);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to load courses");
       setCourses([]);
     }
   };
 
+  /* ================= FETCH DEPARTMENTS ================= */
+  const loadDepartments = async () => {
+    try {
+      const res = await getDepartments();
+
+      const list =
+        Array.isArray(res?.data?.data?.departments)
+          ? res.data.data.departments
+          : Array.isArray(res?.data?.departments)
+          ? res.data.departments
+          : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : [];
+
+      setDepartments(list);
+    } catch {
+      toast.error("Failed to load departments");
+      setDepartments([]);
+    }
+  };
+
+  /* ================= EFFECTS ================= */
   useEffect(() => {
-    loadCourses();
+    loadSessions();
+    loadDepartments();
   }, []);
 
-  /* ================= HANDLERS ================= */
+  useEffect(() => {
+    if (sessionId) loadCourses(sessionId);
+  }, [sessionId]);
 
+  /* ================= HANDLERS ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
@@ -48,37 +115,46 @@ const Course = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!sessionId) {
+      toast.error("Please select academic session");
+      return;
+    }
+
+    const payload = {
+      sessionId,
+      name: formData.name.trim(),
+      code: formData.code.trim(),
+      durationYears: Number(formData.durationYears),
+      departmentId: formData.departmentId,
+    };
+
     if (
-      !formData.name ||
-      !formData.code ||
-      !formData.durationYears ||
-      !formData.departmentId
+      !payload.name ||
+      !payload.code ||
+      payload.durationYears < 1 ||
+      !payload.departmentId
     ) {
       toast.error("All fields are required");
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
+
       if (editingCourse) {
-        await updateCourse(editingCourse.id, formData);
+        await updateCourse(editingCourse.id, payload);
         toast.success("Course updated successfully");
       } else {
-        await createCourse(formData);
-        toast.success("Course added successfully");
+        await createCourse(payload);
+        toast.success("Course created successfully");
       }
 
       setShowForm(false);
       setEditingCourse(null);
       setFormData(initialForm);
-      loadCourses();
+      loadCourses(sessionId);
     } catch (err) {
-      toast.error(
-        err?.response?.data?.errors?.[0] ||
-          err?.response?.data?.message ||
-          "Operation failed"
-      );
+      toast.error(err?.response?.data?.message || "Operation failed");
     } finally {
       setLoading(false);
     }
@@ -86,12 +162,15 @@ const Course = () => {
 
   const handleEdit = (course) => {
     setEditingCourse(course);
+    setSessionId(course.sessionId);
+
     setFormData({
       name: course.name,
       code: course.code,
       durationYears: course.durationYears,
       departmentId: course.departmentId,
     });
+
     setShowForm(true);
   };
 
@@ -101,20 +180,26 @@ const Course = () => {
     try {
       await deleteCourse(id);
       toast.success("Course deleted");
-      loadCourses();
+      loadCourses(sessionId);
     } catch {
       toast.error("Delete failed");
     }
   };
 
+  const getDepartmentName = (id) => {
+    const dept = departments.find((d) => d.id === id);
+    return dept ? dept.name : "-";
+  };
+
+  /* ================= UI ================= */
   return (
     <div className="space-y-8">
-      {/* ================= HEADER ================= */}
-      <div className="flex items-center justify-between">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-semibold">Course Management</h1>
           <p className="text-sm text-gray-500">
-            Manage academic courses offered by the institution
+            Manage academic courses by session
           </p>
         </div>
 
@@ -123,6 +208,7 @@ const Course = () => {
             setShowForm(true);
             setEditingCourse(null);
             setFormData(initialForm);
+            setSessionId("");
           }}
           className="flex items-center gap-2 text-white px-5 py-2 rounded-lg"
           style={{ backgroundColor: "var(--color-primary)" }}
@@ -131,12 +217,26 @@ const Course = () => {
         </button>
       </div>
 
-      {/* ================= FORM ================= */}
+      {/* FORM */}
       {showForm && (
         <form
           onSubmit={handleSubmit}
           className="bg-white p-6 rounded-2xl shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4"
         >
+          {/* SESSION */}
+          <select
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            className="border p-3 rounded-lg md:col-span-2"
+          >
+            <option value="">Select Academic Session *</option>
+            {sessions.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.startYear}-{s.endYear})
+              </option>
+            ))}
+          </select>
+
           <input
             name="name"
             value={formData.name}
@@ -156,19 +256,26 @@ const Course = () => {
           <input
             name="durationYears"
             type="number"
+            min="1"
             value={formData.durationYears}
             onChange={handleChange}
             placeholder="Duration (Years)"
             className="border p-3 rounded-lg"
           />
 
-          <input
+          <select
             name="departmentId"
             value={formData.departmentId}
             onChange={handleChange}
-            placeholder="Department UUID"
             className="border p-3 rounded-lg"
-          />
+          >
+            <option value="">Select Department *</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
 
           <div className="md:col-span-4 flex gap-4 mt-4">
             <button
@@ -181,7 +288,7 @@ const Course = () => {
                 ? "Saving..."
                 : editingCourse
                 ? "Update Course"
-                : "Add Course"}
+                : "Create Course"}
             </button>
 
             <button
@@ -196,7 +303,7 @@ const Course = () => {
         </form>
       )}
 
-      {/* ================= TABLE ================= */}
+      {/* TABLE */}
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
@@ -221,7 +328,9 @@ const Course = () => {
                   <td className="p-4">{course.name}</td>
                   <td className="p-4">{course.code}</td>
                   <td className="p-4">{course.durationYears} Years</td>
-                  <td className="p-4">{course.departmentId}</td>
+                  <td className="p-4">
+                    {getDepartmentName(course.departmentId)}
+                  </td>
                   <td className="p-4 flex justify-center gap-4">
                     <button
                       onClick={() => handleEdit(course)}

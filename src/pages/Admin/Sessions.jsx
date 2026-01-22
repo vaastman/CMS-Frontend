@@ -1,63 +1,87 @@
-import React, { useState } from "react";
-import { FaSearch, FaTable, FaThLarge, FaCalendar } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaSearch, FaTable, FaThLarge } from "react-icons/fa";
+import { toast } from "react-toastify";
+import { getSessions, createSession, updateSession } from "@/api";
 
-const initialSessions = [
-  {
-    id: 1,
-    course: "B.Sc Computer Science",
-    semester: "Sem 1",
-    date: "2025-01-12",
-    time: "10:00 – 11:30",
-    students: 60,
-    status: "Active",
-  },
-  {
-    id: 2,
-    course: "B.A Economics",
-    semester: "Sem 3",
-    date: "2025-01-14",
-    time: "12:00 – 01:30",
-    students: 45,
-    status: "Upcoming",
-  },
-  {
-    id: 3,
-    course: "B.Com Accounting",
-    semester: "Sem 5",
-    date: "2025-01-12",
-    time: "02:00 – 03:30",
-    students: 52,
-    status: "Completed",
-  },
-];
+
 
 const Sessions = () => {
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = useState([]);
   const [search, setSearch] = useState("");
-  const [view, setView] = useState("card"); // card | table | calendar
+  const [view, setView] = useState("card");
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: "",
+    startYear: "",
+    endYear: "",
+    courseId: "",
+  });
+
+  /* ================= FETCH ================= */
+  const fetchSessions = async () => {
+  try {
+    const res = await getSessions();
+
+    const data =
+      Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data?.data?.sessions)
+        ? res.data.data.sessions
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+
+    setSessions(data);
+  } catch (err) {
+    setSessions([]);
+    toast.error("Failed to load sessions");
+  }
+};
+
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
 
   /* ================= FILTER ================= */
-  const filtered = sessions.filter((s) =>
-    s.course.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = Array.isArray(sessions)
+  ? sessions.filter((s) =>
+      s.name?.toLowerCase().includes(search.toLowerCase())
+    )
+  : [];
 
-  /* ================= GROUP BY DATE (CALENDAR) ================= */
-  const groupedByDate = filtered.reduce((acc, curr) => {
-    acc[curr.date] = acc[curr.date] || [];
-    acc[curr.date].push(curr);
-    return acc;
-  }, {});
-
-  /* ================= SAVE SESSION ================= */
-  const handleSave = () => {
-    if (form.id) {
-      setSessions(sessions.map(s => (s.id === form.id ? form : s)));
-    } else {
-      setSessions([...sessions, { ...form, id: Date.now() }]);
+  /* ================= SAVE ================= */
+  const handleSave = async () => {
+    if (!form.name || !form.startYear || !form.endYear) {
+      toast.error("All required fields must be filled");
+      return;
     }
-    setModalOpen(false);
+
+    if (+form.startYear >= +form.endYear) {
+      toast.error("End year must be greater than start year");
+      return;
+    }
+
+    const payload = {
+      name: form.name,
+      startYear: Number(form.startYear),
+      endYear: Number(form.endYear),
+      courseId: form.courseId || undefined,
+    };
+
+    try {
+      if (form.id) {
+        await updateSession(form.id, payload);
+        toast.success("Session updated");
+      } else {
+        await createSession(payload);
+        toast.success("Session created");
+      }
+      setModalOpen(false);
+      fetchSessions();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Save failed");
+    }
   };
 
   return (
@@ -65,36 +89,40 @@ const Sessions = () => {
 
       {/* ================= HEADER ================= */}
       <div className="flex flex-wrap gap-4 justify-between items-center">
-        <h1 className="text-2xl font-semibold">Sessions</h1>
+        <h1 className="text-2xl font-semibold">Academic Sessions</h1>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={() => setView("card")}
-            className={`p-2 rounded ${view === "card" && "bg-[color:var(--color-primary)] text-white px-5 py-2 rounded-lg hover:opacity-90 transition"}`}
+            className={`p-2 rounded ${
+              view === "card" &&
+              "bg-[color:var(--primary)] text-white"
+            }`}
           >
             <FaThLarge />
           </button>
+
           <button
             onClick={() => setView("table")}
-            className={`p-2 rounded ${view === "table" && "bg-[color:var(--color-primary)] text-white px-5 py-2 rounded-lg hover:opacity-90 transition"}`}
+            className={`p-2 rounded ${
+              view === "table" &&
+              "bg-[color:var(--primary)] text-white"
+            }`}
           >
             <FaTable />
-          </button>
-          <button
-            onClick={() => setView("calendar")}
-            className={`p-2 rounded ${view === "calendar" && "bg-[color:var(--color-primary)] text-white px-5 py-2 rounded-lg hover:opacity-90 transition"}`}
-          >
-            <FaCalendar />
           </button>
 
           <button
             onClick={() => {
-              setForm({});
+              setForm({
+                name: "",
+                startYear: "",
+                endYear: "",
+                courseId: "",
+              });
               setModalOpen(true);
             }}
-            className="bg-[color:var(--color-primary)]
-            text-white px-5 py-2 rounded-lg
-            hover:opacity-90 transition"
+            className="bg-[color:var(--primary)] text-white px-5 py-2 rounded-lg"
           >
             + Create
           </button>
@@ -105,7 +133,6 @@ const Sessions = () => {
       <div className="relative max-w-sm">
         <FaSearch className="absolute left-3 top-3 text-gray-400" />
         <input
-          type="text"
           placeholder="Search session..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -117,18 +144,31 @@ const Sessions = () => {
       {view === "card" && (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((s) => (
-            <div key={s.id} className="bg-white p-5 rounded-xl shadow">
-              <h2 className="font-semibold">{s.course}</h2>
-              <p className="text-sm text-gray-500">{s.semester}</p>
-              <p className="mt-2 text-sm">{s.date} | {s.time}</p>
-              <p className="text-sm">{s.students} Students</p>
+            <div
+              key={s.id}
+              className="p-5 rounded-xl border"
+              style={{
+                backgroundColor: "var(--card)",
+                borderColor: "var(--border)",
+              }}
+            >
+              <h2 className="font-semibold text-lg">{s.name}</h2>
+              <p className="text-sm text-[color:var(--muted)]">
+                {s.startYear} – {s.endYear}
+              </p>
 
               <button
                 onClick={() => {
-                  setForm(s);
+                  setForm({
+                    id: s.id,
+                    name: s.name,
+                    startYear: s.startYear,
+                    endYear: s.endYear,
+                    courseId: s.courseId || "",
+                  });
                   setModalOpen(true);
                 }}
-                className="mt-4 text-blue-600 text-sm"
+                className="mt-4 text-sm text-[color:var(--primary)]"
               >
                 Edit
               </button>
@@ -139,31 +179,35 @@ const Sessions = () => {
 
       {/* ================= TABLE VIEW ================= */}
       {view === "table" && (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
+        <div className="overflow-x-auto border rounded-xl">
           <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-3 text-left">Course</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Students</th>
+                <th className="p-3 text-left">Name</th>
+                <th>Start</th>
+                <th>End</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((s) => (
                 <tr key={s.id} className="border-t">
-                  <td className="p-3">{s.course}</td>
-                  <td>{s.date}</td>
-                  <td>{s.time}</td>
-                  <td>{s.students}</td>
+                  <td className="p-3">{s.name}</td>
+                  <td>{s.startYear}</td>
+                  <td>{s.endYear}</td>
                   <td>
                     <button
                       onClick={() => {
-                        setForm(s);
+                        setForm({
+                          id: s.id,
+                          name: s.name,
+                          startYear: s.startYear,
+                          endYear: s.endYear,
+                          courseId: s.courseId || "",
+                        });
                         setModalOpen(true);
                       }}
-                      className="text-blue-600"
+                      className="text-[color:var(--primary)]"
                     >
                       Edit
                     </button>
@@ -175,25 +219,6 @@ const Sessions = () => {
         </div>
       )}
 
-      {/* ================= CALENDAR VIEW ================= */}
-      {view === "calendar" && (
-        <div className="space-y-6">
-          {Object.keys(groupedByDate).map(date => (
-            <div key={date}>
-              <h3 className="font-semibold mb-2">{date}</h3>
-              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {groupedByDate[date].map(s => (
-                  <div key={s.id} className="bg-white p-4 rounded-lg shadow">
-                    <h4 className="font-medium">{s.course}</h4>
-                    <p className="text-sm">{s.time}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* ================= MODAL ================= */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -202,7 +227,7 @@ const Sessions = () => {
               {form.id ? "Edit Session" : "Create Session"}
             </h2>
 
-            {["course", "semester", "date", "time", "students"].map((field) => (
+            {["name", "startYear", "endYear", "courseId"].map((field) => (
               <input
                 key={field}
                 placeholder={field}
@@ -223,7 +248,8 @@ const Sessions = () => {
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
+                className="px-4 py-2 text-white rounded"
+                style={{ backgroundColor: "var(--primary)" }}
               >
                 Save
               </button>

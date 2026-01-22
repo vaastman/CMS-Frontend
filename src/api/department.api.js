@@ -1,15 +1,30 @@
 // src/api/department.api.js
 import api from "./api";
 
-/* 🔹 Fetch all departments */
-export const fetchDepartmentsApi = (payload) => {
-  return api.get("/departments", { params: payload });
+/* ================= GET ALL DEPARTMENTS ================= */
+export const fetchDepartmentsApi = (params = {}) => {
+  return api.get("/departments", { params });
 };
 
-/* 🔹 Create department */
-export const createDepartmentApi = (payload) =>
-  api.post("/departments", payload);
+/* ✅ ALIAS (so Course.jsx can use getDepartments) */
+export const getDepartments = fetchDepartmentsApi;
 
-/* 🔹 Update department */
-export const updateDepartmentApi = (id, payload) =>
-  api.put(`/departments/${id}`, payload);
+/* ================= CREATE DEPARTMENT ================= */
+export const createDepartmentApi = (payload) => {
+  return api.post("/departments", payload);
+};
+
+/* ================= UPDATE DEPARTMENT ================= */
+export const updateDepartmentApi = (id, payload) => {
+  return api.patch(`/departments/${id}`, payload);
+};
+
+/* ================= DELETE DEPARTMENT ================= */
+export const deleteDepartmentApi = (id) => {
+  return api.delete(`/departments/${id}`);
+};
+
+/* ================= GET DEPARTMENT BY ID ================= */
+export const getDepartmentByIdApi = (id) => {
+  return api.get(`/departments/${id}`);
+};

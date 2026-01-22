@@ -2,3 +2,7 @@ export * from "./student.api";
 export * from "./course.api";
 export * from "./auth.api";
 export * from "./department.api";
+export * from "./admissions.api";
+export * from "./dashboard.api";
+export * from "./files.api";
+export * from "./session.api";

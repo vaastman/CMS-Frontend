@@ -15,7 +15,7 @@ import {
   updateDepartmentApi,
 } from "@/api/department.api";
 
-/* ---------------- MODAL ---------------- */
+/* ================= MODAL ================= */
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
 
@@ -34,13 +34,12 @@ const Modal = ({ open, onClose, title, children }) => {
   );
 };
 
-/* ---------------- COMPONENT ---------------- */
+/* ================= COMPONENT ================= */
 const Departments = () => {
-  /* ---------- DATA STATES ---------- */
+  /* ---------- STATES ---------- */
   const [departments, setDepartments] = useState([]);
   const [selectedDept, setSelectedDept] = useState(null);
 
-  /* ---------- UI STATES ---------- */
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -50,7 +49,6 @@ const Departments = () => {
   const [openDeptModal, setOpenDeptModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
 
-  /* ---------- FORM STATES ---------- */
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [description, setDescription] = useState("");
@@ -59,137 +57,163 @@ const Departments = () => {
   const [editCode, setEditCode] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
-  /* ---------- FETCH DEPARTMENTS ---------- */
-  const loadDepartments = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  /* ================= FETCH DEPARTMENTS ================= */
+  const loadDepartments = async (selectId = null) => {
+  console.log("[DEPARTMENTS] Fetch started");
 
-      const res = await fetchDepartmentsApi();
-      let deptList = [];
+  try {
+    setLoading(true);
+    setError("");
 
-      if (Array.isArray(res.data)) {
-        deptList = res.data;
-      } else if (Array.isArray(res.data?.data)) {
-        deptList = res.data.data;
-      } else if (Array.isArray(res.data?.data?.rows)) {
-        deptList = res.data.data.rows;
-      } else if (Array.isArray(res.data?.departments)) {
-        deptList = res.data.departments;
-      }
+    const res = await fetchDepartmentsApi();
+    console.log("[DEPARTMENTS] Raw API response:", res?.data);
 
-      setDepartments(deptList);
-      setSelectedDept(deptList[0] || null);
-    } catch (err) {
-      const msg =
-        err.response?.data?.message || "Failed to fetch departments";
-      toast.error(msg);
-      setError(msg);
-    } finally {
-      setLoading(false);
+    let deptList = [];
+
+    // ✅ FIX: correct backend shape
+    if (Array.isArray(res?.data?.data?.departments)) {
+      deptList = res.data.data.departments;
+    } else if (Array.isArray(res?.data?.departments)) {
+      deptList = res.data.departments;
+    } else if (Array.isArray(res?.data?.data)) {
+      deptList = res.data.data;
     }
-  };
+
+    if (deptList.length === 0) {
+      console.warn("[DEPARTMENTS] No departments found in backend");
+    } else {
+      console.log("[DEPARTMENTS] Parsed departments:", deptList);
+    }
+
+    setDepartments(deptList);
+
+    // auto-select
+    if (selectId) {
+      const found = deptList.find((d) => d.id === selectId);
+      setSelectedDept(found || deptList[0] || null);
+    } else {
+      setSelectedDept(deptList[0] || null);
+    }
+  } catch (err) {
+    console.error("[DEPARTMENTS] Fetch error:", err);
+
+    const msg =
+      err.response?.data?.message ||
+      err.message ||
+      "Failed to fetch departments";
+
+    toast.error(msg);
+    setError(msg);
+    setDepartments([]);
+    setSelectedDept(null);
+  } finally {
+    setLoading(false);
+    console.log("[DEPARTMENTS] Fetch completed");
+  }
+};
+
 
   useEffect(() => {
     loadDepartments();
   }, []);
 
-  /* ---------- FILTERS ---------- */
+  /* ================= FILTERS ================= */
   const filteredDepartments = Array.isArray(departments)
-    ? departments.filter((dept) =>
-        dept.name?.toLowerCase().includes(deptSearch.toLowerCase())
+    ? departments.filter((d) =>
+        d.name?.toLowerCase().includes(deptSearch.toLowerCase())
       )
     : [];
 
-  const filteredCourses =
-    selectedDept?.courses?.filter((course) =>
-      course.name?.toLowerCase().includes(courseSearch.toLowerCase())
-    ) || [];
+  const filteredCourses = Array.isArray(selectedDept?.courses)
+    ? selectedDept.courses.filter((c) =>
+        c.name?.toLowerCase().includes(courseSearch.toLowerCase())
+      )
+    : [];
 
-  /* ---------- CREATE ---------- */
+  /* ================= CREATE ================= */
   const handleCreateDepartment = async () => {
-    try {
-      const payload = { name, code, description };
-      const res = await createDepartmentApi(payload);
+    if (!name.trim()) {
+      toast.error("Department name is required");
+      return;
+    }
 
-      toast.success(res.data?.message || "Department created successfully");
+    try {
+      const res = await createDepartmentApi({ name, code, description });
+
+      toast.success("Department created successfully");
+
+      const createdDept =
+        res?.data?.data || res?.data?.department || null;
 
       setOpenDeptModal(false);
       setName("");
       setCode("");
       setDescription("");
 
-      loadDepartments();
+      await loadDepartments(createdDept?.id);
     } catch (err) {
-      const msg =
+      console.error("[DEPARTMENTS] Create error:", err);
+      toast.error(
         err.response?.data?.message ||
-        "You are not authorized to create department";
-      toast.error(msg);
+          "You are not authorized to create department"
+      );
     }
   };
 
-  /* ---------- UPDATE ---------- */
+  /* ================= UPDATE ================= */
   const handleEditOpen = () => {
-    setEditName(selectedDept?.name || "");
-    setEditCode(selectedDept?.code || "");
-    setEditDescription(selectedDept?.description || "");
+    if (!selectedDept) return;
+
+    setEditName(selectedDept.name || "");
+    setEditCode(selectedDept.code || "");
+    setEditDescription(selectedDept.description || "");
     setOpenEditModal(true);
   };
 
   const handleUpdateDepartment = async () => {
+    if (!selectedDept) return;
+
+    const payload = {
+      ...(editName && { name: editName }),
+      ...(editCode && { code: editCode }),
+      ...(editDescription && { description: editDescription }),
+    };
+
     try {
-      const payload = {
-        ...(editName && { name: editName }),
-        ...(editCode && { code: editCode }),
-        ...(editDescription && { description: editDescription }),
-      };
-
-      const res = await updateDepartmentApi(selectedDept.id, payload);
-
-      toast.success(res.data?.message || "Department updated successfully");
-
+      await updateDepartmentApi(selectedDept.id, payload);
+      toast.success("Department updated successfully");
       setOpenEditModal(false);
-      loadDepartments();
+      loadDepartments(selectedDept.id);
     } catch (err) {
-      const msg =
+      console.error("[DEPARTMENTS] Update error:", err);
+      toast.error(
         err.response?.data?.message ||
-        "You do not have permission to update department";
-      toast.error(msg);
+          "You do not have permission to update department"
+      );
     }
   };
 
-  /* ---------- LOADING / ERROR ---------- */
+  /* ================= LOADING / ERROR ================= */
   if (loading) {
-    return <div className="p-6 text-sm text-gray-500">Loading departments…</div>;
+    return (
+      <div className="p-6 text-sm text-gray-500">
+        Loading departments…
+      </div>
+    );
   }
 
   if (error) {
     return <div className="p-6 text-sm text-red-600">{error}</div>;
   }
 
-  /* ---------- UI ---------- */
+  /* ================= UI ================= */
   return (
     <div className="space-y-6">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Departments & Courses
-        </h1>
-        <p className="text-sm text-gray-500">
-          Manage academic departments and curriculum
-        </p>
-      </div>
+      <h1 className="text-2xl font-semibold">Departments & Courses</h1>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* LEFT */}
         <div className="bg-white rounded-xl border p-4 space-y-4">
-          <h3 className="font-semibold">
-            Departments
-            <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded">
-              {filteredDepartments.length}
-            </span>
-          </h3>
-
           <div className="relative">
             <FaSearch className="absolute left-3 top-3 text-gray-400 text-sm" />
             <input
@@ -207,25 +231,35 @@ const Departments = () => {
             <FaPlus /> Add Department
           </button>
 
-          {filteredDepartments.map((dept) => (
-            <div
-              key={dept.id}
-              onClick={() => setSelectedDept(dept)}
-              className={`p-3 rounded-lg border cursor-pointer ${
-                selectedDept?.id === dept.id
-                  ? "border-blue-500 bg-blue-50"
-                  : "hover:bg-gray-50"
-              }`}
-            >
-              <p className="font-medium text-sm">{dept.name}</p>
-              <p className="text-xs text-gray-500">{dept.code || "—"}</p>
-            </div>
-          ))}
+          {filteredDepartments.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No departments found
+            </p>
+          ) : (
+            filteredDepartments.map((dept) => (
+              <div
+                key={dept.id}
+                onClick={() => setSelectedDept(dept)}
+                className={`p-3 rounded-lg border cursor-pointer ${
+                  selectedDept?.id === dept.id
+                    ? "border-blue-500 bg-blue-50"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <p className="font-medium">{dept.name}</p>
+                <p className="text-xs text-gray-500">{dept.code || "—"}</p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* RIGHT */}
         <div className="xl:col-span-3 space-y-6">
-          {selectedDept && (
+          {!selectedDept ? (
+            <div className="bg-white border rounded-xl p-6 text-sm text-gray-500">
+              Select a department to view details
+            </div>
+          ) : (
             <>
               <div className="bg-white rounded-xl border p-6 flex justify-between">
                 <div>
@@ -238,10 +272,10 @@ const Departments = () => {
 
                   <div className="flex gap-6 mt-4 text-sm text-gray-600">
                     <span className="flex items-center gap-1">
-                      <FaUserGraduate /> {selectedDept.students || 0} Students
+                      <FaUserGraduate /> {selectedDept.students || 0}
                     </span>
                     <span className="flex items-center gap-1">
-                      <FaUsers /> {selectedDept.faculty || 0} Faculty
+                      <FaUsers /> {selectedDept.faculty || 0}
                     </span>
                     <span className="flex items-center gap-1">
                       <FaCalendarAlt /> —
@@ -257,7 +291,6 @@ const Departments = () => {
                 </button>
               </div>
 
-              {/* COURSES */}
               <div className="bg-white rounded-xl border">
                 <div className="px-6 py-4 border-b">
                   <h3 className="font-semibold">Courses</h3>
@@ -301,13 +334,13 @@ const Departments = () => {
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="Department Code (optional)"
+            placeholder="Department Code"
             className="w-full border rounded-lg px-3 py-2 text-sm"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
+            placeholder="Description"
             className="w-full border rounded-lg px-3 py-2 text-sm"
             rows={3}
           />
