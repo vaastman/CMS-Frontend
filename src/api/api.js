@@ -7,18 +7,48 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+/* ================= REQUEST INTERCEPTOR ================= */
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
 
-  // ⛔ DO NOT attach token to login/register
-  if (
-    token &&
-    !config.url.includes("/auth/login") 
-  ) {
-    config.headers.Authorization = `Bearer ${token}`;
+    // ⛔ Do NOT attach token to auth routes
+    const isAuthRoute =
+      config.url?.includes("/auth/login") ||
+      config.url?.includes("/auth/register");
+
+    if (token && !isAuthRoute) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+/* ================= RESPONSE INTERCEPTOR ================= */
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+
+    if (status === 401) {
+      console.warn("Unauthorized - Token expired or invalid");
+
+      // Optional: force logout
+      localStorage.removeItem("token");
+      localStorage.removeItem("admin");
+
+      // Optional redirect
+      // window.location.href = "/login";
+    }
+
+    if (status === 403) {
+      console.warn("Forbidden - Insufficient permissions");
+    }
+
+    return Promise.reject(error);
   }
-
-  return config;
-});
+);
 
 export default api;

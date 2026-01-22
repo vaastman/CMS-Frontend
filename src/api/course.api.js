@@ -1,13 +1,36 @@
+// src/api/course.api.js
 import api from "./api";
 
-export const getCourses = (params = {}) =>
-  api.get("/courses", { params });
+/* ================= GET COURSES ================= */
+// expects: GET /courses?sessionId=<UUID>
+export const getCourses = (params = {}) => {
+  return api.get("/courses", { params });
+};
 
-export const createCourse = (payload) =>
-  api.post("/courses", payload);
+/* ================= CREATE COURSE ================= */
+// expects body:
+// {
+//   name,
+//   code,
+//   durationYears,
+//   departmentId,
+//   sessionId (UUID)
+// }
+export const createCourse = (payload) => {
+  return api.post("/courses", payload);
+};
 
-export const updateCourse = (id, payload) =>
-  api.put(`/courses/${id}`, payload);
+/* ================= UPDATE COURSE ================= */
+export const updateCourse = (id, payload) => {
+  return api.patch(`/courses/${id}`, payload);
+};
 
-export const deleteCourse = (id) =>
-  api.delete(`/courses/${id}`);
+/* ================= DELETE COURSE ================= */
+export const deleteCourse = (id) => {
+  return api.delete(`/courses/${id}`);
+};
+
+/* ================= GET COURSE BY ID ================= */
+export const getCourseById = (id) => {
+  return api.get(`/courses/${id}`);
+};

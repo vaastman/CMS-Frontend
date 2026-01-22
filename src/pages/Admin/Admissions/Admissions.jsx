@@ -1,51 +1,48 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FaClipboardList,
-  FaUserGraduate,
-  FaCheckCircle,
-  FaClock,
-} from "react-icons/fa";
+import { FaUserGraduate } from "react-icons/fa";
+import { getAdmissions } from "@/api/admissions.api";
+
+const statusStyle = (status) => {
+  switch (status) {
+    case "APPLIED":
+      return "bg-blue-100 text-blue-700";
+    case "UNDER_VERIFICATION":
+      return "bg-yellow-100 text-yellow-700";
+    case "VERIFIED":
+      return "bg-purple-100 text-purple-700";
+    case "APPROVED":
+      return "bg-green-100 text-green-700";
+    case "REJECTED":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+};
 
 const Admissions = () => {
   const navigate = useNavigate();
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const applications = [
-    {
-      id: 1,
-      name: "Rohit Kumar",
-      course: "B.Sc Computer Science",
-      status: "APPLIED",
-    },
-    {
-      id: 2,
-      name: "Neha Singh",
-      course: "B.A English",
-      status: "UNDER_VERIFICATION",
-    },
-    {
-      id: 3,
-      name: "Amit Verma",
-      course: "B.Sc Physics",
-      status: "APPROVED",
-    },
-  ];
+  useEffect(() => {
+    fetchAdmissions();
+  }, []);
 
-  const statusStyle = (status) => {
-    switch (status) {
-      case "APPLIED":
-        return "bg-blue-100 text-blue-700";
-      case "UNDER_VERIFICATION":
-        return "bg-yellow-100 text-yellow-700";
-      case "APPROVED":
-        return "bg-green-100 text-green-700";
-      default:
-        return "bg-gray-100 text-gray-600";
+  const fetchAdmissions = async () => {
+    try {
+      setLoading(true);
+      const { data } = await getAdmissions();
+      setApplications(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch admissions", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="space-y-8">
-
       {/* ================= HEADER ================= */}
       <div>
         <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
@@ -56,31 +53,7 @@ const Admissions = () => {
         </p>
       </div>
 
-      {/* ================= SUMMARY CARDS ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-[color:var(--color-surface)] rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-[color:var(--color-text-secondary)]">
-            Total Applications
-          </p>
-          <h2 className="text-2xl font-bold mt-1">3</h2>
-        </div>
-
-        <div className="bg-[color:var(--color-surface)] rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-[color:var(--color-text-secondary)]">
-            Pending Verification
-          </p>
-          <h2 className="text-2xl font-bold mt-1">1</h2>
-        </div>
-
-        <div className="bg-[color:var(--color-surface)] rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-[color:var(--color-text-secondary)]">
-            Approved
-          </p>
-          <h2 className="text-2xl font-bold mt-1">1</h2>
-        </div>
-      </div>
-
-      {/* ================= APPLICATIONS TABLE ================= */}
+      {/* ================= TABLE ================= */}
       <div className="bg-[color:var(--color-surface)] rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
@@ -93,51 +66,70 @@ const Admissions = () => {
           </thead>
 
           <tbody>
-            {applications.map((app) => (
-              <tr
-                key={app.id}
-                className="border-t hover:bg-gray-50 transition"
-              >
-                <td className="p-4 flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-lg bg-[color:var(--color-primary)] text-white flex items-center justify-center">
-                    <FaUserGraduate />
-                  </span>
-                  <span className="font-medium">{app.name}</span>
-                </td>
-
-                <td className="p-4">{app.course}</td>
-
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyle(
-                      app.status
-                    )}`}
-                  >
-                    {app.status.replace("_", " ")}
-                  </span>
-                </td>
-
-                <td className="p-4 text-center">
-                  <button
-                    onClick={() =>
-                      navigate(`/admin/admissions/${app.id}`)
-                    }
-                    className="
-                      text-[color:var(--color-primary)]
-                      font-medium hover:underline
-                    "
-                  >
-                    View Details →
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-            {applications.length === 0 && (
+            {/* Loading */}
+            {loading && (
               <tr>
                 <td
                   colSpan="4"
-                  className="text-center p-6 text-gray-500"
+                  className="p-6 text-center text-gray-500"
+                >
+                  Loading admissions...
+                </td>
+              </tr>
+            )}
+
+            {/* Data */}
+            {!loading &&
+              applications.map((app) => (
+                <tr
+                  key={app.id}
+                  className="border-t hover:bg-gray-50 transition"
+                >
+                  <td className="p-4 flex items-center gap-3">
+                    <span className="w-9 h-9 rounded-lg bg-[color:var(--color-primary)] text-white flex items-center justify-center">
+                      <FaUserGraduate />
+                    </span>
+                    <span className="font-medium">
+                      {app.student?.name || "N/A"}
+                    </span>
+                  </td>
+
+                  <td className="p-4">
+                    {app.course?.name || "N/A"}
+                  </td>
+
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyle(
+                        app.status
+                      )}`}
+                    >
+                      {app.status?.replaceAll("_", " ")}
+                    </span>
+                  </td>
+
+                  <td className="p-4 text-center">
+                    <button
+                      onClick={() =>
+                        navigate(`/admin/admissions/${app.id}`)
+                      }
+                      className="
+                        text-[color:var(--color-primary)]
+                        font-medium hover:underline
+                      "
+                    >
+                      View Details →
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+            {/* Empty */}
+            {!loading && applications.length === 0 && (
+              <tr>
+                <td
+                  colSpan="4"
+                  className="p-6 text-center text-gray-500"
                 >
                   No admission applications found.
                 </td>
