@@ -11,3 +11,7 @@ export const getSemesterById = (id) => {
 export const assignSemesterToStudent = (studentId, payload) => {
   return api.post(`/students/${studentId}/assign-semester`, payload);
 };
+
+export const getStudentSemesters = (params = {}) => {
+  return api.get("/student-semesters", { params });
+};
