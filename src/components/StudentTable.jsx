@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fetchStudents } from "@/api/student.api";
+import { fetchStudents, deleteStudent } from "@/api/student.api";
 import { toast } from "react-toastify";
+import { FaEdit, FaTrash } from "react-icons/fa";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const statusStyles = {
   ACTIVE: "bg-green-100 text-green-700",
@@ -10,73 +12,108 @@ const statusStyles = {
   CANCELLED: "bg-red-100 text-red-700",
 };
 
-const StudentTable = ({ search, filters }) => {
+const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
   const navigate = useNavigate();
 
+  /* ================= STATE ================= */
   const [students, setStudents] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1);            // 1-based page index
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  // delete dialog
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const perPage = 5;
   const { course, session, status } = filters;
 
-  /* 🔁 Reset page on filter/search change */
+  /* ================= RESET PAGE ON FILTER CHANGE ================= */
   useEffect(() => {
     setPage(1);
   }, [search, course, session, status]);
 
-  /* ===== FETCH STUDENTS ===== */
+  /* ================= FETCH STUDENTS ================= */
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-
       try {
         const res = await fetchStudents({
           search,
           courseId: course,
           sessionId: session,
           status,
-          page,
+          page,              // ✅ 1-based page
           limit: perPage,
         });
 
-        console.log("🟢 Students API response:", res.data);
-
-        const list =
-          Array.isArray(res?.data?.data?.students)
-            ? res.data.data.students
-            : Array.isArray(res?.data?.data)
-            ? res.data.data
-            : [];
-
-        console.log("🟣 Parsed students list:", list);
+        const data = res?.data?.data || {};
+        const list = data.students || data || [];
 
         setStudents(list);
-        setTotalPages(res?.data?.data?.pagination?.totalPages || 1);
+
+        // ✅ SAFE pagination handling (works with most backends)
+        const pagination = data.pagination;
+
+        if (pagination?.totalPages) {
+          setTotalPages(pagination.totalPages);
+        } else if (pagination?.total && pagination?.limit) {
+          setTotalPages(Math.ceil(pagination.total / pagination.limit));
+        } else {
+          setTotalPages(1);
+        }
       } catch (err) {
         console.error("❌ Fetch students error:", err);
         toast.error("Failed to load students");
         setStudents([]);
+        setTotalPages(1);
       } finally {
         setLoading(false);
       }
     };
 
     load();
-  }, [search, course, session, status, page]);
+  }, [search, course, session, status, page, refreshKey]);
 
+  /* ================= CONFIRM DELETE ================= */
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true);
+      await deleteStudent(deleteId);
+
+      toast.success("Student deleted successfully 🗑️");
+
+      setStudents((prev) => {
+        const updated = prev.filter((s) => s.id !== deleteId);
+
+        // ✅ fix pagination edge case
+        if (updated.length === 0 && page > 1) {
+          setPage((p) => p - 1);
+        }
+
+        return updated;
+      });
+
+      setDeleteId(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  /* ================= RENDER ================= */
   return (
     <div className="rounded-2xl border overflow-hidden bg-white">
       <table className="w-full text-sm">
         <thead className="border-b bg-gray-50">
           <tr>
-            <th className="p-4 text-left font-medium">Reg No</th>
-            <th className="text-left font-medium">Name</th>
-            <th className="text-left font-medium">Course</th>
-            <th className="text-left font-medium">Session</th>
-            <th className="text-left font-medium">Status</th>
-            <th className="text-center font-medium">Action</th>
+            <th className="p-4 text-left">Reg No</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Session</th>
+            <th>Status</th>
+            <th className="text-center">Action</th>
           </tr>
         </thead>
 
@@ -100,31 +137,45 @@ const StudentTable = ({ search, filters }) => {
                 className="border-b hover:bg-gray-50 cursor-pointer"
                 onClick={() => navigate(`/admin/students/${s.id}`)}
               >
-                <td className="p-4">{s.regNo || "-"}</td>
+                <td className="p-4">{s.regNo || "SSM123DEMO"}</td>
                 <td>{s.name}</td>
                 <td>{s.course?.name || "-"}</td>
                 <td>{s.session?.name || "-"}</td>
                 <td>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      statusStyles[s.status] || "bg-gray-100 text-gray-600"
+                    className={`px-3 py-1 rounded-full text-xs ${
+                      statusStyles[s.status] ||
+                      "bg-gray-100 text-gray-600"
                     }`}
                   >
                     {s.status || "N/A"}
                   </span>
                 </td>
+
+                {/* ACTIONS */}
                 <td
                   className="text-center"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button
-                    onClick={() =>
-                      navigate(`/admin/students/${s.id}?mode=edit`)
-                    }
-                    className="text-sm font-medium text-blue-600 hover:underline"
-                  >
-                    Edit
-                  </button>
+                  <div className="flex justify-center gap-4">
+                    {/* EDIT */}
+                    <button
+                      onClick={() => onEdit(s)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Edit Student"
+                    >
+                      <FaEdit />
+                    </button>
+
+                    {/* DELETE */}
+                    <button
+                      onClick={() => setDeleteId(s.id)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Delete Student"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
@@ -132,23 +183,25 @@ const StudentTable = ({ search, filters }) => {
         </tbody>
       </table>
 
+      {/* ================= PAGINATION ================= */}
       {totalPages > 1 && (
-        <div className="flex justify-between px-4 py-3 bg-gray-50">
+        <div className="flex justify-between items-center px-4 py-3 bg-gray-50">
           <p className="text-sm">
-            Page {page} of {totalPages}
+            Page <b>{page}</b> of <b>{totalPages}</b>
           </p>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page <= 1}
               className="px-4 py-1.5 border rounded disabled:opacity-50"
             >
               Prev
             </button>
+
             <button
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages}
               className="px-4 py-1.5 border rounded disabled:opacity-50"
             >
               Next
@@ -156,6 +209,17 @@ const StudentTable = ({ search, filters }) => {
           </div>
         </div>
       )}
+
+      {/* ================= CONFIRM DELETE DIALOG ================= */}
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Student"
+        message="Are you sure you want to delete this student? This action cannot be undone."
+        confirmText="Delete"
+        onCancel={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
+        loading={deleting}
+      />
     </div>
   );
 };

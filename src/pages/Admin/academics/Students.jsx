@@ -4,11 +4,12 @@ import { toast } from "react-toastify";
 import StudentTable from "../../../components/StudentTable";
 import StudentFilters from "../../../components/StudentFilters";
 
-import { createStudent } from "@/api/student.api";
+import { createStudent, updateStudent } from "@/api/student.api";
 import { getSessions } from "@/api/session.api";
 import { getCourses } from "@/api/course.api";
 
 const Students = () => {
+  /* ================= INITIAL FORM ================= */
   const initialForm = {
     name: "",
     email: "",
@@ -20,75 +21,52 @@ const Students = () => {
     courseId: "",
   };
 
+  /* ================= STATE ================= */
   const [form, setForm] = useState(initialForm);
   const [openStudentModal, setOpenStudentModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState(null);
+
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
     course: "",
     session: "",
     status: "",
   });
-  const [loading, setLoading] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [courses, setCourses] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
-
 
   /* ================= LOAD SESSIONS ================= */
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        console.log("🔵 Fetching sessions");
         const res = await getSessions();
-
-        const list =
-          Array.isArray(res?.data?.data?.sessions)
-            ? res.data.data.sessions
-            : Array.isArray(res?.data?.data)
-            ? res.data.data
-            : [];
-
-        console.log("✅ Sessions:", list);
-        setSessions(list);
-      } catch (err) {
-        console.error("❌ Session fetch error:", err);
+        setSessions(res?.data?.data?.sessions || res?.data?.data || []);
+      } catch {
         toast.error("Failed to load sessions");
       }
     };
-
     fetchSessions();
   }, []);
 
-  /* ================= LOAD COURSES ================= */
+  /* ================= LOAD COURSES (CREATE MODE) ================= */
   useEffect(() => {
+    if (!form.sessionId || isEdit) return;
+
     const fetchCourses = async () => {
-      if (!form.sessionId) {
-        setCourses([]);
-        return;
-      }
-
       try {
-        console.log("🔵 Fetching courses for session:", form.sessionId);
         const res = await getCourses({ sessionId: form.sessionId });
-
-        const list =
-          Array.isArray(res?.data?.data?.courses)
-            ? res.data.data.courses
-            : Array.isArray(res?.data?.data)
-            ? res.data.data
-            : [];
-
-        console.log("✅ Courses:", list);
-        setCourses(list);
-      } catch (err) {
-        console.error("❌ Course fetch error:", err);
+        setCourses(res?.data?.data?.courses || res?.data?.data || []);
+      } catch {
         toast.error("Failed to load courses");
       }
     };
 
     fetchCourses();
-  }, [form.sessionId]);
+  }, [form.sessionId, isEdit]);
 
   /* ================= HANDLE CHANGE ================= */
   const handleChange = (e) => {
@@ -102,6 +80,15 @@ const Students = () => {
     setForm({ ...form, [name]: value });
   };
 
+  /* ================= CLOSE MODAL ================= */
+  const closeModal = () => {
+    setOpenStudentModal(false);
+    setForm(initialForm);
+    setIsEdit(false);
+    setEditingStudentId(null);
+    setCourses([]);
+  };
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,11 +99,6 @@ const Students = () => {
         toast.error("Please fill all required fields");
         return;
       }
-    }
-
-    if (form.dob && new Date(form.dob) > new Date()) {
-      toast.error("Date of birth cannot be in the future");
-      return;
     }
 
     const payload = {
@@ -133,39 +115,87 @@ const Students = () => {
     try {
       setLoading(true);
 
-      console.log("🟡 Create student payload:", payload);
+      if (isEdit) {
+        await updateStudent(editingStudentId, payload);
+        toast.success("Student updated successfully ✅");
+      } else {
+        await createStudent(payload);
+        toast.success("Student registered successfully 🎉");
+      }
 
-      const res = await createStudent(payload);
-
-      console.log("🟢 Create student response:", res.data);
-
-      toast.success("Student registered successfully 🎉");
-      setForm(initialForm);
-      setOpenStudentModal(false);
+      closeModal();
+      setRefreshKey((k) => k + 1);
     } catch (err) {
-      console.error("❌ Student create error:", err);
-      console.error("❌ Backend error:", err?.response?.data);
-
       toast.error(
         err?.response?.data?.message ||
           err?.response?.data?.errors?.[0] ||
-          "Student registration failed"
+          "Operation failed"
       );
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================= EDIT (PROFESSIONAL FIX) ================= */
+  const handleEdit = async (student) => {
+    setIsEdit(true);
+    setEditingStudentId(student.id);
+
+    const sessionId = student.session?.id || "";
+    const courseId = student.course?.id || "";
+
+    // Step 1: Set base form (course empty)
+    setForm({
+      name: student.name || "",
+      email: student.email || "",
+      phone: student.phone || "",
+      dob: student.dob ? student.dob.split("T")[0] : "",
+      fatherName: student.fatherName || "",
+      address: student.address || "",
+      sessionId,
+      courseId: "",
+    });
+
+    // Step 2: Load courses FIRST
+    if (sessionId) {
+      try {
+        const res = await getCourses({ sessionId });
+        const list = res?.data?.data?.courses || res?.data?.data || [];
+        setCourses(list);
+
+        // Step 3: Set course AFTER options exist
+        setForm((prev) => ({
+          ...prev,
+          courseId,
+        }));
+      } catch {
+        toast.error("Failed to load courses");
+      }
+    }
+
+    setOpenStudentModal(true);
+  };
+
+  /* ================= RENDER ================= */
   return (
     <div className="space-y-6">
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-semibold">Students</h1>
-          <p className="text-sm text-gray-500">Academics / Student Management</p>
+          <p className="text-sm text-gray-500">
+            Academics / Student Management
+          </p>
         </div>
 
         <button
-          onClick={() => setOpenStudentModal(true)}
+          onClick={() => {
+            setIsEdit(false);
+            setEditingStudentId(null);
+            setForm(initialForm);
+            setCourses([]);
+            setOpenStudentModal(true);
+          }}
           className="px-5 py-2 rounded-xl text-white"
           style={{ backgroundColor: "var(--color-primary)" }}
         >
@@ -173,6 +203,7 @@ const Students = () => {
         </button>
       </div>
 
+      {/* FILTERS */}
       <StudentFilters
         search={search}
         setSearch={setSearch}
@@ -180,10 +211,20 @@ const Students = () => {
         setFilters={setFilters}
       />
 
-      <StudentTable search={search} filters={filters} refreshKey={refreshKey} />
+      {/* TABLE */}
+      <StudentTable
+        search={search}
+        filters={filters}
+        refreshKey={refreshKey}
+        onEdit={handleEdit}
+      />
 
+      {/* MODAL */}
       {openStudentModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+        <div
+          key={editingStudentId || "create"}
+          className="fixed inset-0 bg-black/40 flex items-center justify-center"
+        >
           <form
             onSubmit={handleSubmit}
             className="bg-white p-6 rounded-2xl grid grid-cols-2 gap-4 w-full max-w-3xl"
@@ -195,7 +236,13 @@ const Students = () => {
             <input className="input" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father Name" />
             <textarea className="input col-span-2" name="address" value={form.address} onChange={handleChange} placeholder="Address" />
 
-            <select className="input" name="sessionId" value={form.sessionId} onChange={handleChange}>
+            <select
+              className="input"
+              name="sessionId"
+              value={form.sessionId}
+              onChange={handleChange}
+              disabled={isEdit}   // professional UX
+            >
               <option value="">Select Session *</option>
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -204,19 +251,33 @@ const Students = () => {
               ))}
             </select>
 
-            <select className="input" name="courseId" value={form.courseId} onChange={handleChange}>
+            <select
+              className="input"
+              name="courseId"
+              value={form.courseId}
+              onChange={handleChange}
+            >
               <option value="">Select Course *</option>
               {courses.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
 
             <div className="col-span-2 flex justify-end gap-3">
-              <button type="button" onClick={() => setOpenStudentModal(false)}>
+              <button type="button" onClick={closeModal}>
                 Cancel
               </button>
-              <button type="submit" className="text-white px-5 py-2 rounded" style={{ backgroundColor: "var(--color-primary)" }}>
-                {loading ? "Registering..." : "Register Student"}
+
+              <button
+                type="submit"
+                className="text-white px-5 py-2 rounded"
+                style={{ backgroundColor: "var(--color-primary)" }}
+              >
+                {loading
+                  ? isEdit ? "Updating..." : "Registering..."
+                  : isEdit ? "Update Student" : "Register Student"}
               </button>
             </div>
           </form>
