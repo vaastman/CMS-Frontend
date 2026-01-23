@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 
 import { getAdmissions } from "@/api/admissions.api";
+import {fetchStudents} from "@/api/student.api";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

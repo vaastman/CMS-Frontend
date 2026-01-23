@@ -1,3 +1,5 @@
+import { useState } from "react";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import { NavLink } from "react-router-dom";
 import {
   FaTachometerAlt,
@@ -20,10 +22,12 @@ import { useAuth } from "../../auth/AuthContext";
 const Sidebar = () => {
   const { logout, admin } = useAuth();
   const navigate = useNavigate();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleLogout = () => {
-    logout();                 // 🔐 clear localStorage + state
-    navigate("/admin/login", { replace: true }); // 🔁 redirect
+
+  const handleLogoutConfirm = () => {
+    logout(); // 🔐 clear auth
+    navigate("/admin/login", { replace: true });
   };
 
   const menu = [
@@ -193,36 +197,46 @@ const Sidebar = () => {
 
       {/* Footer (Fixed) */}
       <div className="px-6 py-4 border-t border-white/20 shrink-0">
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
 
-        {/* User Info */}
-        <div className="flex items-center gap-3">
-          <img
-            src="https://i.pravatar.cc/40"
-            alt="Admin"
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <div className="leading-tight">
-            <h4 className="text-sm font-semibold text-white">
-              {admin?.username || "Admin"}
-            </h4>
-            <p className="text-xs text-white/70">
-              Super Admin
-            </p>
+          {/* User Info */}
+          <div className="flex items-center gap-3">
+            <img
+              src="https://i.pravatar.cc/40"
+              alt="Admin"
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div className="leading-tight">
+              <h4 className="text-sm font-semibold text-white">
+                {admin?.username || "Admin"}
+              </h4>
+              <p className="text-xs text-white/70">
+                Super Admin
+              </p>
+            </div>
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="text-white/70 hover:text-red-400 transition"
+            title="Logout"
+          >
+            <FaSignOutAlt />
+          </button>
+
         </div>
-
-        {/* Logout */}
-        <button
-          onClick={handleLogout}
-          className="text-white/70 hover:text-red-400 transition"
-          title="Logout"
-        >
-          <FaSignOutAlt />
-        </button>
-
       </div>
-    </div>
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="Confirm Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+
 
     </aside>
 

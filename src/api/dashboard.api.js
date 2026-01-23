@@ -1,9 +1,13 @@
+// src/api/dashboard.api.js
 import api from "./api";
 
-export const getAdminDashboard = () => {
-  return api.get("/dashboard/admin");
+/* ================= STUDENTS ================= */
+export const getAllStudents = () => {
+  return api.get("/students");
 };
 
-export const getRecentAdmissions = (params = {}) => {
-  return api.get("/admissions", { params });
+/* ================= ADMISSIONS ================= */
+// ❌ DO NOT PASS params (backend can't handle them)
+export const getAllAdmissions = () => {
+  return api.get("/admissions");
 };
