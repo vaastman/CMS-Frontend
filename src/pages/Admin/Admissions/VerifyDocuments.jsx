@@ -5,17 +5,17 @@ import { FaFileAlt, FaCheckCircle, FaEye } from "react-icons/fa";
 import { getAdmissionById } from "@/api/admissions.api";
 import { verifyFile } from "@/api/files.api";
 
-const badgeStyle = (verified) => {
-  return verified
+const badgeStyle = (verified) =>
+  verified
     ? "bg-green-100 text-green-700"
     : "bg-yellow-100 text-yellow-700";
-};
 
 const VerifyDocuments = () => {
   const { id } = useParams(); // admission id
   const navigate = useNavigate();
 
   const [files, setFiles] = useState([]);
+  const [admissionStatus, setAdmissionStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,8 +27,10 @@ const VerifyDocuments = () => {
       setLoading(true);
       const { data } = await getAdmissionById(id);
 
-      // ✅ BACKEND RETURNS `files`
-      setFiles(data.data?.files || []);
+      const admission = data?.data?.admission;
+
+      setFiles(admission?.files || []);
+      setAdmissionStatus(admission?.status || null);
     } catch (error) {
       console.error("Failed to fetch files", error);
       setFiles([]);
@@ -46,9 +48,21 @@ const VerifyDocuments = () => {
     }
   };
 
+  const allVerified =
+    files.length > 0 && files.every((file) => file.isVerified);
+
+  /* ================= STATES ================= */
+
+  if (loading) {
+    return (
+      <p className="text-center text-gray-500 py-6">
+        Loading documents...
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-8">
-
       {/* ================= HEADER ================= */}
       <div>
         <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
@@ -61,69 +75,60 @@ const VerifyDocuments = () => {
 
       {/* ================= FILE LIST ================= */}
       <div className="bg-[color:var(--color-surface)] rounded-2xl shadow-sm p-6 space-y-4">
+        {files.map((file) => (
+          <div
+            key={file.id}
+            className="
+              flex flex-col sm:flex-row
+              sm:items-center sm:justify-between
+              gap-4
+              border rounded-xl p-4
+            "
+          >
+            {/* File Info */}
+            <div className="flex items-center gap-3">
+              <span
+                className="
+                  w-10 h-10 rounded-lg
+                  flex items-center justify-center
+                  bg-[color:var(--color-primary)]
+                  text-white
+                "
+              >
+                <FaFileAlt />
+              </span>
 
-        {loading && (
-          <p className="text-center text-gray-500 py-6">
-            Loading documents...
-          </p>
-        )}
-
-        {!loading &&
-          files.map((file) => (
-            <div
-              key={file.id}
-              className="
-                flex flex-col sm:flex-row
-                sm:items-center sm:justify-between
-                gap-4
-                border rounded-xl p-4
-              "
-            >
-              {/* File Info */}
-              <div className="flex items-center gap-3">
+              <div>
+                <p className="font-medium">{file.type}</p>
                 <span
-                  className="
-                    w-10 h-10 rounded-lg
-                    flex items-center justify-center
-                    bg-[color:var(--color-primary)]
-                    text-white
-                  "
+                  className={`text-xs font-medium px-3 py-1 rounded-full ${badgeStyle(
+                    file.isVerified
+                  )}`}
                 >
-                  <FaFileAlt />
+                  {file.isVerified ? "VERIFIED" : "PENDING"}
                 </span>
-
-                <div>
-                  <p className="font-medium">
-                    {file.type}
-                  </p>
-                  <span
-                    className={`text-xs font-medium px-3 py-1 rounded-full ${badgeStyle(
-                      file.isVerified
-                    )}`}
-                  >
-                    {file.isVerified ? "VERIFIED" : "PENDING"}
-                  </span>
-                </div>
               </div>
+            </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-2">
-                <a
-                  href={`/api/v1/files/${file.id}/download`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    flex items-center gap-2
-                    px-3 py-2 rounded-lg
-                    border text-sm
-                    hover:bg-gray-100
-                  "
-                >
-                  <FaEye />
-                  View
-                </a>
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <a
+                href={`/api/v1/files/${file.id}/download`}
+                target="_blank"
+                rel="noreferrer"
+                className="
+                  flex items-center gap-2
+                  px-3 py-2 rounded-lg
+                  border text-sm
+                  hover:bg-gray-100
+                "
+              >
+                <FaEye />
+                View
+              </a>
 
-                {!file.isVerified && (
+              {!file.isVerified &&
+                admissionStatus === "PAYMENT_PENDING" && (
                   <button
                     onClick={() => handleVerify(file.id)}
                     className="
@@ -137,11 +142,11 @@ const VerifyDocuments = () => {
                     Verify
                   </button>
                 )}
-              </div>
             </div>
-          ))}
+          </div>
+        ))}
 
-        {!loading && files.length === 0 && (
+        {files.length === 0 && (
           <p className="text-center text-gray-500 py-6">
             No documents uploaded.
           </p>
@@ -149,17 +154,19 @@ const VerifyDocuments = () => {
       </div>
 
       {/* ================= FOOTER ================= */}
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
         <button
           onClick={() => navigate(`/admin/admissions/${id}`)}
-          className="
-            text-sm font-medium
-            text-[color:var(--color-primary)]
-            hover:underline
-          "
+          className="text-sm font-medium text-[color:var(--color-primary)] hover:underline"
         >
           ← Back to Admission Details
         </button>
+
+        {allVerified && (
+          <span className="text-sm text-green-600 font-medium">
+            All documents verified ✔
+          </span>
+        )}
       </div>
 
       <div className="text-xs text-gray-500">

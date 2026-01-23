@@ -111,11 +111,18 @@ const Sidebar = () => {
           path: "/admin/courses",
           icon: <FaBook />,
         },
-        // {
-        //   name: "Examinations",
-        //   path: "/admin/exams",
-        //   icon: <FaFileAlt />,
-        // },
+        {
+  name: "Add Subjects",
+  path: "/admin/add-subjects",
+  icon: <FaFileAlt />,
+},
+{
+  name: "Assign Subjects",
+  path: "/admin/assign-subjects",
+  icon: <FaFileAlt />,
+},
+
+
       ],
     },
 

@@ -12,22 +12,7 @@ import {
   updateAdmissionStatus,
 } from "@/api/admissions.api";
 
-const statusBadge = (status) => {
-  switch (status) {
-    case "APPLIED":
-      return "bg-blue-100 text-blue-700";
-    case "UNDER_VERIFICATION":
-      return "bg-yellow-100 text-yellow-700";
-    case "VERIFIED":
-      return "bg-purple-100 text-purple-700";
-    case "APPROVED":
-      return "bg-green-100 text-green-700";
-    case "REJECTED":
-      return "bg-red-100 text-red-700";
-    default:
-      return "bg-gray-100 text-gray-600";
-  }
-};
+import { statusLabel, statusStyle } from "@/utils/admissionStatus";
 
 const AdmissionDetails = () => {
   const { id } = useParams();
@@ -44,9 +29,12 @@ const AdmissionDetails = () => {
     try {
       setLoading(true);
       const { data } = await getAdmissionById(id);
-      setAdmission(data.data);
+
+      // Backend: { data: { admission } }
+      setAdmission(data?.data?.admission || null);
     } catch (error) {
       console.error("Failed to load admission", error);
+      setAdmission(null);
     } finally {
       setLoading(false);
     }
@@ -60,6 +48,8 @@ const AdmissionDetails = () => {
       console.error("Status update failed", error);
     }
   };
+
+  /* ================= STATES ================= */
 
   if (loading) {
     return (
@@ -79,8 +69,7 @@ const AdmissionDetails = () => {
 
   return (
     <div className="space-y-8">
-
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -92,30 +81,30 @@ const AdmissionDetails = () => {
         </div>
 
         <span
-          className={`px-4 py-2 rounded-full text-sm font-medium ${statusBadge(
+          className={`px-4 py-2 rounded-full text-sm font-medium ${statusStyle(
             admission.status
           )}`}
         >
-          {admission.status.replaceAll("_", " ")}
+          {statusLabel[admission.status] || admission.status}
         </span>
       </div>
 
-      {/* STUDENT INFO */}
+      {/* ================= STUDENT INFO ================= */}
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <FaUserGraduate />
           Student Details
         </h3>
 
-        <p><b>Name:</b> {admission.student?.name}</p>
-        <p><b>Email:</b> {admission.student?.email}</p>
-        <p><b>Course:</b> {admission.course?.name}</p>
+        <p><b>Name:</b> {admission.student?.name || "N/A"}</p>
+        <p><b>Email:</b> {admission.student?.email || "N/A"}</p>
+        <p><b>Course:</b> {admission.course?.name || "N/A"}</p>
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex gap-4">
-
-        {admission.status === "UNDER_VERIFICATION" && (
+      {/* ================= ACTIONS ================= */}
+      <div className="flex flex-wrap gap-4">
+        {/* Verify Documents */}
+        {admission.status === "PAYMENT_PENDING" && (
           <button
             onClick={() => navigate(`/admin/admissions/${id}/verify`)}
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
@@ -125,9 +114,10 @@ const AdmissionDetails = () => {
           </button>
         )}
 
-        {admission.status === "VERIFIED" && (
+        {/* Approve */}
+        {admission.status === "PAYMENT_PENDING" && (
           <button
-            onClick={() => changeStatus("APPROVED")}
+            onClick={() => changeStatus("CONFIRMED")}
             className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded"
           >
             <FaCheckCircle />
@@ -135,9 +125,10 @@ const AdmissionDetails = () => {
           </button>
         )}
 
-        {admission.status !== "REJECTED" && (
+        {/* Reject */}
+        {admission.status !== "CANCELLED" && (
           <button
-            onClick={() => changeStatus("REJECTED")}
+            onClick={() => changeStatus("CANCELLED")}
             className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded"
           >
             <FaTimesCircle />

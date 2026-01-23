@@ -1,13 +1,41 @@
 import api from "./api";
 
-/* Get all admissions */
-export const getAdmissions = (params = {}) =>
-  api.get("/admissions", { params });
+/* ================= ADMISSIONS ================= */
 
-/* Get admission by ID */
-export const getAdmissionById = (id) =>
-  api.get(`/admissions/${id}`);
+/**
+ * Get all admissions
+ * Access: ADMIN, HOD
+ * Query params supported:
+ *  - status
+ *  - courseId
+ *  - studentId
+ */
+export const getAdmissions = (params = {}) => {
+  return api.get("/admissions", { params });
+};
 
-/* Update admission status (APPROVED / REJECTED / VERIFIED) */
-export const updateAdmissionStatus = (id, status) =>
-  api.patch(`/admissions/${id}/status`, { status });
+/**
+ * Get admission by ID
+ * Access: ADMIN, HOD
+ */
+export const getAdmissionById = (id) => {
+  if (!id) throw new Error("Admission ID is required");
+  return api.get(`/admissions/${id}`);
+};
+
+/**
+ * Update admission status
+ * Backend accepted values ONLY:
+ *  - INITIATED
+ *  - PAYMENT_PENDING
+ *  - CONFIRMED
+ *  - CANCELLED
+ */
+export const updateAdmissionStatus = (id, status) => {
+  if (!id) throw new Error("Admission ID is required");
+  if (!status) throw new Error("Status is required");
+
+  return api.patch(`/admissions/${id}/status`, {
+    status,
+  });
+};

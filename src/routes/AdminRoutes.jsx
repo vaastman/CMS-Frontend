@@ -20,6 +20,8 @@ import Students from "../pages/Admin/academics/Students";
 import Dcr1 from "../pages/Admin/Payments/Dcr1";
 import Dcr2 from "../pages/Admin/Payments/Dcr2";
 import StudentDetails from "../pages/Admin/academics/StudentDetails";
+import Subjects from "../pages/Admin/subject/Subjects";
+import SubjectMaster from "../pages/Admin/subject/SubjectMaster";
 
 const AdminRoutes = () => {
   return (
@@ -45,7 +47,8 @@ const AdminRoutes = () => {
         <Route path="courses" element={<Course />} />
         <Route path="exams" element={<Exams />} />
         <Route path="sessions" element={<Sessions />} />
-
+        <Route path="add-subjects" element={<SubjectMaster />} />
+        <Route path="assign-subjects" element={<Subjects />} />
 
 
         {/* Others */}
