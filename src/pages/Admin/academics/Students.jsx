@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+
 import StudentTable from "../../../components/StudentTable";
 import StudentFilters from "../../../components/StudentFilters";
+
 import { createStudent } from "@/api/student.api";
+import { getSessions } from "@/api/session.api";
 import { getCourses } from "@/api/course.api";
 
 const Students = () => {
@@ -11,10 +14,10 @@ const Students = () => {
     email: "",
     phone: "",
     dob: "",
-    guardianName: "",
+    fatherName: "",
     address: "",
-    courseId: "",
     sessionId: "",
+    courseId: "",
   };
 
   const [form, setForm] = useState(initialForm);
@@ -27,71 +30,127 @@ const Students = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  /* 🔥 COURSES STATE */
+  const [sessions, setSessions] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [coursesLoading, setCoursesLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  /* ===== FETCH COURSES ===== */
+
+  /* ================= LOAD SESSIONS ================= */
   useEffect(() => {
-    const loadCourses = async () => {
-      setCoursesLoading(true);
+    const fetchSessions = async () => {
       try {
-        const res = await getCourses();
-        setCourses(Array.isArray(res?.data?.data) ? res.data.data : []);
-      } catch {
-        toast.error("Failed to load courses");
-        setCourses([]);
-      } finally {
-        setCoursesLoading(false);
+        console.log("🔵 Fetching sessions");
+        const res = await getSessions();
+
+        const list =
+          Array.isArray(res?.data?.data?.sessions)
+            ? res.data.data.sessions
+            : Array.isArray(res?.data?.data)
+            ? res.data.data
+            : [];
+
+        console.log("✅ Sessions:", list);
+        setSessions(list);
+      } catch (err) {
+        console.error("❌ Session fetch error:", err);
+        toast.error("Failed to load sessions");
       }
     };
 
-    loadCourses();
+    fetchSessions();
   }, []);
 
+  /* ================= LOAD COURSES ================= */
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (!form.sessionId) {
+        setCourses([]);
+        return;
+      }
+
+      try {
+        console.log("🔵 Fetching courses for session:", form.sessionId);
+        const res = await getCourses({ sessionId: form.sessionId });
+
+        const list =
+          Array.isArray(res?.data?.data?.courses)
+            ? res.data.data.courses
+            : Array.isArray(res?.data?.data)
+            ? res.data.data
+            : [];
+
+        console.log("✅ Courses:", list);
+        setCourses(list);
+      } catch (err) {
+        console.error("❌ Course fetch error:", err);
+        toast.error("Failed to load courses");
+      }
+    };
+
+    fetchCourses();
+  }, [form.sessionId]);
+
+  /* ================= HANDLE CHANGE ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "sessionId") {
+      setForm({ ...form, sessionId: value, courseId: "" });
+      return;
+    }
+
+    setForm({ ...form, [name]: value });
   };
 
+  /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.phone || !form.courseId || !form.sessionId) {
-      toast.error("Please fill all required fields");
+    const required = ["name", "email", "phone", "sessionId", "courseId"];
+    for (const key of required) {
+      if (!form[key]) {
+        toast.error("Please fill all required fields");
+        return;
+      }
+    }
+
+    if (form.dob && new Date(form.dob) > new Date()) {
+      toast.error("Date of birth cannot be in the future");
       return;
     }
 
     const payload = {
-      ...form,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
       dob: form.dob || undefined,
+      fatherName: form.fatherName || undefined,
+      address: form.address || undefined,
+      sessionId: form.sessionId,
+      courseId: form.courseId,
     };
 
-    setLoading(true);
-    const toastId = toast.loading("Registering student...");
-
     try {
-      await createStudent(payload);
+      setLoading(true);
 
-      toast.update(toastId, {
-        render: "Student registered successfully 🎉",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      console.log("🟡 Create student payload:", payload);
 
+      const res = await createStudent(payload);
+
+      console.log("🟢 Create student response:", res.data);
+
+      toast.success("Student registered successfully 🎉");
       setForm(initialForm);
       setOpenStudentModal(false);
     } catch (err) {
-      toast.update(toastId, {
-        render:
+      console.error("❌ Student create error:", err);
+      console.error("❌ Backend error:", err?.response?.data);
+
+      toast.error(
+        err?.response?.data?.message ||
           err?.response?.data?.errors?.[0] ||
-          err?.response?.data?.message ||
-          "Student registration failed",
-        type: "error",
-        isLoading: false,
-        autoClose: 4000,
-      });
+          "Student registration failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -107,7 +166,7 @@ const Students = () => {
 
         <button
           onClick={() => setOpenStudentModal(true)}
-          className="px-5 py-2 rounded-xl text-sm font-medium text-white"
+          className="px-5 py-2 rounded-xl text-white"
           style={{ backgroundColor: "var(--color-primary)" }}
         >
           + Add Student
@@ -121,54 +180,46 @@ const Students = () => {
         setFilters={setFilters}
       />
 
-      <StudentTable search={search} filters={filters} />
+      <StudentTable search={search} filters={filters} refreshKey={refreshKey} />
 
       {openStudentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-3xl rounded-2xl bg-white p-6">
-            <h3 className="text-lg font-semibold mb-4">Student Registration</h3>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white p-6 rounded-2xl grid grid-cols-2 gap-4 w-full max-w-3xl"
+          >
+            <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Full Name *" />
+            <input className="input" name="email" value={form.email} onChange={handleChange} placeholder="Email *" />
+            <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone *" />
+            <input className="input" type="date" name="dob" value={form.dob} onChange={handleChange} />
+            <input className="input" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father Name" />
+            <textarea className="input col-span-2" name="address" value={form.address} onChange={handleChange} placeholder="Address" />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input className="input" name="name" placeholder="Full Name" onChange={handleChange} required />
-              <input className="input" type="email" name="email" placeholder="Email" onChange={handleChange} required />
-              <input className="input" name="phone" placeholder="Phone" pattern="[0-9]{10,15}" onChange={handleChange} required />
-              <input className="input" type="date" name="dob" onChange={handleChange} />
-              <input className="input" name="guardianName" placeholder="Guardian Name" onChange={handleChange} />
-              <textarea className="input" name="address" placeholder="Address" onChange={handleChange} />
-
-              {/* 🔥 COURSE DROPDOWN */}
-              <select className="input" name="courseId" onChange={handleChange} required>
-                <option value="">
-                  {coursesLoading ? "Loading courses..." : "Select Course"}
+            <select className="input" name="sessionId" value={form.sessionId} onChange={handleChange}>
+              <option value="">Select Session *</option>
+              {sessions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.startYear}-{s.endYear})
                 </option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
-              </select>
+              ))}
+            </select>
 
-              {/* SESSION (can be done same way later) */}
-              <select className="input" name="sessionId" onChange={handleChange} required>
-                <option value="">Select Session</option>
-                <option value="7d444840-9dc0-11d1-b245-5ffdce74fad2">2024–2028</option>
-              </select>
+            <select className="input" name="courseId" value={form.courseId} onChange={handleChange}>
+              <option value="">Select Course *</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
 
-              <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setOpenStudentModal(false)} className="px-4 py-2 border rounded">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-5 py-2 rounded text-white"
-                  style={{ backgroundColor: "var(--color-primary)" }}
-                >
-                  {loading ? "Registering..." : "Register Student"}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="col-span-2 flex justify-end gap-3">
+              <button type="button" onClick={() => setOpenStudentModal(false)}>
+                Cancel
+              </button>
+              <button type="submit" className="text-white px-5 py-2 rounded" style={{ backgroundColor: "var(--color-primary)" }}>
+                {loading ? "Registering..." : "Register Student"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

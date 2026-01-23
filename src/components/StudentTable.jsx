@@ -4,6 +4,7 @@ import { fetchStudents } from "@/api/student.api";
 import { toast } from "react-toastify";
 
 const statusStyles = {
+  ACTIVE: "bg-green-100 text-green-700",
   ADMITTED: "bg-green-100 text-green-700",
   APPLIED: "bg-yellow-100 text-yellow-700",
   CANCELLED: "bg-red-100 text-red-700",
@@ -40,15 +41,21 @@ const StudentTable = ({ search, filters }) => {
           limit: perPage,
         });
 
-        const list = Array.isArray(res?.data?.data)
-          ? res.data.data
-          : Array.isArray(res?.data?.data?.rows)
-          ? res.data.data.rows
-          : [];
+        console.log("🟢 Students API response:", res.data);
+
+        const list =
+          Array.isArray(res?.data?.data?.students)
+            ? res.data.data.students
+            : Array.isArray(res?.data?.data)
+            ? res.data.data
+            : [];
+
+        console.log("🟣 Parsed students list:", list);
 
         setStudents(list);
-        setTotalPages(res?.data?.pagination?.totalPages || 1);
-      } catch {
+        setTotalPages(res?.data?.data?.pagination?.totalPages || 1);
+      } catch (err) {
+        console.error("❌ Fetch students error:", err);
         toast.error("Failed to load students");
         setStudents([]);
       } finally {
@@ -76,11 +83,15 @@ const StudentTable = ({ search, filters }) => {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="6" className="text-center py-10">Loading...</td>
+              <td colSpan="6" className="text-center py-10">
+                Loading...
+              </td>
             </tr>
           ) : students.length === 0 ? (
             <tr>
-              <td colSpan="6" className="text-center py-10">No students found</td>
+              <td colSpan="6" className="text-center py-10">
+                No students found
+              </td>
             </tr>
           ) : (
             students.map((s) => (
@@ -89,25 +100,27 @@ const StudentTable = ({ search, filters }) => {
                 className="border-b hover:bg-gray-50 cursor-pointer"
                 onClick={() => navigate(`/admin/students/${s.id}`)}
               >
-                <td className="p-4">{s.regNo}</td>
+                <td className="p-4">{s.regNo || "-"}</td>
                 <td>{s.name}</td>
                 <td>{s.course?.name || "-"}</td>
                 <td>{s.session?.name || "-"}</td>
                 <td>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      statusStyles[s.status] || ""
+                      statusStyles[s.status] || "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {s.status}
+                    {s.status || "N/A"}
                   </span>
                 </td>
-                <td className="text-center">
+                <td
+                  className="text-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/admin/students/${s.id}?mode=edit`);
-                    }}
+                    onClick={() =>
+                      navigate(`/admin/students/${s.id}?mode=edit`)
+                    }
                     className="text-sm font-medium text-blue-600 hover:underline"
                   >
                     Edit
@@ -121,18 +134,20 @@ const StudentTable = ({ search, filters }) => {
 
       {totalPages > 1 && (
         <div className="flex justify-between px-4 py-3 bg-gray-50">
-          <p className="text-sm">Page {page} of {totalPages}</p>
+          <p className="text-sm">
+            Page {page} of {totalPages}
+          </p>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setPage(p => Math.max(p - 1, 1))}
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1}
               className="px-4 py-1.5 border rounded disabled:opacity-50"
             >
               Prev
             </button>
             <button
-              onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
               disabled={page === totalPages}
               className="px-4 py-1.5 border rounded disabled:opacity-50"
             >
