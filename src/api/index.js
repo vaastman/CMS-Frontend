@@ -6,3 +6,4 @@ export * from "./admissions.api";
 export * from "./dashboard.api";
 export * from "./files.api";
 export * from "./session.api";
+export * from "./semester.api";
