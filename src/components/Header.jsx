@@ -6,27 +6,14 @@ import {
   FaLinkedin,
   FaTwitter,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
-    if (!data.course || !data.name || !data.mobile || !data.email) {
-      setError("Please fill all required fields.");
-      return;
-    }
-
-    console.log("Admission Enquiry:", data);
-    setOpen(false);
-    e.target.reset();
-  };
 
   return (
     <>
@@ -78,7 +65,7 @@ const Header = () => {
                 </div>
 
                 <button
-                  onClick={() => setOpen(true)}
+                   onClick={() => navigate("/admission/admission-portal")}
                   className="px-4 py-2 rounded-md font-semibold text-white
                              bg-[var(--color-primary)]
                              hover:bg-[var(--color-secondary)]
@@ -92,71 +79,6 @@ const Header = () => {
           </div>
         </div>
       </header>
-
-      {/* ================= MODAL ================= */}
-      {open && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--color-surface)] w-full max-w-md rounded-lg shadow-xl p-6 relative">
-
-            <button
-              onClick={() => setOpen(false)}
-              className="absolute top-2 right-3 text-xl font-bold
-                         text-[var(--color-text-secondary)]
-                         hover:text-[var(--color-danger)]"
-            >
-              ×
-            </button>
-
-            <h2 className="text-xl font-bold text-center text-[var(--color-text-primary)] mb-4">
-              Online Admission Enquiry
-            </h2>
-
-            {error && (
-              <p className="text-sm text-[var(--color-danger)] text-center mb-3">
-                {error}
-              </p>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {["course", "name", "mobile", "email"].map((field, i) =>
-                field === "course" ? (
-                  <select
-                    key={i}
-                    name="course"
-                    className="w-full border border-[var(--color-divider)] rounded-md px-3 py-2
-                               focus:ring-2 focus:ring-[var(--color-primary)]"
-                  >
-                    <option value="">Select Course</option>
-                    <option>B.A</option>
-                    <option>B.Sc</option>
-                    <option>B.Com</option>
-                    <option>M.A</option>
-                  </select>
-                ) : (
-                  <input
-                    key={i}
-                    name={field}
-                    type={field === "email" ? "email" : "text"}
-                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                    className="w-full border border-[var(--color-divider)] rounded-md px-3 py-2
-                               focus:ring-2 focus:ring-[var(--color-primary)]"
-                  />
-                )
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-2 rounded-md font-semibold text-white
-                           bg-[var(--color-primary)]
-                           hover:bg-[var(--color-secondary)]
-                           transition"
-              >
-                Submit Enquiry
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </>
   );
 };
