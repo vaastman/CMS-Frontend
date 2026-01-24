@@ -1,29 +1,30 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUserGraduate } from "react-icons/fa";
+import { FaUserGraduate, FaPlus, FaSync } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 import { getAdmissions } from "@/api/admissions.api";
 import { statusLabel, statusStyle } from "@/utils/admissionStatus";
 
+import Modal from "@/components/Modal";
+import AddStudent from "./AddStudent";
+
 const Admissions = () => {
   const navigate = useNavigate();
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAdmissions();
-  }, []);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [openAddModal, setOpenAddModal] = useState(false);
 
   const fetchAdmissions = async () => {
     try {
       setLoading(true);
       const { data } = await getAdmissions();
-
-      // Backend response shape:
-      // { status, results, data: { admissions } }
       setApplications(data?.data?.admissions || []);
     } catch (error) {
-      console.error("Failed to fetch admissions", error);
+      toast.error(
+        "Admissions list failed to load (backend issue)"
+      );
       setApplications([]);
     } finally {
       setLoading(false);
@@ -32,18 +33,38 @@ const Admissions = () => {
 
   return (
     <div className="space-y-8">
-      {/* ================= HEADER ================= */}
-      <div>
-        <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
-          Admissions
-        </h1>
-        <p className="text-sm text-[color:var(--color-text-secondary)] mt-1">
-          Manage student admission applications
-        </p>
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            Admissions
+          </h1>
+          <p className="text-sm text-gray-500">
+            Manage student admission applications
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={fetchAdmissions}
+            className="flex items-center gap-2 border px-4 py-2 rounded-lg"
+          >
+            <FaSync />
+            Load Admissions
+          </button>
+
+          <button
+            onClick={() => setOpenAddModal(true)}
+            className="flex items-center gap-2 bg-[color:var(--color-primary)] text-white px-4 py-2 rounded-lg"
+          >
+            <FaPlus />
+            Add Student
+          </button>
+        </div>
       </div>
 
-      {/* ================= TABLE ================= */}
-      <div className="bg-[color:var(--color-surface)] rounded-2xl shadow-sm overflow-x-auto">
+      {/* TABLE */}
+      <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
@@ -55,73 +76,73 @@ const Admissions = () => {
           </thead>
 
           <tbody>
-            {/* ================= LOADING ================= */}
             {loading && (
               <tr>
-                <td colSpan="4" className="p-6 text-center text-gray-500">
-                  Loading admissions...
+                <td colSpan="4" className="p-6 text-center">
+                  Loading admissions…
                 </td>
               </tr>
             )}
 
-            {/* ================= DATA ================= */}
             {!loading &&
               applications.map((app) => (
-                <tr
-                  key={app.id}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  {/* Student */}
-                  <td className="p-4 flex items-center gap-3">
-                    <span className="w-9 h-9 rounded-lg bg-[color:var(--color-primary)] text-white flex items-center justify-center">
-                      <FaUserGraduate />
-                    </span>
-                    <span className="font-medium">
-                      {app.student?.name || "N/A"}
-                    </span>
+                <tr key={app.id} className="border-t">
+                  <td className="p-4 flex gap-2 items-center">
+                    <FaUserGraduate />
+                    {app.student?.name}
                   </td>
-
-                  {/* Course */}
                   <td className="p-4">
-                    {app.course?.name || "N/A"}
+                    {app.course?.name}
                   </td>
-
-                  {/* Status */}
                   <td className="p-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyle(
+                      className={`px-2 py-1 rounded text-xs ${statusStyle(
                         app.status
                       )}`}
                     >
-                      {statusLabel[app.status] || app.status}
+                      {statusLabel[app.status]}
                     </span>
                   </td>
-
-                  {/* Action */}
                   <td className="p-4 text-center">
                     <button
                       onClick={() =>
                         navigate(`/admin/admissions/${app.id}`)
                       }
-                      className="text-[color:var(--color-primary)] font-medium hover:underline"
+                      className="text-blue-600 hover:underline"
                     >
-                      View Details →
+                      View →
                     </button>
                   </td>
                 </tr>
               ))}
 
-            {/* ================= EMPTY ================= */}
             {!loading && applications.length === 0 && (
               <tr>
                 <td colSpan="4" className="p-6 text-center text-gray-500">
-                  No admission applications found.
+                  No admissions loaded
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* MODAL */}
+      <Modal
+        open={openAddModal}
+        onClose={() => setOpenAddModal(false)}
+        title="Add & Admit Student"
+      >
+        <AddStudent
+          onSuccess={(admissionId) => {
+            setOpenAddModal(false);
+
+            if (admissionId) {
+              navigate(`/admin/admissions/${admissionId}`);
+            }
+          }}
+        />
+      </Modal>
     </div>
   );
 };

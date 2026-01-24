@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FaFileAlt, FaCheckCircle, FaEye } from "react-icons/fa";
 
 import { getAdmissionById } from "@/api/admissions.api";
-import { verifyFile } from "@/api/files.api";
+import { getAdmissionFiles, verifyFile } from "@/api/files.api";
 
 const badgeStyle = (verified) =>
   verified
@@ -19,20 +19,23 @@ const VerifyDocuments = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFiles();
+    fetchData();
   }, [id]);
 
-  const fetchFiles = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const { data } = await getAdmissionById(id);
 
-      const admission = data?.data?.admission;
-
-      setFiles(admission?.files || []);
+      // 1️⃣ Fetch admission (for status)
+      const admissionRes = await getAdmissionById(id);
+      const admission = admissionRes?.data?.data?.admission;
       setAdmissionStatus(admission?.status || null);
+
+      // 2️⃣ Fetch files (SEPARATE endpoint)
+      const filesRes = await getAdmissionFiles(id);
+      setFiles(filesRes?.data?.data?.files || []);
     } catch (error) {
-      console.error("Failed to fetch files", error);
+      console.error("Failed to load documents", error);
       setFiles([]);
     } finally {
       setLoading(false);
@@ -42,7 +45,7 @@ const VerifyDocuments = () => {
   const handleVerify = async (fileId) => {
     try {
       await verifyFile(fileId);
-      fetchFiles(); // refresh after verification
+      fetchData();
     } catch (error) {
       console.error("File verification failed", error);
     }
@@ -78,23 +81,11 @@ const VerifyDocuments = () => {
         {files.map((file) => (
           <div
             key={file.id}
-            className="
-              flex flex-col sm:flex-row
-              sm:items-center sm:justify-between
-              gap-4
-              border rounded-xl p-4
-            "
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border rounded-xl p-4"
           >
             {/* File Info */}
             <div className="flex items-center gap-3">
-              <span
-                className="
-                  w-10 h-10 rounded-lg
-                  flex items-center justify-center
-                  bg-[color:var(--color-primary)]
-                  text-white
-                "
-              >
+              <span className="w-10 h-10 rounded-lg flex items-center justify-center bg-[color:var(--color-primary)] text-white">
                 <FaFileAlt />
               </span>
 
@@ -116,12 +107,7 @@ const VerifyDocuments = () => {
                 href={`/api/v1/files/${file.id}/download`}
                 target="_blank"
                 rel="noreferrer"
-                className="
-                  flex items-center gap-2
-                  px-3 py-2 rounded-lg
-                  border text-sm
-                  hover:bg-gray-100
-                "
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm hover:bg-gray-100"
               >
                 <FaEye />
                 View
@@ -131,12 +117,7 @@ const VerifyDocuments = () => {
                 admissionStatus === "PAYMENT_PENDING" && (
                   <button
                     onClick={() => handleVerify(file.id)}
-                    className="
-                      flex items-center gap-2
-                      px-3 py-2 rounded-lg
-                      bg-green-600 text-white text-sm
-                      hover:bg-green-700
-                    "
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700"
                   >
                     <FaCheckCircle />
                     Verify

@@ -54,9 +54,15 @@ const Sidebar = () => {
         },
         // {
         //   name: "Document Verification",
-        //   path: "/admin/admissions",
+        //   path: "/admin/admissions/verify-documents",
         //   icon: <FaFileAlt />,
         // },
+        //        {
+        //   name: "Add & Admit Student",
+        //   path: "/admin/admissions/add-student",
+        //   icon: <FaUserTie />,
+        // }
+
       ],
     },
 
@@ -112,15 +118,15 @@ const Sidebar = () => {
           icon: <FaBook />,
         },
         {
-  name: "Add Subjects",
-  path: "/admin/add-subjects",
-  icon: <FaFileAlt />,
-},
-{
-  name: "Assign Subjects",
-  path: "/admin/assign-subjects",
-  icon: <FaFileAlt />,
-},
+          name: "Add Subjects",
+          path: "/admin/add-subjects",
+          icon: <FaFileAlt />,
+        },
+        {
+          name: "Assign Subjects",
+          path: "/admin/assign-subjects",
+          icon: <FaFileAlt />,
+        },
 
 
       ],
