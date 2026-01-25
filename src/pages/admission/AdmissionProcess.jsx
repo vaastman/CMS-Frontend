@@ -1,6 +1,6 @@
 import React from "react";
 
-const Courses = () => {
+const AdmissionProcess = () => {
     return (
         <div className="w-full">
 
@@ -83,4 +83,4 @@ const Courses = () => {
     );
 };
 
-export default Courses;
+export default AdmissionProcess;

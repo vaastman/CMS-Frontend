@@ -22,6 +22,7 @@ import Dcr2 from "../pages/Admin/Payments/Dcr2";
 import StudentDetails from "../pages/Admin/academics/StudentDetails";
 import Subjects from "../pages/Admin/subject/Subjects";
 import SubjectMaster from "../pages/Admin/subject/SubjectMaster";
+import AddStudent from "../pages/Admin/Admissions/AddStudent";
 
 const AdminRoutes = () => {
   return (
@@ -49,6 +50,12 @@ const AdminRoutes = () => {
         <Route path="sessions" element={<Sessions />} />
         <Route path="add-subjects" element={<SubjectMaster />} />
         <Route path="assign-subjects" element={<Subjects />} />
+       // Admissions
+        <Route path="admissions" element={<Admissions />} />
+        <Route path="admissions/add-student" element={<AddStudent />} />
+        <Route path="admissions/:id" element={<AdmissionDetails />} />
+        <Route path="admissions/:id/verify" element={<VerifyDocuments />} />
+
 
 
         {/* Others */}

@@ -5,33 +5,36 @@ import {
   FaMoneyCheckAlt,
   FaCheckCircle,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const OnlineAdmission = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="w-full bg-[color:var(--color-page)]">
 
       {/* ================= HERO SECTION ================= */}
-     <div
-  className="relative py-20 bg-cover bg-center"
-  style={{
-    backgroundImage:
-      "url('https://images.unsplash.com/photo-1760917094679-d33f2ec13110')",
-  }}
->
-  {/* Overlay */}
-  <div className="absolute inset-0 bg-black/60"></div>
+      <div
+        className="relative py-20 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1760917094679-d33f2ec13110')",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/60"></div>
 
-  {/* Content */}
-  <div className="relative max-w-7xl mx-auto px-6 text-white">
-    <h1 className="text-4xl md:text-5xl font-semibold">
-      Online Admission
-    </h1>
-    <p className="mt-3 text-sm md:text-base opacity-90 max-w-2xl">
-      Apply online for admission by following the simple steps below.
-      Ensure all details are correct before submission.
-    </p>
-  </div>
-</div>
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto px-6 text-white">
+          <h1 className="text-4xl md:text-5xl font-semibold">
+            Online Admission
+          </h1>
+          <p className="mt-3 text-sm md:text-base opacity-90 max-w-2xl">
+            Apply online for admission by following the simple steps below.
+            Ensure all details are correct before submission.
+          </p>
+        </div>
+      </div>
 
 
       {/* ================= STEPS ================= */}
@@ -123,10 +126,10 @@ const OnlineAdmission = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-3 rounded-lg bg-[color:var(--color-primary)] text-white font-medium hover:opacity-90 transition">
+            <button onClick={() => navigate("/admission/new")} className="px-8 py-3 rounded-lg bg-[color:var(--color-primary)] text-white font-medium hover:opacity-90 transition">
               New Admission Registration
             </button>
-            <button className="px-8 py-3 rounded-lg border border-[color:var(--color-primary)] text-[color:var(--color-primary)] font-medium hover:bg-gray-100 transition">
+            <button onClick={() => navigate("/login")} className="px-8 py-3 rounded-lg border border-[color:var(--color-primary)] text-[color:var(--color-primary)] font-medium hover:bg-gray-100 transition">
               Existing Applicant Login
             </button>
           </div>

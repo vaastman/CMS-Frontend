@@ -11,7 +11,6 @@ import AboutCollege from "../pages/about/AboutCollege";
 import VisionMission from "../pages/about/VisionMission";
 import PrincipalDesk from "../pages/about/PrincipalDesk";
 import Courses from "../pages/admission/Courses";
-import Admission from "../pages/admission/Admission";
 import Faculty from "../pages/academics/Faculty";
 import Staff from "../pages/academics/Staff";
 import Holidays from "../pages/academics/Holidays";
@@ -29,6 +28,10 @@ import StudentGrievance from "../pages/Student Support/StudentGrievance";
 import OnlineAdmission from "../pages/admission/OnlineAdmission";
 import AdminRegister from "../pages/Auth/AdminRegister";
 import AdminLogin from "../pages/Auth/AdminLogin";
+import AdmissionProcess from "../pages/admission/AdmissionProcess";
+import NewAdmission from "../pages/admission/NewAdmission";
+import AdmissionHome from "../pages/admission/AdmissionHome";
+import StudentRegistration from "../pages/admission/StudentRegistration";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -45,7 +48,11 @@ function PublicRoutes() {
       <Route path="/principle-desk" element={<PrincipalDesk />} />
       <Route path="/Online-admission-form" element={<OnlineAdmission />} />
       <Route path="/courses-and-subject" element={<Courses />} />
-      <Route path="/admissions-process" element={<Admission />} />
+      <Route path="/admissions-process" element={<AdmissionProcess />} />
+      <Route path="/admission/new" element={<NewAdmission />} />
+      <Route path="/admission/admission-portal" element={<AdmissionHome />} />
+      <Route path="/admission/student-registration" element={<StudentRegistration />} />
+
       <Route path="/faculty" element={<Faculty />}/>
       <Route path="/staff" element={<Staff />}/>
       <Route path="/holidays" element={<Holidays />}/>

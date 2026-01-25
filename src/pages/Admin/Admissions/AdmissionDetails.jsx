@@ -29,8 +29,6 @@ const AdmissionDetails = () => {
     try {
       setLoading(true);
       const { data } = await getAdmissionById(id);
-
-      // Backend: { data: { admission } }
       setAdmission(data?.data?.admission || null);
     } catch (error) {
       console.error("Failed to load admission", error);
@@ -42,7 +40,9 @@ const AdmissionDetails = () => {
 
   const changeStatus = async (status) => {
     try {
-      await updateAdmissionStatus(id, status);
+      await updateAdmissionStatus(id, {
+        status,
+      });
       fetchAdmission();
     } catch (error) {
       console.error("Status update failed", error);
@@ -66,6 +66,8 @@ const AdmissionDetails = () => {
       </div>
     );
   }
+
+  const canApprove = admission.status === "PAYMENT_PENDING";
 
   return (
     <div className="space-y-8">
