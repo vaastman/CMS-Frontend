@@ -7,20 +7,31 @@ import StudentFilters from "../../../components/StudentFilters";
 import { createStudent, updateStudent } from "@/api/student.api";
 import { getSessions } from "@/api/session.api";
 import { getCourses } from "@/api/course.api";
+import { getDepartments } from "@/api/department.api";
+import { getSemesters } from "@/api/semester.api";
+
+/* ================= INITIAL FORM ================= */
+const initialForm = {
+  uan_no: "",
+  name: "",
+  email: "",
+  phone: "",
+  dob: "",
+  fatherName: "",
+  gender: "",
+  category: "",
+  address: "",
+
+  departmentId: "",
+  sessionId: "",
+  courseId: "",
+  semesterId: "",
+
+  admissionType: "NEW",
+  academicYear: "2025-26",
+};
 
 const Students = () => {
-  /* ================= INITIAL FORM ================= */
-  const initialForm = {
-    name: "",
-    email: "",
-    phone: "",
-    dob: "",
-    fatherName: "",
-    address: "",
-    sessionId: "",
-    courseId: "",
-  };
-
   /* ================= STATE ================= */
   const [form, setForm] = useState(initialForm);
   const [openStudentModal, setOpenStudentModal] = useState(false);
@@ -37,43 +48,76 @@ const Students = () => {
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [semesters, setSemesters] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
   /* ================= LOAD SESSIONS ================= */
   useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const res = await getSessions();
-        setSessions(res?.data?.data?.sessions || res?.data?.data || []);
-      } catch {
-        toast.error("Failed to load sessions");
-      }
-    };
-    fetchSessions();
+    getSessions()
+      .then((res) =>
+        setSessions(res?.data?.data?.sessions || [])
+      )
+      .catch(() => toast.error("Failed to load sessions"));
   }, []);
 
-  /* ================= LOAD COURSES (CREATE MODE) ================= */
+  /* ================= LOAD DEPARTMENTS ================= */
   useEffect(() => {
-    if (!form.sessionId || isEdit) return;
+    getDepartments()
+      .then((res) =>
+        setDepartments(res?.data?.data?.departments || res?.data?.data || [])
+      )
+      .catch(() => toast.error("Failed to load departments"));
+  }, []);
 
-    const fetchCourses = async () => {
-      try {
-        const res = await getCourses({ sessionId: form.sessionId });
-        setCourses(res?.data?.data?.courses || res?.data?.data || []);
-      } catch {
-        toast.error("Failed to load courses");
-      }
-    };
+  /* ================= LOAD COURSES (BY SESSION) ================= */
+  useEffect(() => {
+    if (!form.sessionId) {
+      setCourses([]);
+      return;
+    }
 
-    fetchCourses();
-  }, [form.sessionId, isEdit]);
+    getCourses({ sessionId: form.sessionId })
+      .then((res) =>
+        setCourses(res?.data?.data?.courses || [])
+      )
+      .catch(() => toast.error("Failed to load courses"));
+  }, [form.sessionId]);
+
+  /* ================= LOAD ALL SEMESTERS (ONCE) ================= */
+  useEffect(() => {
+    getSemesters()
+      .then((res) =>
+        setSemesters(res?.data?.data?.semesters || res?.data?.data || [])
+      )
+      .catch(() => toast.error("Failed to load semesters"));
+  }, []);
+
+  /* ================= FILTER SEMESTERS BY COURSE ================= */
+  const filteredSemesters = semesters.filter(
+    (s) => s.courseId === form.courseId
+  );
 
   /* ================= HANDLE CHANGE ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "sessionId") {
-      setForm({ ...form, sessionId: value, courseId: "" });
+      setForm({
+        ...form,
+        sessionId: value,
+        courseId: "",
+        semesterId: "",
+      });
+      return;
+    }
+
+    if (name === "courseId") {
+      setForm({
+        ...form,
+        courseId: value,
+        semesterId: "",
+      });
       return;
     }
 
@@ -86,14 +130,36 @@ const Students = () => {
     setForm(initialForm);
     setIsEdit(false);
     setEditingStudentId(null);
-    setCourses([]);
   };
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const required = ["name", "email", "phone", "sessionId", "courseId"];
+    /* 🔐 FRONTEND VALIDATION (MATCH JOI) */
+    if (!/^[6-9]\d{9}$/.test(form.phone)) {
+      toast.error("Phone number must start with 6–9");
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}$/.test(form.academicYear)) {
+      toast.error("Academic year must be like 2025-26");
+      return;
+    }
+
+    const required = [
+      "uan_no",
+      "name",
+      "email",
+      "phone",
+      "departmentId",
+      "sessionId",
+      "courseId",
+      "semesterId",
+      "admissionType",
+      "academicYear",
+    ];
+
     for (const key of required) {
       if (!form[key]) {
         toast.error("Please fill all required fields");
@@ -101,15 +167,25 @@ const Students = () => {
       }
     }
 
+    /* ✅ EXACT PAYLOAD EXPECTED BY BACKEND */
     const payload = {
+      uan_no: form.uan_no.trim(),
       name: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
       dob: form.dob || undefined,
       fatherName: form.fatherName || undefined,
+      gender: form.gender || undefined,
+      category: form.category || undefined,
       address: form.address || undefined,
-      sessionId: form.sessionId,
+
+      departmentId: form.departmentId,
       courseId: form.courseId,
+      sessionId: form.sessionId,
+      semesterId: form.semesterId,
+
+      admissionType: form.admissionType,
+      academicYear: form.academicYear,
     };
 
     try {
@@ -120,7 +196,7 @@ const Students = () => {
         toast.success("Student updated successfully ✅");
       } else {
         await createStudent(payload);
-        toast.success("Student registered successfully 🎉");
+        toast.success("Student admitted successfully 🎉");
       }
 
       closeModal();
@@ -128,50 +204,39 @@ const Students = () => {
     } catch (err) {
       toast.error(
         err?.response?.data?.message ||
-          err?.response?.data?.errors?.[0] ||
-          "Operation failed"
+        err?.response?.data?.errors?.[0] ||
+        "Student creation failed"
       );
     } finally {
       setLoading(false);
     }
   };
 
-  /* ================= EDIT (PROFESSIONAL FIX) ================= */
-  const handleEdit = async (student) => {
+  /* ================= EDIT ================= */
+  const handleEdit = (student) => {
     setIsEdit(true);
     setEditingStudentId(student.id);
 
-    const sessionId = student.session?.id || "";
-    const courseId = student.course?.id || "";
-
-    // Step 1: Set base form (course empty)
     setForm({
-      name: student.name || "",
-      email: student.email || "",
-      phone: student.phone || "",
+      ...initialForm,
+      uan_no: student.uan_no,
+      name: student.name,
+      email: student.email,
+      phone: student.phone,
       dob: student.dob ? student.dob.split("T")[0] : "",
       fatherName: student.fatherName || "",
+      gender: student.gender || "",
+      category: student.category || "",
       address: student.address || "",
-      sessionId,
-      courseId: "",
+
+      departmentId: student.department?.id || "",
+      sessionId: student.session?.id || "",
+      courseId: student.course?.id || "",
+      semesterId: student.semesters?.[0]?.semesterId || "",
+
+      admissionType: student.admissions?.[0]?.type || "NEW",
+      academicYear: student.admissions?.[0]?.academicYear || "2025-26",
     });
-
-    // Step 2: Load courses FIRST
-    if (sessionId) {
-      try {
-        const res = await getCourses({ sessionId });
-        const list = res?.data?.data?.courses || res?.data?.data || [];
-        setCourses(list);
-
-        // Step 3: Set course AFTER options exist
-        setForm((prev) => ({
-          ...prev,
-          courseId,
-        }));
-      } catch {
-        toast.error("Failed to load courses");
-      }
-    }
 
     setOpenStudentModal(true);
   };
@@ -179,21 +244,13 @@ const Students = () => {
   /* ================= RENDER ================= */
   return (
     <div className="space-y-6">
-      {/* HEADER */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold">Students</h1>
-          <p className="text-sm text-gray-500">
-            Academics / Student Management
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold">Students</h1>
 
         <button
           onClick={() => {
             setIsEdit(false);
-            setEditingStudentId(null);
             setForm(initialForm);
-            setCourses([]);
             setOpenStudentModal(true);
           }}
           className="px-5 py-2 rounded-xl text-white"
@@ -203,7 +260,6 @@ const Students = () => {
         </button>
       </div>
 
-      {/* FILTERS */}
       <StudentFilters
         search={search}
         setSearch={setSearch}
@@ -211,7 +267,6 @@ const Students = () => {
         setFilters={setFilters}
       />
 
-      {/* TABLE */}
       <StudentTable
         search={search}
         filters={filters}
@@ -219,65 +274,60 @@ const Students = () => {
         onEdit={handleEdit}
       />
 
-      {/* MODAL */}
+      {/* ================= MODAL ================= */}
       {openStudentModal && (
-        <div
-          key={editingStudentId || "create"}
-          className="fixed inset-0 bg-black/40 flex items-center justify-center"
-        >
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <form
             onSubmit={handleSubmit}
             className="bg-white p-6 rounded-2xl grid grid-cols-2 gap-4 w-full max-w-3xl"
           >
-            <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Full Name *" />
+            <input className="input" name="uan_no" value={form.uan_no} onChange={handleChange} placeholder="UAN *" disabled={isEdit} />
+            <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Name *" />
             <input className="input" name="email" value={form.email} onChange={handleChange} placeholder="Email *" />
             <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone *" />
             <input className="input" type="date" name="dob" value={form.dob} onChange={handleChange} />
             <input className="input" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father Name" />
             <textarea className="input col-span-2" name="address" value={form.address} onChange={handleChange} placeholder="Address" />
 
-            <select
-              className="input"
-              name="sessionId"
-              value={form.sessionId}
-              onChange={handleChange}
-              disabled={isEdit}   // professional UX
-            >
-              <option value="">Select Session *</option>
+            <select className="input" name="departmentId" value={form.departmentId} onChange={handleChange}>
+              <option value="">Department *</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+
+            <select className="input" name="sessionId" value={form.sessionId} onChange={handleChange}>
+              <option value="">Session *</option>
               {sessions.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+
+            <select className="input" name="courseId" value={form.courseId} onChange={handleChange}>
+              <option value="">Course *</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+
+            <select className="input" name="semesterId" value={form.semesterId} onChange={handleChange} disabled={!form.courseId}>
+              <option value="">Semester *</option>
+              {filteredSemesters.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} ({s.startYear}-{s.endYear})
+                  Semester {s.number}
                 </option>
               ))}
             </select>
 
-            <select
-              className="input"
-              name="courseId"
-              value={form.courseId}
-              onChange={handleChange}
-            >
-              <option value="">Select Course *</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
+            <select className="input col-span-2" name="admissionType" value={form.admissionType} onChange={handleChange}>
+              <option value="NEW">New Admission</option>
+              <option value="CONTINUATION">Continuation</option>
             </select>
 
             <div className="col-span-2 flex justify-end gap-3">
-              <button type="button" onClick={closeModal}>
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="text-white px-5 py-2 rounded"
-                style={{ backgroundColor: "var(--color-primary)" }}
-              >
-                {loading
-                  ? isEdit ? "Updating..." : "Registering..."
-                  : isEdit ? "Update Student" : "Register Student"}
+              <button type="button" onClick={closeModal}>Cancel</button>
+              <button type="submit" className="text-white px-5 py-2 rounded" style={{ backgroundColor: "var(--color-primary)" }}>
+                {loading ? "Saving..." : isEdit ? "Update Student" : "Create Student"}
               </button>
             </div>
           </form>
