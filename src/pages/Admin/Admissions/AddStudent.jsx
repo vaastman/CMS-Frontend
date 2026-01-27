@@ -1,94 +1,71 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { createStudent, fetchStudents } from "@/api/student.api";
-import { createAdmission } from "@/api/admissions.api";
+import { createStudent } from "@/api/student.api";
 import { getCourses } from "@/api/course.api";
 import { getSessions } from "@/api/session.api";
+import { getDepartments } from "@/api/department.api";
+import { getSemesters } from "@/api/semester.api";
 
 const INITIAL_FORM = {
-  studentId: "",
   name: "",
   email: "",
   phone: "",
+  uan_no: "",
+
+  fatherName: "",
+  gender: "OTHER",
+  category: "GENERAL",
+  address: "",
+
+  departmentId: "",
   courseId: "",
   sessionId: "",
+  semesterId: "",
+
+  admissionType: "NEW",
+  academicYear: "2025-26",
 };
 
 const AddStudent = ({ onSuccess }) => {
   const [form, setForm] = useState(INITIAL_FORM);
-  const [mode, setMode] = useState("existing"); // existing | new
   const [loading, setLoading] = useState(false);
 
-  const [students, setStudents] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [courses, setCourses] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [semesters, setSemesters] = useState([]);
 
-  /* ================= LOAD DATA ================= */
-
-  const loadData = useCallback(async () => {
-    try {
-      const [studentsRes, coursesRes, sessionsRes] = await Promise.all([
-        fetchStudents(),
-        getCourses(),
-        getSessions(),
-      ]);
-
-      setStudents(studentsRes?.data?.data?.students || []);
-      setCourses(coursesRes?.data?.data?.courses || []);
-      setSessions(sessionsRes?.data?.data?.sessions || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load students / courses / sessions");
-    }
-  }, []);
+  /* ================= LOAD MASTER DATA ================= */
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    Promise.all([getDepartments(), getCourses(), getSessions()])
+      .then(([d, c, s]) => {
+        setDepartments(d?.data?.data?.departments || []);
+        setCourses(c?.data?.data?.courses || []);
+        setSessions(s?.data?.data?.sessions || []);
+      })
+      .catch(() => toast.error("Failed to load master data"));
+  }, []);
 
-  /* ================= HANDLERS ================= */
+  /* ================= LOAD SEMESTERS ================= */
 
-  const switchMode = (type) => {
-    setMode(type);
-    setForm(INITIAL_FORM);
-  };
+  useEffect(() => {
+    if (!form.courseId) {
+      setSemesters([]);
+      return;
+    }
+
+    getSemesters({ courseId: form.courseId })
+      .then(res => setSemesters(res?.data?.data?.semesters || []))
+      .catch(() => toast.error("Failed to load semesters"));
+  }, [form.courseId]);
+
+  /* ================= HANDLER ================= */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleStudentSelect = (e) => {
-    const studentId = e.target.value;
-    const student = students.find((s) => s.id === studentId);
-
-    setForm((prev) => ({
-      ...prev,
-      studentId,
-      courseId: student?.courseId || "",
-    }));
-  };
-
-  /* ================= VALIDATION ================= */
-
-  const validateForm = () => {
-    if (!form.sessionId) return "Session is required";
-
-    if (mode === "existing") {
-      if (!form.studentId) return "Please select a student";
-      if (!form.courseId)
-        return "Selected student does not have a course";
-    }
-
-    if (mode === "new") {
-      if (!form.name.trim()) return "Student name is required";
-      if (!form.email.trim()) return "Email is required";
-      if (!form.phone.trim()) return "Phone number is required";
-      if (!form.courseId) return "Course is required";
-    }
-
-    return null;
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   /* ================= SUBMIT ================= */
@@ -96,57 +73,48 @@ const AddStudent = ({ onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const validationError = validateForm();
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
+    // FRONTEND VALIDATION (MATCH JOI)
+    if (!form.name) return toast.error("Name required");
+    if (!form.email) return toast.error("Email required");
+    if (!form.phone) return toast.error("Phone required");
+    if (!form.uan_no) return toast.error("UAN required");
+    if (!form.departmentId) return toast.error("Department required");
+    if (!form.courseId) return toast.error("Course required");
+    if (!form.sessionId) return toast.error("Session required");
+    if (!form.semesterId) return toast.error("Semester required");
 
     try {
       setLoading(true);
 
-      let studentId = form.studentId;
+      const payload = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        uan_no: form.uan_no.trim(),
 
-      // 🔹 Create student if NEW
-      if (mode === "new") {
-        const studentRes = await createStudent({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          courseId: form.courseId,
-          sessionId: form.sessionId,
-        });
+        fatherName: form.fatherName || "NA",
+        gender: form.gender,
+        category: form.category,
+        address: form.address || "NA",
 
-        studentId = studentRes?.data?.data?.student?.id;
-        if (!studentId) {
-          throw new Error("Student creation failed");
-        }
-      }
-
-      // 🔹 Create admission (STRICT payload)
-      const admissionRes = await createAdmission({
-        studentId,
+        departmentId: form.departmentId,
         courseId: form.courseId,
         sessionId: form.sessionId,
-      });
+        semesterId: form.semesterId,
 
-      const admissionId =
-        admissionRes?.data?.data?.admission?.id;
+        admissionType: form.admissionType,
+        academicYear: form.academicYear,
+      };
+
+      await createStudent(payload);
 
       toast.success("Student admitted successfully 🎉");
-
-      // Reset form after success
       setForm(INITIAL_FORM);
-      setMode("existing");
+      onSuccess?.();
 
-      onSuccess?.(admissionId);
     } catch (err) {
-      console.error("Admission error:", err);
-
-      toast.error(
-        err.response?.data?.message ||
-          "Admission failed (student may already be admitted or window closed)"
-      );
+      console.error(err);
+      toast.error(err.response?.data?.message || "Admission failed");
     } finally {
       setLoading(false);
     }
@@ -155,109 +123,55 @@ const AddStudent = ({ onSuccess }) => {
   /* ================= UI ================= */
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* MODE SWITCH */}
-      <div className="flex gap-3">
-        {["existing", "new"].map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => switchMode(t)}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition
-              ${
-                mode === t
-                  ? "bg-[color:var(--color-primary)] text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-50"
-              }`}
-          >
-            {t === "existing" ? "Existing Student" : "New Student"}
-          </button>
-        ))}
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
 
-      {/* EXISTING STUDENT */}
-      {mode === "existing" && (
-        <select
-          value={form.studentId}
-          onChange={handleStudentSelect}
-          className="w-full border p-2 rounded bg-white"
-        >
-          <option value="">Select Student</option>
-          {students.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} ({s.email})
-            </option>
-          ))}
-        </select>
-      )}
+      <input name="name" placeholder="Student Name" value={form.name} onChange={handleChange} className="input" />
+      <input name="email" placeholder="Email" value={form.email} onChange={handleChange} className="input" />
+      <input name="phone" placeholder="Phone (10 digits)" value={form.phone} onChange={handleChange} className="input" />
+      <input name="uan_no" placeholder="UAN Number" value={form.uan_no} onChange={handleChange} className="input" />
 
-      {/* NEW STUDENT */}
-      {mode === "new" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input
-            name="name"
-            placeholder="Student Name"
-            value={form.name}
-            onChange={handleChange}
-            className="border p-2 rounded"
-          />
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            className="border p-2 rounded"
-          />
-          <input
-            name="phone"
-            placeholder="Phone Number"
-            value={form.phone}
-            onChange={handleChange}
-            className="border p-2 rounded sm:col-span-2"
-          />
-        </div>
-      )}
+      <input name="fatherName" placeholder="Father Name" value={form.fatherName} onChange={handleChange} className="input" />
+      <textarea name="address" placeholder="Address" value={form.address} onChange={handleChange} className="input" />
 
-      {/* COURSE */}
-      <select
-        name="courseId"
-        value={form.courseId}
-        onChange={handleChange}
-        disabled={mode === "existing"}
-        className="w-full border p-2 rounded bg-white disabled:bg-gray-100"
-      >
+      <select name="gender" value={form.gender} onChange={handleChange} className="input">
+        <option value="MALE">Male</option>
+        <option value="FEMALE">Female</option>
+        <option value="OTHER">Other</option>
+      </select>
+
+      <select name="category" value={form.category} onChange={handleChange} className="input">
+        <option value="GENERAL">General</option>
+        <option value="BC_I">BC-I</option>
+        <option value="BC_II">BC-II</option>
+        <option value="SC">SC</option>
+        <option value="ST">ST</option>
+        <option value="EWS">EWS</option>
+      </select>
+
+      <select name="departmentId" value={form.departmentId} onChange={handleChange} className="input">
+        <option value="">Select Department</option>
+        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+      </select>
+
+      <select name="courseId" value={form.courseId} onChange={handleChange} className="input">
         <option value="">Select Course</option>
-        {courses.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name} ({c.code})
-          </option>
-        ))}
+        {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>
 
-      {/* SESSION */}
-      <select
-        name="sessionId"
-        value={form.sessionId}
-        onChange={handleChange}
-        className="w-full border p-2 rounded bg-white"
-      >
+      <select name="semesterId" value={form.semesterId} onChange={handleChange} className="input">
+        <option value="">Select Semester</option>
+        {semesters.map(s => <option key={s.id} value={s.id}>Semester {s.number}</option>)}
+      </select>
+
+      <select name="sessionId" value={form.sessionId} onChange={handleChange} className="input">
         <option value="">Select Session</option>
-        {sessions.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        ))}
+        {sessions.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
       </select>
 
-      {/* SUBMIT */}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-[color:var(--color-primary)] text-white py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-60"
-      >
-        {loading ? "Processing..." : "Add & Admit Student"}
+      <button disabled={loading} className="btn-primary w-full">
+        {loading ? "Processing..." : "Create Admission"}
       </button>
+
     </form>
   );
 };
