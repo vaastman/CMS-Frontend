@@ -28,3 +28,7 @@ export const assignSemesterToStudent = (studentId, payload) => {
 export const deleteStudent = (id) => {
   return api.delete(`/students/${id}`);
 };
+
+export const verifyStudent = (params) => {
+  return api.get("/students", { params });
+};

@@ -129,20 +129,24 @@ const Admissions = () => {
 
       {/* MODAL */}
       <Modal
-        open={openAddModal}
-        onClose={() => setOpenAddModal(false)}
-        title="Add & Admit Student"
-      >
-        <AddStudent
-          onSuccess={(admissionId) => {
-            setOpenAddModal(false);
+  open={openAddModal}
+  onClose={() => setOpenAddModal(false)}
+  title="Add & Admit Student"
+>
+  {/* SCROLLABLE BODY */}
+  <div className="max-h-[80vh] overflow-y-auto px-1">
+    <AddStudent
+      onSuccess={(admissionId) => {
+        setOpenAddModal(false);
 
-            if (admissionId) {
-              navigate(`/admin/admissions/${admissionId}`);
-            }
-          }}
-        />
-      </Modal>
+        if (admissionId) {
+          navigate(`/admin/admissions/${admissionId}`);
+        }
+      }}
+    />
+  </div>
+</Modal>
+
     </div>
   );
 };

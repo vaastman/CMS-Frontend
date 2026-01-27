@@ -109,6 +109,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
         <thead className="border-b bg-gray-50">
           <tr>
             <th className="p-4 text-left">Reg No</th>
+            <th>UAN</th>
             <th>Name</th>
             <th>Course</th>
             <th>Session</th>
@@ -138,15 +139,17 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
                 onClick={() => navigate(`/admin/students/${s.id}`)}
               >
                 <td className="p-4">{s.regNo || "SSM123DEMO"}</td>
+                <td className="p-4">
+                  {s.uan_no || "N/A"}
+                </td>
                 <td>{s.name}</td>
                 <td>{s.course?.name || "-"}</td>
                 <td>{s.session?.name || "-"}</td>
                 <td>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs ${
-                      statusStyles[s.status] ||
+                    className={`px-3 py-1 rounded-full text-xs ${statusStyles[s.status] ||
                       "bg-gray-100 text-gray-600"
-                    }`}
+                      }`}
                   >
                     {s.status || "N/A"}
                   </span>

@@ -15,3 +15,10 @@ export const assignSemesterToStudent = (studentId, payload) => {
 export const getStudentSemesters = (params = {}) => {
   return api.get("/student-semesters", { params });
 };
+
+/* ✅ Get semesters by course */
+export const getSemestersByCourse = (courseId) => {
+  return api.get("/semesters", {
+    params: { courseId }
+  });
+};
