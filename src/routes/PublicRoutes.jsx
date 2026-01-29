@@ -32,6 +32,9 @@ import AdmissionProcess from "../pages/admission/AdmissionProcess";
 import NewAdmission from "../pages/admission/NewAdmission";
 import AdmissionHome from "../pages/admission/AdmissionHome";
 import StudentRegistration from "../pages/admission/StudentRegistration";
+import StudentAdmissionDetails from "../pages/admission/StudentAdmissionDetails";
+import AdmissionPayment from "../pages/admission/AdmissionPayment";
+import DocumentUpload from "../pages/admission/DocumentUpload";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -63,6 +66,21 @@ function PublicRoutes() {
       <Route path="/anti-ragging" element={<AntiRagging />}/>
       <Route path="/rules-regulations" element={<RulesRegulations />}/>
       <Route path="/student-grievance" element={<StudentGrievance />}/>
+      <Route
+  path="/student/details/:id"
+  element={<StudentAdmissionDetails />}
+/>
+<Route
+  path="/student/admission/:id/payment"
+  element={<AdmissionPayment />}
+/>
+<Route
+  path="/student/document-upload/:admissionId/verify"
+  element={<DocumentUpload />}
+/>
+
+
+
       <Route path="*" element={<NotFound />} />
     </Routes>
     </PublicLayout>
