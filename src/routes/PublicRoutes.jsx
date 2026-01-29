@@ -34,6 +34,7 @@ import AdmissionHome from "../pages/admission/AdmissionHome";
 import StudentRegistration from "../pages/admission/StudentRegistration";
 import StudentAdmissionDetails from "../pages/admission/StudentAdmissionDetails";
 import AdmissionPayment from "../pages/admission/AdmissionPayment";
+import DocumentUpload from "../pages/admission/DocumentUpload";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -73,6 +74,11 @@ function PublicRoutes() {
   path="/student/admission/:id/payment"
   element={<AdmissionPayment />}
 />
+<Route
+  path="/student/document-upload/:admissionId/verify"
+  element={<DocumentUpload />}
+/>
+
 
 
       <Route path="*" element={<NotFound />} />

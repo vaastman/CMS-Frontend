@@ -164,7 +164,7 @@ const StudentAdmissionDetails = () => {
 
             <button
               onClick={() =>
-                navigate(`/admin/admissions/${admission.id}/verify`)
+                navigate(`/student/document-upload/${admission.id}/verify`)
               }
               className="w-full bg-[color:var(--color-secondary)]
                          text-white py-2.5 rounded-lg
