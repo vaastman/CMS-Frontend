@@ -1,6 +1,6 @@
 import CollectionCard from "../../../components/CollectionCard";
 import TransactionTable from "../../../components/TransactionTable";
-
+// Demo component
 const transactions = [
   {
     id: "TXN001",
