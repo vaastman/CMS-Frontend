@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 import { verifyStudent } from "@/api/student.api";
 
 const StudentRegistration = () => {
@@ -16,8 +15,28 @@ const StudentRegistration = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const isValidMobile = (mobile) =>
+    /^\d{10}$/.test(mobile);
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Clear opposite section automatically
+    if (name === "referenceNumber" || name === "mobile1") {
+      setForm({
+        referenceNumber: name === "referenceNumber" ? value : form.referenceNumber,
+        mobile1: name === "mobile1" ? value : form.mobile1,
+        regNumber: "",
+        mobile2: "",
+      });
+    } else {
+      setForm({
+        regNumber: name === "regNumber" ? value : form.regNumber,
+        mobile2: name === "mobile2" ? value : form.mobile2,
+        referenceNumber: "",
+        mobile1: "",
+      });
+    }
   };
 
   const handleVerify = async (e) => {
@@ -35,26 +54,28 @@ const StudentRegistration = () => {
       return;
     }
 
+    if (hasReference && !isValidMobile(form.mobile1)) {
+      toast.error("Enter a valid 10-digit mobile number");
+      return;
+    }
+
+    if (hasReg && !isValidMobile(form.mobile2)) {
+      toast.error("Enter a valid 10-digit mobile number");
+      return;
+    }
+
     try {
       setLoading(true);
 
-      let params = {};
-
-      // 🔹 CASE 1: Reference / UAN + Mobile
-      if (hasReference) {
-        params = {
-          uan_no: form.referenceNumber.trim(),
-          phone: form.mobile1.trim(),
-        };
-      }
-
-      // 🔹 CASE 2: Reg No + Mobile
-      if (hasReg) {
-        params = {
-          reg_no: form.regNumber.trim(),
-          phone: form.mobile2.trim(),
-        };
-      }
+      const params = hasReference
+        ? {
+            uan_no: form.referenceNumber.trim(),
+            phone: form.mobile1.trim(),
+          }
+        : {
+            reg_no: form.regNumber.trim(),
+            phone: form.mobile2.trim(),
+          };
 
       const res = await verifyStudent(params);
       const students = res?.data?.data?.students || [];
@@ -64,16 +85,9 @@ const StudentRegistration = () => {
         return;
       }
 
-      // ✅ Student verified
-      const student = students[0];
-
       toast.success("Verification successful 🎉");
-
-      // 👉 Redirect to student detail page
-      navigate(`/student/details/${student.id}`);
-
+      navigate(`/student/details/${students[0].id}`);
     } catch (err) {
-      console.error(err);
       toast.error(
         err.response?.data?.message || "Verification failed"
       );
@@ -83,105 +97,96 @@ const StudentRegistration = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-4">
-      <div className="max-w-5xl mx-auto bg-white border shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center px-4">
+      <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg border">
 
         {/* HEADER */}
-        <div className="border-b px-6 py-4">
-          <h2 className="text-red-700 font-bold text-lg">
+        <div className="border-b px-8 py-5">
+          <h2 className="text-red-700 font-bold text-xl tracking-wide">
             STUDENT REGISTRATION
           </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Verify student using Reference/UAN or Registration Number
+          </p>
         </div>
 
         {/* FORM */}
-        <form onSubmit={handleVerify} className="p-6 space-y-8">
+        <form onSubmit={handleVerify} className="p-8 space-y-10">
 
-          <fieldset className="border-2 border-blue-500 p-6">
-            <legend className="px-2 text-blue-600 font-semibold">
-              REFERENCE NUMBER (OFSS / PPU)
+          <fieldset className="border-2 border-blue-500 rounded-lg p-6">
+            <legend className="px-3 text-blue-600 font-semibold">
+              REFERENCE NUMBER (SSM / PPU)
             </legend>
 
-            {/* ROW 1 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  REFERENCE / UAN NUMBER
-                </label>
-                <input
-                  type="text"
-                  name="referenceNumber"
-                  value={form.referenceNumber}
-                  onChange={handleChange}
-                  className="w-full border px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  MOBILE NUMBER
-                </label>
-                <input
-                  type="text"
-                  name="mobile1"
-                  value={form.mobile1}
-                  onChange={handleChange}
-                  className="w-full border px-3 py-2"
-                />
-              </div>
+              <Input
+                label="REFERENCE / UAN NUMBER"
+                name="referenceNumber"
+                value={form.referenceNumber}
+                onChange={handleChange}
+              />
+              <Input
+                label="MOBILE NUMBER"
+                name="mobile1"
+                value={form.mobile1}
+                onChange={handleChange}
+              />
             </div>
 
-            <div className="text-center my-6 font-bold text-gray-600">
-              OR
+            <div className="text-center my-6 font-bold text-gray-500">
+              — OR —
             </div>
 
-            {/* ROW 2 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  REGISTRATION NUMBER
-                </label>
-                <input
-                  type="text"
-                  name="regNumber"
-                  value={form.regNumber}
-                  onChange={handleChange}
-                  className="w-full border px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  MOBILE NUMBER
-                </label>
-                <input
-                  type="text"
-                  name="mobile2"
-                  value={form.mobile2}
-                  onChange={handleChange}
-                  className="w-full border px-3 py-2"
-                />
-              </div>
+              <Input
+                label="REGISTRATION NUMBER"
+                name="regNumber"
+                value={form.regNumber}
+                onChange={handleChange}
+              />
+              <Input
+                label="MOBILE NUMBER"
+                name="mobile2"
+                value={form.mobile2}
+                onChange={handleChange}
+              />
             </div>
           </fieldset>
 
-          {/* VERIFY BUTTON */}
-          <div>
+          {/* BUTTON */}
+          <div className="flex justify-end">
             <button
               type="submit"
               disabled={loading}
               className="
-                bg-red-600 text-white px-6 py-2 font-semibold
-                hover:bg-red-700 transition disabled:opacity-50
+                bg-red-600 text-white px-8 py-2.5 rounded-md font-semibold
+                hover:bg-red-700 transition-all
+                disabled:opacity-60 disabled:cursor-not-allowed
               "
             >
               {loading ? "VERIFYING..." : "VERIFY"}
             </button>
           </div>
-
         </form>
       </div>
     </div>
   );
 };
+
+/* 🔹 Reusable Input Component */
+const Input = ({ label, ...props }) => (
+  <div>
+    <label className="block text-sm font-semibold mb-1 text-gray-700">
+      {label}
+    </label>
+    <input
+      {...props}
+      className="
+        w-full border rounded-md px-3 py-2
+        focus:outline-none focus:ring-2 focus:ring-red-400
+      "
+    />
+  </div>
+);
 
 export default StudentRegistration;
