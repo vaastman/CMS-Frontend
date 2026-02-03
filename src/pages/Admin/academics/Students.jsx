@@ -10,8 +10,21 @@ import { getCourses } from "@/api/course.api";
 import { getDepartments } from "@/api/department.api";
 import { getSemesters } from "@/api/semester.api";
 
+/* ================= AUTO GENERATORS ================= */
+const generateRegNo = () => {
+  const year = new Date().getFullYear();
+  const rand = Math.floor(100000 + Math.random() * 900000);
+  return `REG-${year}-${rand}`;
+};
+
+const generateUanNo = () => {
+  const rand = Math.floor(100000 + Math.random() * 900000);
+  return `UAN-SSDM-${rand}`;
+};
+
 /* ================= INITIAL FORM ================= */
 const initialForm = {
+  reg_no: "",
   uan_no: "",
   name: "",
   email: "",
@@ -52,40 +65,18 @@ const Students = () => {
   const [semesters, setSemesters] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  /* ================= LOAD SESSIONS ================= */
+  /* ================= LOAD DATA ================= */
   useEffect(() => {
     getSessions()
-      .then((res) =>
-        setSessions(res?.data?.data?.sessions || [])
-      )
+      .then((res) => setSessions(res?.data?.data?.sessions || []))
       .catch(() => toast.error("Failed to load sessions"));
-  }, []);
 
-  /* ================= LOAD DEPARTMENTS ================= */
-  useEffect(() => {
     getDepartments()
       .then((res) =>
         setDepartments(res?.data?.data?.departments || res?.data?.data || [])
       )
       .catch(() => toast.error("Failed to load departments"));
-  }, []);
 
-  /* ================= LOAD COURSES (BY SESSION) ================= */
-  useEffect(() => {
-    if (!form.sessionId) {
-      setCourses([]);
-      return;
-    }
-
-    getCourses({ sessionId: form.sessionId })
-      .then((res) =>
-        setCourses(res?.data?.data?.courses || [])
-      )
-      .catch(() => toast.error("Failed to load courses"));
-  }, [form.sessionId]);
-
-  /* ================= LOAD ALL SEMESTERS (ONCE) ================= */
-  useEffect(() => {
     getSemesters()
       .then((res) =>
         setSemesters(res?.data?.data?.semesters || res?.data?.data || [])
@@ -93,7 +84,22 @@ const Students = () => {
       .catch(() => toast.error("Failed to load semesters"));
   }, []);
 
-  /* ================= FILTER SEMESTERS BY COURSE ================= */
+  /* ================= LOAD COURSES (BY DEPARTMENT + SESSION) ================= */
+  useEffect(() => {
+    if (!form.departmentId) {
+      setCourses([]);
+      return;
+    }
+
+    getCourses({
+      departmentId: form.departmentId,
+      sessionId: form.sessionId || undefined,
+    })
+      .then((res) => setCourses(res?.data?.data?.courses || []))
+      .catch(() => toast.error("Failed to load courses"));
+  }, [form.departmentId, form.sessionId]);
+
+  /* ================= FILTER SEMESTERS ================= */
   const filteredSemesters = semesters.filter(
     (s) => s.courseId === form.courseId
   );
@@ -102,22 +108,18 @@ const Students = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    if (name === "departmentId") {
+      setForm({ ...form, departmentId: value, courseId: "", semesterId: "" });
+      return;
+    }
+
     if (name === "sessionId") {
-      setForm({
-        ...form,
-        sessionId: value,
-        courseId: "",
-        semesterId: "",
-      });
+      setForm({ ...form, sessionId: value, courseId: "", semesterId: "" });
       return;
     }
 
     if (name === "courseId") {
-      setForm({
-        ...form,
-        courseId: value,
-        semesterId: "",
-      });
+      setForm({ ...form, courseId: value, semesterId: "" });
       return;
     }
 
@@ -136,7 +138,6 @@ const Students = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    /* 🔐 FRONTEND VALIDATION (MATCH JOI) */
     if (!/^[6-9]\d{9}$/.test(form.phone)) {
       toast.error("Phone number must start with 6–9");
       return;
@@ -147,29 +148,9 @@ const Students = () => {
       return;
     }
 
-    const required = [
-      "uan_no",
-      "name",
-      "email",
-      "phone",
-      "departmentId",
-      "sessionId",
-      "courseId",
-      "semesterId",
-      "admissionType",
-      "academicYear",
-    ];
-
-    for (const key of required) {
-      if (!form[key]) {
-        toast.error("Please fill all required fields");
-        return;
-      }
-    }
-
-    /* ✅ EXACT PAYLOAD EXPECTED BY BACKEND */
     const payload = {
-      uan_no: form.uan_no.trim(),
+      reg_no: form.reg_no,
+      uan_no: form.uan_no,
       name: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
@@ -178,12 +159,10 @@ const Students = () => {
       gender: form.gender || undefined,
       category: form.category || undefined,
       address: form.address || undefined,
-
       departmentId: form.departmentId,
       courseId: form.courseId,
       sessionId: form.sessionId,
       semesterId: form.semesterId,
-
       admissionType: form.admissionType,
       academicYear: form.academicYear,
     };
@@ -204,8 +183,8 @@ const Students = () => {
     } catch (err) {
       toast.error(
         err?.response?.data?.message ||
-        err?.response?.data?.errors?.[0] ||
-        "Student creation failed"
+          err?.response?.data?.errors?.[0] ||
+          "Student creation failed"
       );
     } finally {
       setLoading(false);
@@ -219,7 +198,8 @@ const Students = () => {
 
     setForm({
       ...initialForm,
-      uan_no: student.uan_no,
+      reg_no: student.reg_no || "",
+      uan_no: student.uan_no || "",
       name: student.name,
       email: student.email,
       phone: student.phone,
@@ -228,12 +208,10 @@ const Students = () => {
       gender: student.gender || "",
       category: student.category || "",
       address: student.address || "",
-
       departmentId: student.department?.id || "",
       sessionId: student.session?.id || "",
       courseId: student.course?.id || "",
       semesterId: student.semesters?.[0]?.semesterId || "",
-
       admissionType: student.admissions?.[0]?.type || "NEW",
       academicYear: student.admissions?.[0]?.academicYear || "2025-26",
     });
@@ -250,7 +228,11 @@ const Students = () => {
         <button
           onClick={() => {
             setIsEdit(false);
-            setForm(initialForm);
+            setForm({
+              ...initialForm,
+              reg_no: generateRegNo(),
+              uan_no: generateUanNo(),
+            });
             setOpenStudentModal(true);
           }}
           className="px-5 py-2 rounded-xl text-white"
@@ -274,14 +256,15 @@ const Students = () => {
         onEdit={handleEdit}
       />
 
-      {/* ================= MODAL ================= */}
       {openStudentModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <form
             onSubmit={handleSubmit}
             className="bg-white p-6 rounded-2xl grid grid-cols-2 gap-4 w-full max-w-3xl"
           >
-            <input className="input" name="uan_no" value={form.uan_no} onChange={handleChange} placeholder="UAN *" disabled={isEdit} />
+            <input className="input" value={form.reg_no} disabled />
+            <input className="input" value={form.uan_no} disabled />
+
             <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Name *" />
             <input className="input" name="email" value={form.email} onChange={handleChange} placeholder="Email *" />
             <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone *" />
@@ -303,7 +286,7 @@ const Students = () => {
               ))}
             </select>
 
-            <select className="input" name="courseId" value={form.courseId} onChange={handleChange}>
+            <select className="input" name="courseId" value={form.courseId} onChange={handleChange} disabled={!form.departmentId}>
               <option value="">Course *</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -313,9 +296,7 @@ const Students = () => {
             <select className="input" name="semesterId" value={form.semesterId} onChange={handleChange} disabled={!form.courseId}>
               <option value="">Semester *</option>
               {filteredSemesters.map((s) => (
-                <option key={s.id} value={s.id}>
-                  Semester {s.number}
-                </option>
+                <option key={s.id} value={s.id}>Semester {s.number}</option>
               ))}
             </select>
 
