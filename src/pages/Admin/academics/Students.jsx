@@ -71,18 +71,36 @@ const Students = () => {
   }, []);
 
   /* ================= LOAD COURSES (BY SESSION) ================= */
-  useEffect(() => {
-    if (!form.sessionId) {
-      setCourses([]);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!form.sessionId) {
+  //     setCourses([]);
+  //     return;
+  //   }
 
-    getCourses({ sessionId: form.sessionId })
-      .then((res) =>
-        setCourses(res?.data?.data?.courses || [])
-      )
-      .catch(() => toast.error("Failed to load courses"));
-  }, [form.sessionId]);
+  //   getCourses({ sessionId: form.sessionId })
+  //     .then((res) =>
+  //       setCourses(res?.data?.data?.courses || [])
+  //     )
+  //     .catch(() => toast.error("Failed to load courses"));
+  // }, [form.sessionId]);
+
+  /* ================= LOAD COURSES (BY DEPARTMENT + SESSION) ================= */
+useEffect(() => {
+  if (!form.departmentId) {
+    setCourses([]);
+    return;
+  }
+
+  getCourses({
+    departmentId: form.departmentId,
+    sessionId: form.sessionId || undefined, // optional
+  })
+    .then((res) =>
+      setCourses(res?.data?.data?.courses || [])
+    )
+    .catch(() => toast.error("Failed to load courses"));
+}, [form.departmentId, form.sessionId]);
+
 
   /* ================= LOAD ALL SEMESTERS (ONCE) ================= */
   useEffect(() => {
@@ -101,6 +119,16 @@ const Students = () => {
   /* ================= HANDLE CHANGE ================= */
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if(name == 'departmentId'){
+      setForm({
+        ...form,
+        departmentId: value,
+        courseId: "",
+      semesterId: "",
+      });
+      return;
+    }
 
     if (name === "sessionId") {
       setForm({
@@ -303,7 +331,7 @@ const Students = () => {
               ))}
             </select>
 
-            <select className="input" name="courseId" value={form.courseId} onChange={handleChange}>
+            <select className="input" name="courseId" value={form.courseId} onChange={handleChange} disabled={!form.departmentId}>
               <option value="">Course *</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
