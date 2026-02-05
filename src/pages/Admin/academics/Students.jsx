@@ -50,7 +50,7 @@ const Students = () => {
   const [openStudentModal, setOpenStudentModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState(null);
-
+const [photo, setPhoto] = useState(null);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
     course: "",
@@ -218,6 +218,23 @@ const Students = () => {
 
     setOpenStudentModal(true);
   };
+  const uploadImageToS3 = async (file) => {
+  const { data } = await getPresignedUrl({
+    fileName: file.name,
+    fileType: file.type,
+  });
+
+  await fetch(data.uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+
+  return data.fileUrl; // 🔥 final public URL
+};
+
 
   /* ================= RENDER ================= */
   return (
@@ -257,21 +274,74 @@ const Students = () => {
       />
 
       {openStudentModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white p-6 rounded-2xl grid grid-cols-2 gap-4 w-full max-w-3xl"
-          >
-            <input className="input" value={form.reg_no} disabled />
-            <input className="input" value={form.uan_no} disabled />
+  <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl">
+      
+      {/* ===== Header ===== */}
+      <div className="px-6 py-4 border-b flex justify-between items-center">
+        <h2 className="text-xl font-semibold">
+          {isEdit ? "Update Student" : "Add New Student"}
+        </h2>
+        <button onClick={closeModal} className="text-gray-500 hover:text-black">
+          ✕
+        </button>
+      </div>
 
+      {/* ===== Scrollable Form ===== */}
+      <form
+        onSubmit={handleSubmit}
+        className="p-6 space-y-6 overflow-y-auto max-h-[70vh]"
+      >
+        {/* ===== Profile Upload ===== */}
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 rounded-full border flex items-center justify-center overflow-hidden bg-gray-100">
+            {photo ? (
+              <img
+                src={URL.createObjectURL(photo)}
+                alt="preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-sm text-gray-400">Photo</span>
+            )}
+          </div>
+
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => setPhoto(e.target.files[0])}
+            />
+            <span className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-100">
+              Upload Photo
+            </span>
+          </label>
+        </div>
+
+        {/* ===== Auto Generated IDs ===== */}
+        <div className="grid grid-cols-2 gap-4">
+          <input className="input bg-gray-100" value={form.reg_no} disabled />
+          <input className="input bg-gray-100" value={form.uan_no} disabled />
+        </div>
+
+        {/* ===== Personal Info ===== */}
+        <div>
+          <h3 className="font-medium mb-3">Personal Information</h3>
+          <div className="grid grid-cols-2 gap-4">
             <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Name *" />
             <input className="input" name="email" value={form.email} onChange={handleChange} placeholder="Email *" />
             <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone *" />
             <input className="input" type="date" name="dob" value={form.dob} onChange={handleChange} />
-            <input className="input" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father Name" />
+            <input className="input col-span-2" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father Name" />
             <textarea className="input col-span-2" name="address" value={form.address} onChange={handleChange} placeholder="Address" />
+          </div>
+        </div>
 
+        {/* ===== Academic Info ===== */}
+        <div>
+          <h3 className="font-medium mb-3">Academic Details</h3>
+          <div className="grid grid-cols-2 gap-4">
             <select className="input" name="departmentId" value={form.departmentId} onChange={handleChange}>
               <option value="">Department *</option>
               {departments.map((d) => (
@@ -304,16 +374,27 @@ const Students = () => {
               <option value="NEW">New Admission</option>
               <option value="CONTINUATION">Continuation</option>
             </select>
-
-            <div className="col-span-2 flex justify-end gap-3">
-              <button type="button" onClick={closeModal}>Cancel</button>
-              <button type="submit" className="text-white px-5 py-2 rounded" style={{ backgroundColor: "var(--color-primary)" }}>
-                {loading ? "Saving..." : isEdit ? "Update Student" : "Create Student"}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      )}
+
+        {/* ===== Footer Buttons ===== */}
+        <div className="sticky bottom-0 bg-white pt-4 border-t flex justify-end gap-3">
+          <button type="button" onClick={closeModal} className="px-4 py-2 border rounded-lg">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2 rounded-lg text-white"
+            style={{ backgroundColor: "var(--color-primary)" }}
+          >
+            {loading ? "Saving..." : isEdit ? "Update Student" : "Create Student"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
