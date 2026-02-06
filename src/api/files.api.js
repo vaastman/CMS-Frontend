@@ -1,6 +1,6 @@
 import api from "./api";
 
-/* ================= UPLOAD FILE ================= */
+/* ================= UPLOAD FILE (PHOTO / DOCUMENT) ================= */
 export const uploadStudentDocument = (formData) => {
   return api.post("/files", formData, {
     headers: {
