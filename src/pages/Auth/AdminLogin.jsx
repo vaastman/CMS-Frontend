@@ -216,8 +216,6 @@ const AdminLogin = () => {
               </p>
             </div>
           </form>
-
-          {/* Copyright - Mobile */}
           <p className="text-center mt-6 text-white/70 text-sm lg:hidden">
             © 2025 Admin Portal. All rights reserved.
           </p>
