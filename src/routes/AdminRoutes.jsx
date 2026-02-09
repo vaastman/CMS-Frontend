@@ -26,6 +26,9 @@ import StudentDetails from "../pages/Admin/academics/StudentDetails";
 
 import Subjects from "../pages/Admin/subject/Subjects";
 import SubjectMaster from "../pages/Admin/subject/SubjectMaster";
+import GalleryCreate from "../pages/Admin/cms/GalleryCreate";
+import NewsCreate from "../pages/Admin/cms/NewsCreate";
+import NoticeCreate from "../pages/Admin/cms/NoticeCreate";
 
 const AdminRoutes = () => {
   return (
@@ -54,6 +57,15 @@ const AdminRoutes = () => {
         <Route path="sessions" element={<Sessions />} />
         <Route path="add-subjects" element={<SubjectMaster />} />
         <Route path="assign-subjects" element={<Subjects />} />
+
+        {/* CMS – Gallery */}
+        <Route path="cms/gallery/create" element={<GalleryCreate />} />
+
+        {/* CMS – News */}
+        <Route path="cms/news/create" element={<NewsCreate />} />
+
+        {/* CMS – Notices */}
+        <Route path="cms/notices/create" element={<NoticeCreate />} />
 
         {/* Others */}
         <Route path="departments" element={<Departments />} />
