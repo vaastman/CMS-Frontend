@@ -148,6 +148,29 @@ const Sidebar = () => {
         },
       ],
     },
+/* ===== CMS / WEBSITE ===== */
+{
+  section: "CMS / Website",
+  items: [
+   
+    {
+      name: "Add Gallery",
+      path: "/admin/cms/gallery/create",
+      icon: <FaFileAlt />,
+    },
+    {
+      name: "Add News",
+      path: "/admin/cms/news/create",
+      icon: <FaBullhorn />,
+    },
+    
+    {
+      name: "Add Notice",
+      path: "/admin/cms/notices/create",
+      icon: <FaClipboardList />,
+    },
+  ],
+},
 
     /* ===== SYSTEM ===== */
     {
