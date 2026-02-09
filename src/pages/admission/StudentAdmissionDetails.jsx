@@ -77,8 +77,8 @@ const StatusBadge = ({ status }) => {
 const InfoRow = ({ icon: Icon, label, value, highlight = false }) => (
   <div className="flex items-start gap-4 py-4 border-b border-slate-100 last:border-b-0 group hover:bg-slate-50 px-4 -mx-4 rounded-lg transition-colors">
     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${highlight
-        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-        : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
+      ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
+      : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
       }`}>
       <Icon className="text-lg" />
     </div>
@@ -97,8 +97,8 @@ const InfoRow = ({ icon: Icon, label, value, highlight = false }) => (
 const Section = ({ title, icon: Icon, children, gradient = false }) => (
   <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
     <div className={`px-6 py-4 ${gradient
-        ? "bg-gradient-to-r from-slate-700 to-slate-900"
-        : "bg-slate-50 border-b border-slate-200"
+      ? "bg-gradient-to-r from-slate-700 to-slate-900"
+      : "bg-slate-50 border-b border-slate-200"
       }`}>
       <h3 className={`font-bold flex items-center gap-3 ${gradient ? "text-white" : "text-slate-800"
         }`}>
@@ -317,8 +317,8 @@ const StudentAdmissionDetails = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${payment.status === 'SUCCESS'
-                            ? 'bg-emerald-100 text-emerald-600'
-                            : 'bg-amber-100 text-amber-600'
+                          ? 'bg-emerald-100 text-emerald-600'
+                          : 'bg-amber-100 text-amber-600'
                           }`}>
                           <FaMoneyBillWave />
                         </div>
@@ -332,8 +332,8 @@ const StudentAdmissionDetails = () => {
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.status === 'SUCCESS'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-amber-100 text-amber-700'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-amber-100 text-amber-700'
                         }`}>
                         {payment.status}
                       </span>
@@ -349,38 +349,40 @@ const StudentAdmissionDetails = () => {
 
             {/* Quick Actions Card */}
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4" style={{ backgroundColor: "var(--color-primary)" }}>
-                <h3 className="font-bold text-white flex items-center gap-2">
-                  <FaFileAlt />
-                  Quick Actions
-                </h3>
-              </div>
 
-              <div className="p-6 space-y-3">
-                <button
-                  onClick={() => navigate(`/admin/admissions/${admission.id}`)}
-                  className="w-full py-3.5 rounded-xl font-semibold text-white hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                style={{ backgroundColor: "var(--color-primary)" }}
+              {/* ================= QUICK ACTIONS (PUBLIC) ================= */}
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div
+                  className="px-6 py-4"
+                  style={{ backgroundColor: "var(--color-primary)" }}
                 >
-                  <FaFileAlt />
-                  View Full Admission
-                </button>
+                  <h3 className="font-bold text-white flex items-center gap-2">
+                    <FaFileAlt />
+                    Student Actions
+                  </h3>
+                </div>
 
-                <button
-                  onClick={() => navigate(`/student/document-upload/${admission.id}/verify`)}
-                  className="w-full py-3.5 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                style={{ backgroundColor: "var(--color-secondary)" }}
-                >
-                  <FaCheckCircle />
-                  Verify Documents
-                </button>
+                <div className="p-6 space-y-3">
 
-                {/* Pay Admission Fee */}
-                {!hasSuccessfulPayment &&
-                  (
+                  {/* Upload / Verify Documents */}
+                  <button
+                    onClick={() =>
+                      navigate(`/student/document-upload/${admission.id}/verify`)
+                    }
+                    className="w-full py-3.5 rounded-xl font-semibold text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    style={{ backgroundColor: "var(--color-secondary)" }}
+                  >
+                    <FaCheckCircle />
+                    Upload / Verify Documents
+                  </button>
+
+                  {/* Pay Admission Fee */}
+                  {!hasSuccessfulPayment && (
                     <button
-                      onClick={() => navigate(`/student/admission/${admission.id}/payment`)}
-                      className="w-full py-3.5 rounded-xl font-semibold shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                      onClick={() =>
+                        navigate(`/student/admission/${admission.id}/payment`)
+                      }
+                      className="w-full py-3.5 rounded-xl font-semibold text-white shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                       style={{ backgroundColor: "var(--color-success)" }}
                     >
                       <FaMoneyBillWave />
@@ -388,7 +390,16 @@ const StudentAdmissionDetails = () => {
                     </button>
                   )}
 
+                  {/* Payment Completed */}
+                  {hasSuccessfulPayment && (
+                    <div className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                      <FaCheckCircle />
+                      Payment Completed
+                    </div>
+                  )}
+                </div>
               </div>
+
             </div>
 
             {/* Status Information Card */}
