@@ -38,51 +38,51 @@ import DocumentUpload from "../pages/admission/DocumentUpload";
 function PublicRoutes() {
   return (
     <PublicLayout>
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<ContactUs />} />
-      <Route path="/login" element={<AdminLogin />} />
-       <Route path="/admin/register" element={<AdminRegister />} />
-      <Route path="/gallery" element={<Gallery />} />
-      <Route path="/campus" element={<Campus />} />
-      <Route path="/about_college" element={<AboutCollege />} />
-      <Route path="/vision-mission" element={<VisionMission />} />
-      <Route path="/principle-desk" element={<PrincipalDesk />} />
-      <Route path="/Online-admission-form" element={<OnlineAdmission />} />
-      <Route path="/courses-and-subject" element={<Courses />} />
-      <Route path="/admissions-process" element={<AdmissionProcess />} />
-      <Route path="/admission/new" element={<NewAdmission />} />
-      <Route path="/admission/admission-portal" element={<AdmissionHome />} />
-      <Route path="/admission/student-registration" element={<StudentRegistration />} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/login" element={<AdminLogin />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
+        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/campus" element={<Campus />} />
+        <Route path="/about_college" element={<AboutCollege />} />
+        <Route path="/vision-mission" element={<VisionMission />} />
+        <Route path="/principle-desk" element={<PrincipalDesk />} />
+        <Route path="/Online-admission-form" element={<OnlineAdmission />} />
+        <Route path="/courses-and-subject" element={<Courses />} />
+        <Route path="/admissions-process" element={<AdmissionProcess />} />
+        <Route path="/admission/new" element={<NewAdmission />} />
+        <Route path="/admission/admission-portal" element={<AdmissionHome />} />
+        <Route path="/admission/student-registration" element={<StudentRegistration />} />
 
-      <Route path="/faculty" element={<Faculty />}/>
-      <Route path="/staff" element={<Staff />}/>
-      <Route path="/holidays" element={<Holidays />}/>
-      <Route path="/certificates" element={<Certificates />}/>
-      <Route path="/calendar" element={<Calendar />}/>
-      <Route path="/examination" element={<Examination />}/>
-      <Route path="/attendence" element={<Attendence />}/>
-      <Route path="/anti-ragging" element={<AntiRagging />}/>
-      <Route path="/rules-regulations" element={<RulesRegulations />}/>
-      <Route path="/student-grievance" element={<StudentGrievance />}/>
-      <Route
-  path="/student/details/:id"
-  element={<StudentAdmissionDetails />}
-/>
-<Route
-  path="/student/admission/:id/payment"
-  element={<AdmissionPayment />}
-/>
-<Route
-  path="/student/document-upload/:admissionId/verify"
-  element={<DocumentUpload />}
-/>
+        <Route path="/faculty" element={<Faculty />} />
+        <Route path="/staff" element={<Staff />} />
+        <Route path="/holidays" element={<Holidays />} />
+        <Route path="/certificates" element={<Certificates />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/examination" element={<Examination />} />
+        <Route path="/attendence" element={<Attendence />} />
+        <Route path="/anti-ragging" element={<AntiRagging />} />
+        <Route path="/rules-regulations" element={<RulesRegulations />} />
+        <Route path="/student-grievance" element={<StudentGrievance />} />
+        <Route
+          path="/student/details/:id"
+          element={<StudentAdmissionDetails />}
+        />
+        <Route
+          path="/student/admission/:id/payment"
+          element={<AdmissionPayment />}
+        />
+        <Route
+          path="/student/document-upload/:admissionId/verify"
+          element={<DocumentUpload />}
+        />
 
 
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </PublicLayout>
   );
 }
