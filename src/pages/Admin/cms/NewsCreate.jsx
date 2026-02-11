@@ -4,12 +4,14 @@ import { toast } from "react-toastify";
 import { FaSave, FaBullhorn, FaLink } from "react-icons/fa";
 
 const NewsCreate = () => {
-  const [form, setForm] = useState({
+  const initialState = {
     title: "",
     body: "",
     isPublished: false,
     url: "",
-  });
+  };
+
+  const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
@@ -22,16 +24,32 @@ const NewsCreate = () => {
 
     try {
       setLoading(true);
-      await createNews(form);
-      toast.success("News created successfully");
-      setForm({
-        title: "",
-        body: "",
-        isPublished: false,
-        url: "",
-      });
+
+      // Remove empty URL before sending (prevents Joi URI validation error)
+      const payload = {
+        ...form,
+        url: form.url?.trim() ? form.url.trim() : undefined,
+      };
+
+      const res = await createNews(payload);
+
+      toast.success(res?.data?.message || "News created successfully");
+
+      setForm(initialState);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create news");
+      console.error("Create News Error:", err);
+
+      if (err.response?.status === 404) {
+        toast.error("API route not found. Please check backend deployment.");
+      } else if (err.response?.status === 401) {
+        toast.error("Unauthorized. Please login again.");
+      } else if (err.response?.status === 403) {
+        toast.error("You do not have permission to create news.");
+      } else {
+        toast.error(
+          err.response?.data?.message || "Failed to create news"
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -50,13 +68,9 @@ const NewsCreate = () => {
         </p>
       </div>
 
-      {/* Card */}
       <form
         onSubmit={submit}
-        className="
-          bg-white border border-gray-200 rounded-2xl shadow-sm
-          p-6 space-y-6
-        "
+        className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 space-y-6"
       >
         {/* Title */}
         <div>
@@ -65,16 +79,13 @@ const NewsCreate = () => {
           </label>
           <input
             type="text"
+            required
             value={form.title}
             onChange={(e) =>
               setForm({ ...form, title: e.target.value })
             }
             placeholder="e.g. Semester Examination Notice"
-            className="
-              w-full px-4 py-2.5 rounded-lg border
-              focus:outline-none focus:ring-2
-              focus:ring-[color:var(--color-primary)]
-            "
+            className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
           />
         </div>
 
@@ -84,21 +95,18 @@ const NewsCreate = () => {
             News Content
           </label>
           <textarea
+            required
             value={form.body}
             onChange={(e) =>
               setForm({ ...form, body: e.target.value })
             }
             placeholder="Write full news content here..."
             rows={8}
-            className="
-              w-full px-4 py-2.5 rounded-lg border resize-none
-              focus:outline-none focus:ring-2
-              focus:ring-[color:var(--color-primary)]
-            "
+            className="w-full px-4 py-2.5 rounded-lg border resize-none focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
           />
         </div>
 
-        {/* Optional URL */}
+        {/* URL */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">
             Reference Link (optional)
@@ -112,11 +120,7 @@ const NewsCreate = () => {
                 setForm({ ...form, url: e.target.value })
               }
               placeholder="https://example.com"
-              className="
-                w-full pl-10 pr-4 py-2.5 rounded-lg border
-                focus:outline-none focus:ring-2
-                focus:ring-[color:var(--color-secondary)]
-              "
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[color:var(--color-secondary)]"
             />
           </div>
         </div>
@@ -140,23 +144,12 @@ const NewsCreate = () => {
           </label>
         </div>
 
-        {/* Actions */}
+        {/* Buttons */}
         <div className="flex justify-end gap-3 pt-4 border-t">
           <button
             type="button"
-            onClick={() =>
-              setForm({
-                title: "",
-                body: "",
-                isPublished: false,
-                url: "",
-              })
-            }
-            className="
-              px-5 py-2.5 rounded-lg font-semibold
-              border border-gray-300 text-gray-700
-              hover:bg-gray-100 transition
-            "
+            onClick={() => setForm(initialState)}
+            className="px-5 py-2.5 rounded-lg font-semibold border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
           >
             Reset
           </button>
@@ -164,11 +157,7 @@ const NewsCreate = () => {
           <button
             type="submit"
             disabled={loading}
-            className="
-              flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold
-              text-white transition
-              disabled:opacity-60 disabled:cursor-not-allowed
-            "
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
             style={{ backgroundColor: "var(--color-primary)" }}
           >
             <FaSave />
