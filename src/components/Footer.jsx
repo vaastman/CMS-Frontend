@@ -1,9 +1,14 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom';
-import { assets } from '../assets/assest';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { assets } from "../assets/assest";
 
 const Footer = () => {
   const navigate = useNavigate();
+
+  const goTo = (path) => {
+    navigate(path);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="w-full bg-[#032f5d] text-white px-6 sm:px-16 lg:px-24 pt-16 pb-8">
@@ -13,9 +18,9 @@ const Footer = () => {
 
         {/* Logo + About */}
         <div className="space-y-6">
-          <img 
-            src={assets.nm_logo} 
-            alt="Logo" 
+          <img
+            src={assets.nm_logo}
+            alt="SSDM Logo"
             className="w-24 h-24 mx-auto sm:mx-0"
           />
 
@@ -24,45 +29,49 @@ const Footer = () => {
           </p>
 
           <p className="text-base leading-6 opacity-90">
-            Sant Sandhya Das Mahila College, Barh (Patna) received affiliation up to
-            graduate level from Patliputra University, Patna and Government of Bihar.
-            The institute stands near the holy banks of river Ganga, the meeting point 
-            of Mithila and Magadh, inspired by Saint Sandhya Das.
+            Sant Sandhya Das Mahila College, Barh (Patna) is affiliated to
+            Patliputra University and recognized by the Government of Bihar.
+            Located near the holy banks of river Ganga, the institution is
+            dedicated to academic excellence and women empowerment.
           </p>
         </div>
 
         {/* Quick Links */}
-        <div className="">
+        <div>
           <p className="text-2xl font-semibold underline underline-offset-4 mb-5">
             QUICK LINKS
           </p>
 
           <ul className="flex flex-col text-base gap-3">
-            <li 
-              className="cursor-pointer hover:text-blue-300 transition"
-              onClick={() => { navigate("/"); scrollTo(0,0); }}
-            >
+            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/")}>
               Home
             </li>
-            <li 
-              className="cursor-pointer hover:text-blue-300 transition"
-              onClick={() => { navigate("/about"); scrollTo(0,0); }}
-            >
+            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/about")}>
               About Us
             </li>
-            <li 
-              className="cursor-pointer hover:text-blue-300 transition"
-              onClick={() => { navigate("/students"); scrollTo(0,0); }}
-            >
-              Students
+            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/admission")}>
+              Admission
             </li>
-            <li 
-              className="cursor-pointer hover:text-blue-300 transition"
-              onClick={() => { navigate("/campus-life"); scrollTo(0,0); }}
-            >
-              Campus Life
+            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/campus")}>
+              Campus
             </li>
           </ul>
+
+          {/* Legal Links */}
+          <div className="mt-6">
+            <p className="text-xl font-semibold mb-3">LEGAL</p>
+            <ul className="flex flex-col gap-2 text-sm opacity-90">
+              <li className="cursor-pointer hover:text-blue-300" onClick={() => goTo("/terms-conditions")}>
+                Terms & Conditions
+              </li>
+              <li className="cursor-pointer hover:text-blue-300" onClick={() => goTo("/privacy-policy")}>
+                Privacy Policy
+              </li>
+              <li className="cursor-pointer hover:text-blue-300" onClick={() => goTo("/refund-policy")}>
+                Refund Policy
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Contact */}
@@ -72,15 +81,14 @@ const Footer = () => {
           </p>
 
           <p className="text-base opacity-90 leading-6">
-            Sant Sandhya Das Mahavidyalaya, Barh,  
-            <br />
-            Bihar, Patna – 803213
+            Sant Sandhya Das Mahila College <br />
+            Gulabbag, Barh, Patna – 803213 <br />
+            Bihar, India
           </p>
 
-          <p className="mt-4 opacity-80">
-            Email: info@santsandhyadascollege.in  
-            <br />
-            Phone: +91 9876543210
+          <p className="mt-4 opacity-90">
+            Email: principalssdmcbarh@gmail.com <br />
+            Phone: 7549298333
           </p>
         </div>
 
@@ -102,14 +110,14 @@ const Footer = () => {
             ></iframe>
           </div>
         </div>
-
       </div>
 
       {/* Bottom Bar */}
       <div className="mt-14">
         <hr className="border-gray-500" />
-        <p className="text-center text-sm py-3 opacity-80">
-          © 2025  — All Rights Reserved.
+        <p className="text-center text-sm py-4 opacity-80">
+          © {new Date().getFullYear()} Sant Sandhya Das Mahila College —
+          All Rights Reserved.
         </p>
       </div>
     </div>
