@@ -34,6 +34,9 @@ import StudentRegistration from "../pages/admission/StudentRegistration";
 import StudentAdmissionDetails from "../pages/admission/StudentAdmissionDetails";
 import AdmissionPayment from "../pages/admission/AdmissionPayment";
 import DocumentUpload from "../pages/admission/DocumentUpload";
+import RefundPolicy from "../pages/RefundPolicy";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import TermsConditions from "../pages/TermsConditions";
 function PublicRoutes() {
   return (
     <PublicLayout>
@@ -78,6 +81,9 @@ function PublicRoutes() {
           element={<DocumentUpload />}
         />
 
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
 
 
         <Route path="*" element={<NotFound />} />
