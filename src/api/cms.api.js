@@ -21,11 +21,11 @@ export const deleteGallery = (id) => {
 /* ================= NEWS ================= */
 
 export const getNews = (params) => {
-  return api.get("cms/news", { params });
+  return api.get("/cms/news", { params }); // ✅ fixed
 };
 
 export const createNews = (data) => {
-  return api.post("cms/news", data);
+  return api.post("/cms/news", data); // ✅ fixed
 };
 
 export const updateNews = (id, data) => {
@@ -38,8 +38,8 @@ export const deleteNews = (id) => {
 
 /* ================= NOTICE ================= */
 
-export const getNotices = (params) => {
-  return api.get("/cms/notices", { params });
+export const getNotices = () => {
+  return api.get("/cms/notices"); // ❌ remove params
 };
 
 export const createNotice = (data) => {

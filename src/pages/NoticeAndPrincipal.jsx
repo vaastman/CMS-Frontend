@@ -1,31 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBullhorn } from "react-icons/fa";
+import { getNotices } from "@/api/cms.api";
+import { toast } from "react-toastify";
 import principalImg from "../assets/image/pic02.jpg";
-
-const noticeData = {
-  notice: [
-    "Regarding admission form 3rd sem-2025",
-    "Notice Regarding Mop-Up Admission Round of sem-1 (2025)",
-    "Notice Regarding Admission in UG Regular Sem-1 (2025)",
-    "Regarding Admission of 2nd sem-2025",
-    "Regarding Admission Payment of 4th Sem. (2025)",
-  ],
-  exam: [
-    "UG Semester-1 Examination Schedule 2025",
-    "Notice Regarding Practical Examination Dates",
-    "Result Declaration of UG Semester-2",
-    "Backlog Examination Registration Open",
-  ],
-  activity: [
-    "Annual Sports Meet 2025",
-    "Cultural Program Registration Open",
-    "NSS Blood Donation Camp",
-    "Career Guidance & Placement Workshop",
-  ],
-};
 
 const NoticeAndPrincipal = () => {
   const [activeTab, setActiveTab] = useState("notice");
+  const [notices, setNotices] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // ================= FETCH NOTICES =================
+  useEffect(() => {
+    fetchNotices(activeTab);
+  }, [activeTab]);
+
+  const fetchNotices = async (type) => {
+    try {
+      setLoading(true);
+
+      // If backend supports category filtering
+      const res = await getNotices();
+
+
+      // Adjust this depending on backend response structure
+      const data =
+        res?.data?.data?.notices ||
+        res?.data?.data ||
+        res?.data ||
+        [];
+
+      setNotices(data);
+    } catch (err) {
+      console.error("Fetch Notices Error:", err);
+      toast.error("Failed to load notices");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="w-full bg-[var(--color-page)] py-16">
@@ -60,15 +71,26 @@ const NoticeAndPrincipal = () => {
           </div>
 
           {/* Notices List */}
-          <ul className="space-y-4 text-[var(--color-text-primary)]">
-            {noticeData[activeTab].map((item, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <FaBullhorn className="mt-1 text-[var(--color-secondary)]" />
-                <span className="hover:underline cursor-pointer">
-                  {item}
-                </span>
+          <ul className="space-y-4 text-[var(--color-text-primary)] min-h-[150px]">
+            {loading ? (
+              <li className="text-gray-500">Loading notices...</li>
+            ) : notices.length > 0 ? (
+              notices.map((item, index) => (
+                <li
+                  key={item.id || index}
+                  className="flex items-start gap-3"
+                >
+                  <FaBullhorn className="mt-1 text-[var(--color-secondary)]" />
+                  <span className="hover:underline cursor-pointer">
+                    {item.title}
+                  </span>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-500">
+                No notices available.
               </li>
-            ))}
+            )}
           </ul>
 
           <button
@@ -98,28 +120,21 @@ const NoticeAndPrincipal = () => {
 
             <div className="text-[var(--color-text-secondary)] text-sm leading-relaxed text-justify">
               <p>
-                It gives me utmost pleasure and pride to address all of you as
-                the principal of this very prestigious institution and its
-                bright students.
+                It gives me immense pleasure to address you as the principal
+                of this prestigious institution.
               </p>
 
               <p className="mt-3">
-                At Sant Sandhya Das Mahavidyalaya, we strive towards achieving
-                the epitome of academic excellence and maintaining discipline
-                amongst the students and faculty alike. Knowledge, skill and
-                learning are our three pillars of strength.
+                At Sant Sandhya Das Mahavidyalaya, we strive towards academic
+                excellence and holistic development of our students.
               </p>
 
               <p className="mt-3">
-                We have a dedicated team of esteemed faculty focused on
-                providing our students with appropriate knowledge and all the
-                opportunities necessary to realize their true potential.
+                Our dedicated faculty ensures every student receives the best
+                opportunities to realize their full potential.
               </p>
 
               <p className="mt-4 font-semibold text-[var(--color-text-primary)]">
-                Thank you
-              </p>
-              <p className="font-semibold text-[var(--color-text-primary)]">
                 Dr. Kaushal Kishore Singh (Principal)
               </p>
               <p className="font-semibold text-[var(--color-text-primary)]">
@@ -129,9 +144,7 @@ const NoticeAndPrincipal = () => {
                 SSDM College, Barh, Patna
               </p>
 
-              <button
-                className="mt-2 text-[var(--color-primary)] font-semibold hover:underline"
-              >
+              <button className="mt-2 text-[var(--color-primary)] font-semibold hover:underline">
                 Read More
               </button>
             </div>
