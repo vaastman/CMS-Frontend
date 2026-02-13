@@ -1,38 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { FaBullhorn } from "react-icons/fa";
 import { getNotices } from "@/api/cms.api";
-import { toast } from "react-toastify";
 import principalImg from "../assets/image/pic02.jpg";
 
 const NoticeAndPrincipal = () => {
   const [activeTab, setActiveTab] = useState("notice");
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // ================= FETCH NOTICES =================
   useEffect(() => {
-    fetchNotices(activeTab);
+    fetchNotices();
   }, [activeTab]);
 
-  const fetchNotices = async (type) => {
+  const fetchNotices = async () => {
     try {
       setLoading(true);
+      setErrorMsg("");
 
-      // If backend supports category filtering
       const res = await getNotices();
 
-
-      // Adjust this depending on backend response structure
       const data =
+        res?.data?.data?.noticeItems ||
         res?.data?.data?.notices ||
         res?.data?.data ||
-        res?.data ||
         [];
 
-      setNotices(data);
+      setNotices(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Fetch Notices Error:", err);
-      toast.error("Failed to load notices");
+
+      // Show backend issue inside UI
+      if (err.response?.status === 500) {
+        setErrorMsg("Notice service is temporarily unavailable. Please try again later.");
+      } else if (err.response?.status === 404) {
+        setErrorMsg("Notice API endpoint not found.");
+      } else {
+        setErrorMsg("Unable to load notices at the moment.");
+      }
+
+      setNotices([]);
     } finally {
       setLoading(false);
     }
@@ -71,27 +79,39 @@ const NoticeAndPrincipal = () => {
           </div>
 
           {/* Notices List */}
-          <ul className="space-y-4 text-[var(--color-text-primary)] min-h-[150px]">
-            {loading ? (
-              <li className="text-gray-500">Loading notices...</li>
-            ) : notices.length > 0 ? (
-              notices.map((item, index) => (
-                <li
-                  key={item.id || index}
-                  className="flex items-start gap-3"
-                >
-                  <FaBullhorn className="mt-1 text-[var(--color-secondary)]" />
-                  <span className="hover:underline cursor-pointer">
-                    {item.title}
-                  </span>
-                </li>
-              ))
-            ) : (
-              <li className="text-gray-500">
-                No notices available.
-              </li>
+          <div className="min-h-[160px]">
+            {loading && (
+              <p className="text-gray-500 text-sm">Loading notices...</p>
             )}
-          </ul>
+
+            {!loading && errorMsg && (
+              <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
+                {errorMsg}
+              </div>
+            )}
+
+            {!loading && !errorMsg && notices.length === 0 && (
+              <p className="text-gray-500 text-sm">
+                No notices available.
+              </p>
+            )}
+
+            {!loading && !errorMsg && notices.length > 0 && (
+              <ul className="space-y-4 text-[var(--color-text-primary)]">
+                {notices.map((item, index) => (
+                  <li
+                    key={item.id || index}
+                    className="flex items-start gap-3"
+                  >
+                    <FaBullhorn className="mt-1 text-[var(--color-secondary)]" />
+                    <span className="hover:underline cursor-pointer">
+                      {item.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <button
             className="mt-8 px-6 py-2 rounded-md font-semibold
