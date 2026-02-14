@@ -16,7 +16,7 @@ import { getDashboardData } from "@/api/dashboard.api";
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  /* ================= SAFE STATE ================= */
+  /* ================= STATE ================= */
   const [stats, setStats] = useState({
     totalStudents: 0,
     newAdmissions: 0,
@@ -36,33 +36,17 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
 
-      const { students, admissions } = await getDashboardData();
-
-      /* ================= CALCULATIONS ================= */
-
-      const activeStudents = students.filter(
-        (s) => s.status === "ACTIVE"
-      );
-
-      const pendingAdmissions = admissions.filter(
-        (a) =>
-          a.status === "INITIATED" ||
-          a.status === "PAYMENT_PENDING"
-      );
-
-      const sortedAdmissions = [...admissions].sort(
-        (a, b) =>
-          new Date(b.createdAt) - new Date(a.createdAt)
-      );
+      const { stats: statsData, admissions } =
+        await getDashboardData();
 
       setStats({
-        totalStudents: activeStudents.length,
-        newAdmissions: admissions.length,
+        totalStudents: statsData?.totalStudents || 0,
+        newAdmissions: statsData?.thisYearAdmissions || 0,
         facultyStrength: 0,
-        pendingApprovals: pendingAdmissions.length,
+        pendingApprovals: statsData?.todaysAdmissions || 0,
       });
 
-      setRecentAdmissions(sortedAdmissions.slice(0, 5));
+      setRecentAdmissions(admissions || []);
 
     } catch (error) {
       console.error("Dashboard load failed:", error);
@@ -80,6 +64,7 @@ const AdminDashboard = () => {
     }
   };
 
+  /* ================= STAT CARDS ================= */
   const statCards = [
     {
       title: "Total Active Students",
@@ -88,9 +73,9 @@ const AdminDashboard = () => {
       icon: <FaUserGraduate />,
     },
     {
-      title: "New Admissions",
+      title: "New Admissions (This Year)",
       value: stats.newAdmissions,
-      note: "Total applications",
+      note: "Yearly admissions",
       icon: <FaUsers />,
     },
     {
@@ -100,9 +85,9 @@ const AdminDashboard = () => {
       icon: <FaUserTie />,
     },
     {
-      title: "Pending Approvals",
+      title: "Today's Admissions",
       value: stats.pendingApprovals,
-      note: "Action required",
+      note: "Today's entries",
       icon: <FaClock />,
       danger: true,
     },
