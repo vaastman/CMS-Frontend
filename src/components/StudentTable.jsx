@@ -25,7 +25,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const perPage = 5;
+  const perPage = 25;
   const { course, session, status } = filters;
 
   /* ================= RESET PAGE ON FILTER CHANGE ================= */
@@ -43,25 +43,37 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
           courseId: course,
           sessionId: session,
           status,
-          page,              // ✅ 1-based page
+          page,
           limit: perPage,
         });
 
-        const data = res?.data?.data || {};
-        const list = data.students || data || [];
+        const response = res?.data?.data;
 
-        setStudents(list);
+        const studentsList =
+          response?.students ||
+          res?.data?.students ||
+          [];
 
-        // ✅ SAFE pagination handling (works with most backends)
-        const pagination = data.pagination;
+        setStudents(Array.isArray(studentsList) ? studentsList : []);
 
-        if (pagination?.totalPages) {
-          setTotalPages(pagination.totalPages);
-        } else if (pagination?.total && pagination?.limit) {
-          setTotalPages(Math.ceil(pagination.total / pagination.limit));
+        // ✅ SAFE pagination extraction
+        const pagination =
+          response?.pagination ||
+          res?.data?.pagination ||
+          null;
+
+        if (pagination) {
+          if (pagination.totalPages) {
+            setTotalPages(pagination.totalPages);
+          } else if (pagination.total && pagination.limit) {
+            setTotalPages(Math.ceil(pagination.total / pagination.limit));
+          } else {
+            setTotalPages(1);
+          }
         } else {
           setTotalPages(1);
         }
+
       } catch (err) {
         console.error("❌ Fetch students error:", err);
         toast.error("Failed to load students");
