@@ -1,13 +1,19 @@
 // src/api/dashboard.api.js
-import api from "./api";
+import { getAdmissions } from "./admissions.api";
+import { fetchStudents } from "./student.api";
 
-/* ================= STUDENTS ================= */
-export const getAllStudents = () => {
-  return api.get("/students");
-};
+/* ================= DASHBOARD DATA ================= */
 
-/* ================= ADMISSIONS ================= */
-// ❌ DO NOT PASS params (backend can't handle them)
-export const getAllAdmissions = () => {
-  return api.get("/admissions");
+export const getDashboardData = async () => {
+  const [studentsRes, admissionsRes] = await Promise.all([
+    fetchStudents(),
+    getAdmissions(),
+  ]);
+
+  return {
+    students:
+      studentsRes?.data?.data?.students || [],
+    admissions:
+      admissionsRes?.data?.data?.admissions || [],
+  };
 };

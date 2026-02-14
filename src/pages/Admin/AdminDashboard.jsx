@@ -11,8 +11,7 @@ import {
   FaDownload,
 } from "react-icons/fa";
 
-import { getAdmissions } from "@/api/admissions.api";
-import {fetchStudents} from "@/api/student.api";
+import { getDashboardData } from "@/api/dashboard.api";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -37,30 +36,44 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
 
-      // ✅ ONLY real backend API
-      const { data } = await getAdmissions({ limit: 5 });
-      const admissions = data?.data || [];
+      const { students, admissions } = await getDashboardData();
+
+      /* ================= CALCULATIONS ================= */
+
+      const activeStudents = students.filter(
+        (s) => s.status === "ACTIVE"
+      );
+
+      const pendingAdmissions = admissions.filter(
+        (a) =>
+          a.status === "INITIATED" ||
+          a.status === "PAYMENT_PENDING"
+      );
+
+      const sortedAdmissions = [...admissions].sort(
+        (a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt)
+      );
 
       setStats({
-        totalStudents: admissions.filter(a => a.status === "APPROVED").length,
+        totalStudents: activeStudents.length,
         newAdmissions: admissions.length,
-        facultyStrength: 0, // no backend API yet
-        pendingApprovals: admissions.filter(
-          a => a.status === "UNDER_VERIFICATION"
-        ).length,
+        facultyStrength: 0,
+        pendingApprovals: pendingAdmissions.length,
       });
 
-      setRecentAdmissions(admissions);
-    } catch (error) {
-      console.error("Dashboard load failed:", error.message);
+      setRecentAdmissions(sortedAdmissions.slice(0, 5));
 
-      // ✅ FAIL SAFE (NO CRASH)
+    } catch (error) {
+      console.error("Dashboard load failed:", error);
+
       setStats({
         totalStudents: 0,
         newAdmissions: 0,
         facultyStrength: 0,
         pendingApprovals: 0,
       });
+
       setRecentAdmissions([]);
     } finally {
       setLoading(false);
@@ -71,7 +84,7 @@ const AdminDashboard = () => {
     {
       title: "Total Active Students",
       value: stats.totalStudents,
-      note: "Approved admissions",
+      note: "Active student accounts",
       icon: <FaUserGraduate />,
     },
     {
@@ -98,7 +111,7 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-10">
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-[color:var(--color-text-primary)]">
@@ -118,7 +131,7 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* ================= STATS ================= */}
+      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {statCards.map((stat, i) => (
           <div
@@ -148,10 +161,10 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* ================= MAIN CONTENT ================= */}
+      {/* MAIN CONTENT */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        {/* ---- RECENT ADMISSIONS ---- */}
+        {/* RECENT ADMISSIONS */}
         <div className="xl:col-span-2 bg-[color:var(--color-surface)] rounded-2xl shadow-sm">
           <div className="flex items-center justify-between px-6 py-4 border-b">
             <h3 className="font-semibold">
@@ -175,7 +188,7 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentAdmissions.map(app => (
+                {recentAdmissions.map((app) => (
                   <tr key={app.id} className="border-b">
                     <td className="px-6 py-4 font-medium">
                       {app.student?.name || "N/A"}
@@ -201,10 +214,8 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* ---- RIGHT PANEL ---- */}
+        {/* RIGHT PANEL */}
         <div className="space-y-6">
-
-          {/* Quick Actions */}
           <div className="bg-[color:var(--color-surface)] rounded-2xl shadow-sm p-6">
             <h3 className="font-semibold mb-4">Quick Actions</h3>
 
@@ -229,8 +240,8 @@ const AdminDashboard = () => {
               </button>
             </div>
           </div>
-
         </div>
+
       </div>
     </div>
   );
