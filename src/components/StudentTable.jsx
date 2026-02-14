@@ -25,7 +25,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const perPage = 25;
+  const perPage = 15;
   const { course, session, status } = filters;
 
   /* ================= RESET PAGE ON FILTER CHANGE ================= */
@@ -150,7 +150,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
                 className="border-b hover:bg-gray-50 cursor-pointer"
                 onClick={() => navigate(`/admin/students/${s.id}`)}
               >
-                <td className="p-4">{s.regNo || "SSM123DEMO"}</td>
+                <td className="p-4">{s.reg_no || "N/A"}</td>
                 <td className="p-4">
                   {s.uan_no || "N/A"}
                 </td>
