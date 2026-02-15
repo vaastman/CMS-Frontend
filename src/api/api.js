@@ -12,10 +12,11 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
-    // ⛔ Do NOT attach token to auth routes
+    // ❌ Do NOT attach access token to login/register
     const isAuthRoute =
       config.url?.includes("/auth/login") ||
-      config.url?.includes("/auth/register");
+      config.url?.includes("/auth/register") ||
+      config.url?.includes("/auth/refresh-token");
 
     if (token && !isAuthRoute) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -29,21 +30,56 @@ api.interceptors.request.use(
 /* ================= RESPONSE INTERCEPTOR ================= */
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error.response?.status;
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (status === 401) {
-      console.warn("Unauthorized - Token expired or invalid");
+    // If access token expired
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/login")
+    ) {
+      originalRequest._retry = true;
 
-      // Optional: force logout
-      localStorage.removeItem("token");
-      localStorage.removeItem("admin");
+      try {
+        const refreshToken = localStorage.getItem("refreshToken");
 
-      // Optional redirect
-      // window.location.href = "/login";
+        if (!refreshToken) throw new Error("No refresh token");
+
+        // 🔄 Call refresh endpoint
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          }
+        );
+
+        const newAccessToken = res.data.data.accessToken;
+
+        // Save new access token
+        localStorage.setItem("token", newAccessToken);
+
+        // Retry original request
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
+
+      } catch (refreshError) {
+        console.warn("Refresh failed. Logging out.");
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("admin");
+
+        window.location.href = "/admin/login";
+
+        return Promise.reject(refreshError);
+      }
     }
 
-    if (status === 403) {
+    if (error.response?.status === 403) {
       console.warn("Forbidden - Insufficient permissions");
     }
 
