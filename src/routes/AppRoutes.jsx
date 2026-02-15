@@ -4,16 +4,16 @@ import AdminRoutes from "./AdminRoutes";
 import ProtectedRoute from "./ProtectedRoute";
 
 import AdminLogin from "../pages/Auth/AdminLogin";
-import AdminRegister from "../pages/Auth/AdminRegister";
+// import AdminRegister from "../pages/Auth/AdminRegister";
 
 function AppRoutes() {
   return (
     <Routes>
-      {/* 🔓 Admin Auth (PUBLIC) */}
+       {/* ================= ADMIN AUTH (PUBLIC) ================= */}
       <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/register" element={<AdminRegister />} />
+      {/* <Route path="/admin/register" element={<AdminRegister />} /> */}
 
-      {/* 🔐 Admin Panel (PROTECTED) */}
+      {/* ================= ADMIN PANEL (PROTECTED) ================= */}
       <Route
         path="/admin/*"
         element={
@@ -23,7 +23,7 @@ function AppRoutes() {
         }
       />
 
-      {/* 🌐 Public Website */}
+      {/* ================= PUBLIC WEBSITE ================= */}
       <Route path="/*" element={<PublicRoutes />} />
     </Routes>
   );
