@@ -9,35 +9,29 @@ const NoticeAndPrincipal = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // ================= FETCH NOTICES =================
-  useEffect(() => {
-    fetchNotices();
-  }, [activeTab]);
-
-  const fetchNotices = async () => {
+  /* ================= FETCH NOTICES ================= */
+  const fetchNotices = async (category) => {
     try {
       setLoading(true);
       setErrorMsg("");
 
-      const res = await getNotices();
+      // If backend supports filtering, pass category
+      const res = await getNotices({ category });
 
-      const data =
-        res?.data?.data?.noticeItems ||
-        res?.data?.data?.notices ||
-        res?.data?.data ||
-        [];
+      console.log("Notice API Response:", res.data);
 
-      setNotices(Array.isArray(data) ? data : []);
+      const noticeItems = res?.data?.data?.noticeItems || [];
+
+      setNotices(Array.isArray(noticeItems) ? noticeItems : []);
     } catch (err) {
       console.error("Fetch Notices Error:", err);
 
-      // Show backend issue inside UI
       if (err.response?.status === 500) {
-        setErrorMsg("Notice service is temporarily unavailable. Please try again later.");
+        setErrorMsg("Notice service is temporarily unavailable.");
       } else if (err.response?.status === 404) {
         setErrorMsg("Notice API endpoint not found.");
       } else {
-        setErrorMsg("Unable to load notices at the moment.");
+        setErrorMsg("Unable to load notices.");
       }
 
       setNotices([]);
@@ -46,11 +40,15 @@ const NoticeAndPrincipal = () => {
     }
   };
 
+  useEffect(() => {
+    fetchNotices(activeTab);
+  }, [activeTab]);
+
   return (
     <section className="w-full bg-[var(--color-page)] py-16">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
 
-        {/* ================= LEFT : NOTICES ================= */}
+        {/* LEFT SIDE */}
         <div>
           <h2 className="text-3xl font-semibold text-[var(--color-primary)] mb-6">
             Notices & Announcements
@@ -78,7 +76,7 @@ const NoticeAndPrincipal = () => {
             ))}
           </div>
 
-          {/* Notices List */}
+          {/* Notices */}
           <div className="min-h-[160px]">
             {loading && (
               <p className="text-gray-500 text-sm">Loading notices...</p>
@@ -98,9 +96,9 @@ const NoticeAndPrincipal = () => {
 
             {!loading && !errorMsg && notices.length > 0 && (
               <ul className="space-y-4 text-[var(--color-text-primary)]">
-                {notices.map((item, index) => (
+                {notices.map((item) => (
                   <li
-                    key={item.id || index}
+                    key={item.id}
                     className="flex items-start gap-3"
                   >
                     <FaBullhorn className="mt-1 text-[var(--color-secondary)]" />
@@ -125,7 +123,7 @@ const NoticeAndPrincipal = () => {
           </button>
         </div>
 
-        {/* ================= RIGHT : PRINCIPAL DESK ================= */}
+        {/* RIGHT SIDE */}
         <div>
           <h2 className="text-3xl font-semibold text-[var(--color-primary)] mb-6 uppercase">
             From the Desk of Principal
@@ -156,12 +154,6 @@ const NoticeAndPrincipal = () => {
 
               <p className="mt-4 font-semibold text-[var(--color-text-primary)]">
                 Dr. Kaushal Kishore Singh (Principal)
-              </p>
-              <p className="font-semibold text-[var(--color-text-primary)]">
-                M.Sc. (Chemistry), Ph.D.
-              </p>
-              <p className="font-semibold text-[var(--color-text-primary)]">
-                SSDM College, Barh, Patna
               </p>
 
               <button className="mt-2 text-[var(--color-primary)] font-semibold hover:underline">

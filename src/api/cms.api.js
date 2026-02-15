@@ -38,8 +38,11 @@ export const deleteNews = (id) => {
 
 /* ================= NOTICE ================= */
 
-export const getNotices = () => {
-  return api.get("/cms/notices"); // ❌ remove params
+// export const getNotices = () => {
+//   return api.get("/cms/notices"); // ❌ remove params
+// };
+export const getNotices = (params) => {
+  return api.get("/cms/notices", { params });
 };
 
 export const createNotice = (data) => {
