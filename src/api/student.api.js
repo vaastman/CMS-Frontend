@@ -30,5 +30,5 @@ export const deleteStudent = (id) => {
 };
 
 export const verifyStudent = (params) => {
-  return api.get("/students", { params });
+  return api.get("/students");
 };

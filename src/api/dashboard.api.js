@@ -1,19 +1,27 @@
 // src/api/dashboard.api.js
-import { getAdmissions } from "./admissions.api";
-import { fetchStudents } from "./student.api";
+import api from "./api";
 
-/* ================= DASHBOARD DATA ================= */
+/* ================= DASHBOARD STATS ================= */
+export const getDashboardStats = async () => {
+  const res = await api.get("/admin-dashboard/stats");
+  return res.data?.data;
+};
 
+/* ================= LAST 10 ADMISSIONS ================= */
+export const getLast10Admissions = async () => {
+  const res = await api.get("/admin-dashboard/admissions/last-10");
+  return res.data?.data?.admissions || [];
+};
+
+/* ================= COMBINED DASHBOARD DATA ================= */
 export const getDashboardData = async () => {
-  const [studentsRes, admissionsRes] = await Promise.all([
-    fetchStudents(),
-    getAdmissions(),
+  const [stats, admissions] = await Promise.all([
+    getDashboardStats(),
+    getLast10Admissions(),
   ]);
 
   return {
-    students:
-      studentsRes?.data?.data?.students || [],
-    admissions:
-      admissionsRes?.data?.data?.admissions || [],
+    stats,
+    admissions,
   };
 };
