@@ -197,7 +197,7 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            <div className="mt-6 text-center">
+            {/* <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
                 <Link
@@ -207,7 +207,7 @@ const AdminLogin = () => {
                   Register here
                 </Link>
               </p>
-            </div>
+            </div> */}
           </form>
         </div>
       </div>
