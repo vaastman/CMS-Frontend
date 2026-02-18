@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { adminLoginApi, logoutApi } from "@/api/auth.api";
-
+import api from "@/api/api";
 const AuthContext = createContext(null);
 
 const ADMIN_ROLES = ["ADMIN", "HOD", "ACCOUNTANT"];
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   /* ================= RESTORE SESSION ================= */
  useEffect(() => {
-  const restoreSession = async () => {
+  const restoreSession = () => {
     try {
       const storedUser = localStorage.getItem("admin");
       const token = localStorage.getItem("token");
@@ -22,16 +22,12 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // 🔥 VERIFY TOKEN WITH BACKEND
-      await api.get("/auth/me"); 
-      // This must be a protected route that uses protect middleware
-
       const parsedUser = JSON.parse(storedUser);
+
       setAdmin(parsedUser);
       setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
 
     } catch (err) {
-      // 🔥 If token invalid (like API switched) → force logout
       localStorage.clear();
       setAdmin(null);
       setIsAdmin(false);
@@ -42,6 +38,7 @@ export const AuthProvider = ({ children }) => {
 
   restoreSession();
 }, []);
+
 
   /* ================= LOGIN ================= */
   const login = async (email, password) => {
