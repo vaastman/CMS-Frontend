@@ -27,6 +27,7 @@ const Sidebar = () => {
 
   const handleLogoutConfirm = async() => {
    await logout(); // 🔐 clear auth
+   setShowLogoutConfirm(false);
     navigate("/admin/login", { replace: true });
   };
 

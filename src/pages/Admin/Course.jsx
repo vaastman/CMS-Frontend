@@ -22,6 +22,8 @@ const Course = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+
 
   const initialForm = {
     name: "",
@@ -35,21 +37,31 @@ const Course = () => {
   /* ================= FETCH SESSIONS ================= */
   const loadSessions = async () => {
     try {
+      setDataLoading(true);
+
       const res = await getSessions();
 
       const list =
         Array.isArray(res?.data?.data)
           ? res.data.data
           : Array.isArray(res?.data?.data?.sessions)
-          ? res.data.data.sessions
-          : [];
+            ? res.data.data.sessions
+            : [];
 
       setSessions(list);
+
+      if (list.length > 0) {
+        setSessionId(list[0].id);
+      }
     } catch {
       toast.error("Failed to load sessions");
       setSessions([]);
+    } finally {
+      setDataLoading(false);
     }
   };
+
+
 
   /* ================= FETCH COURSES ================= */
   const loadCourses = async (activeSession) => {
@@ -59,19 +71,23 @@ const Course = () => {
     }
 
     try {
+      setDataLoading(true);
+
       const res = await getCourses({ sessionId: activeSession });
 
       const list =
         Array.isArray(res?.data?.data?.courses)
           ? res.data.data.courses
           : Array.isArray(res?.data?.courses)
-          ? res.data.courses
-          : [];
+            ? res.data.courses
+            : [];
 
       setCourses(list);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to load courses");
       setCourses([]);
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -84,10 +100,10 @@ const Course = () => {
         Array.isArray(res?.data?.data?.departments)
           ? res.data.data.departments
           : Array.isArray(res?.data?.departments)
-          ? res.data.departments
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : [];
+            ? res.data.departments
+            : Array.isArray(res?.data?.data)
+              ? res.data.data
+              : [];
 
       setDepartments(list);
     } catch {
@@ -98,8 +114,13 @@ const Course = () => {
 
   /* ================= EFFECTS ================= */
   useEffect(() => {
-    loadSessions();
-    loadDepartments();
+    // loadSessions();
+    // loadDepartments();
+    const init = async () => {
+      await loadDepartments();
+      await loadSessions();
+    };
+    init();
   }, []);
 
   useEffect(() => {
@@ -287,8 +308,8 @@ const Course = () => {
               {loading
                 ? "Saving..."
                 : editingCourse
-                ? "Update Course"
-                : "Create Course"}
+                  ? "Update Course"
+                  : "Create Course"}
             </button>
 
             <button
@@ -316,7 +337,13 @@ const Course = () => {
             </tr>
           </thead>
           <tbody>
-            {courses.length === 0 ? (
+            {dataLoading ? (
+              <tr>
+                <td colSpan="5" className="p-6 text-center text-gray-500">
+                  Loading courses...
+                </td>
+              </tr>
+            ) : courses.length === 0 ? (
               <tr>
                 <td colSpan="5" className="p-6 text-center text-gray-500">
                   No courses found

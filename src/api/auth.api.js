@@ -7,6 +7,8 @@ export const adminLoginApi = (payload) => {
 
 /* LOGOUT */
 export const logoutApi = (refreshToken) => {
+  if (!refreshToken) return Promise.resolve();
+
   return api.post(
     "/auth/logout",
     {},
