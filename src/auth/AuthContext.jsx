@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { adminLoginApi, logoutApi } from "@/api/auth.api";
-import api from "@/api/api";
+
 const AuthContext = createContext(null);
 
 const ADMIN_ROLES = ["ADMIN", "HOD", "ACCOUNTANT"];
@@ -11,34 +11,33 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   /* ================= RESTORE SESSION ================= */
- useEffect(() => {
-  const restoreSession = () => {
-    try {
-      const storedUser = localStorage.getItem("admin");
-      const token = localStorage.getItem("token");
+  useEffect(() => {
+    const restoreSession = () => {
+      try {
+        const storedUser = localStorage.getItem("admin");
+        const token = localStorage.getItem("token");
+        const refreshToken = localStorage.getItem("refreshToken");
 
-      if (!storedUser || !token) {
+        if (!storedUser || !token || !refreshToken) {
+          setLoading(false);
+          return;
+        }
+
+        const parsedUser = JSON.parse(storedUser);
+
+        setAdmin(parsedUser);
+        setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+      } catch (err) {
+        localStorage.clear();
+        setAdmin(null);
+        setIsAdmin(false);
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      const parsedUser = JSON.parse(storedUser);
-
-      setAdmin(parsedUser);
-      setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
-
-    } catch (err) {
-      localStorage.clear();
-      setAdmin(null);
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  restoreSession();
-}, []);
-
+    restoreSession();
+  }, []);
 
   /* ================= LOGIN ================= */
   const login = async (email, password) => {
@@ -51,7 +50,9 @@ export const AuthProvider = ({ children }) => {
 
       if (!user || !accessToken || !refreshToken) return false;
 
-      // ✅ Store both tokens
+      // 🔥 Clear any old session first
+      localStorage.clear();
+
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("admin", JSON.stringify(user));
@@ -66,24 +67,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ================= LOGOUT ================= */
- const logout = async () => {
-  const refreshToken = localStorage.getItem("refreshToken");
+  const logout = async () => {
+    const refreshToken = localStorage.getItem("refreshToken");
 
-  // 🔥 Clear frontend first
-  localStorage.clear();
-  setAdmin(null);
-  setIsAdmin(false);
-
-  // Optional backend logout
-  try {
-    if (refreshToken) {
-      await logoutApi(refreshToken);
+    try {
+      if (refreshToken) {
+        await logoutApi(refreshToken);
+      }
+    } catch (error) {
+      console.warn("Backend logout failed.");
+    } finally {
+      localStorage.clear();
+      setAdmin(null);
+      setIsAdmin(false);
     }
-  } catch (error) {
-    console.warn("Backend logout failed, but frontend cleared.");
-  }
-};
-
+  };
 
   return (
     <AuthContext.Provider
