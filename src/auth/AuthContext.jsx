@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { adminLoginApi, logoutApi } from "@/api/auth.api";
+import { adminLoginApi, logoutApi, refreshApi } from "@/api/auth.api";
 
 const AuthContext = createContext(null);
 
@@ -12,21 +12,37 @@ export const AuthProvider = ({ children }) => {
 
   /* ================= RESTORE SESSION ================= */
   useEffect(() => {
-    const restoreSession = () => {
+    const restoreSession = async () => {
       try {
         const storedUser = localStorage.getItem("admin");
-        const token = localStorage.getItem("token");
+        const accessToken = localStorage.getItem("token");
         const refreshToken = localStorage.getItem("refreshToken");
 
-        if (!storedUser || !token || !refreshToken) {
+        if (!storedUser || !refreshToken) {
           setLoading(false);
           return;
         }
 
         const parsedUser = JSON.parse(storedUser);
 
-        setAdmin(parsedUser);
-        setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+        // If access token exists, just restore
+        if (accessToken) {
+          setAdmin(parsedUser);
+          setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+          setLoading(false);
+          return;
+        }
+
+        // 🔥 If access token missing, try refresh
+        const res = await refreshApi(refreshToken);
+        const newAccessToken = res?.data?.data?.accessToken;
+
+        if (newAccessToken) {
+          localStorage.setItem("token", newAccessToken);
+          setAdmin(parsedUser);
+          setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+        }
+
       } catch (err) {
         localStorage.clear();
         setAdmin(null);
@@ -50,9 +66,6 @@ export const AuthProvider = ({ children }) => {
 
       if (!user || !accessToken || !refreshToken) return false;
 
-      // 🔥 Clear any old session first
-      localStorage.clear();
-
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("admin", JSON.stringify(user));
@@ -61,7 +74,7 @@ export const AuthProvider = ({ children }) => {
       setIsAdmin(ADMIN_ROLES.includes(user.role));
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
@@ -74,13 +87,11 @@ export const AuthProvider = ({ children }) => {
       if (refreshToken) {
         await logoutApi(refreshToken);
       }
-    } catch (error) {
-      console.warn("Backend logout failed.");
-    } finally {
-      localStorage.clear();
-      setAdmin(null);
-      setIsAdmin(false);
-    }
+    } catch {}
+
+    localStorage.clear();
+    setAdmin(null);
+    setIsAdmin(false);
   };
 
   return (

@@ -10,15 +10,14 @@ const api = axios.create({
 /* ================= REQUEST INTERCEPTOR ================= */
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const accessToken = localStorage.getItem("token");
 
     const isAuthRoute =
       config.url?.includes("/auth/login") ||
-      config.url?.includes("/auth/register") ||
       config.url?.includes("/auth/refresh-token");
 
-    if (token && !isAuthRoute) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken && !isAuthRoute) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
     return config;
@@ -32,28 +31,25 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Prevent crash if no response
-    if (!error.response) {
-      return Promise.reject(error);
-    }
+    if (!error.response) return Promise.reject(error);
 
-    // 🔥 Access token expired
+    const isAuthRoute =
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/refresh-token");
+
     if (
       error.response.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes("/auth/login") &&
-      !originalRequest.url.includes("/auth/refresh-token")
+      !isAuthRoute
     ) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = localStorage.getItem("refreshToken");
 
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
+        if (!refreshToken) throw new Error("No refresh token");
 
-        // Call refresh endpoint
+        // 🔥 VERY IMPORTANT: use plain axios here
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
           {},
@@ -66,30 +62,22 @@ api.interceptors.response.use(
 
         const newAccessToken = res.data?.data?.accessToken;
 
-        if (!newAccessToken) {
-          throw new Error("No new access token received");
-        }
+        if (!newAccessToken) throw new Error("No new access token");
 
-        // Save new access token
         localStorage.setItem("token", newAccessToken);
 
-        // Retry original request
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
         return api(originalRequest);
 
-      } catch (refreshError) {
-        console.warn("Refresh failed → Logging out user");
+      } catch (err) {
+        console.log("Refresh expired → Logging out");
 
         localStorage.clear();
         window.location.href = "/admin/login";
 
-        return Promise.reject(refreshError);
+        return Promise.reject(err);
       }
-    }
-
-    // Optional 403 logging
-    if (error.response.status === 403) {
-      console.warn("Forbidden - insufficient permissions");
     }
 
     return Promise.reject(error);
