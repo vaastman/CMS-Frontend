@@ -2,57 +2,79 @@ import api from "./api";
 
 /* ================= GALLERY ================= */
 
-export const getGallery = (params) => {
-  return api.get("/cms/gallery", { params });
+export const getGallery = async (params) => {
+  const { data } = await api.get("/cms/gallery", { params });
+  return data;
 };
 
-export const createGallery = (data) => {
-  return api.post("/cms/gallery", data);
+export const createGallery = async (payload) => {
+  const { data } = await api.post("/cms/gallery", payload);
+  return data;
 };
 
-export const updateGallery = (id, data) => {
-  return api.patch(`/cms/gallery/${id}`, data);
+export const updateGallery = async (id, payload) => {
+  const { data } = await api.patch(`/cms/gallery/${id}`, payload);
+  return data;
 };
 
-export const deleteGallery = (id) => {
-  return api.delete(`/cms/gallery/${id}`);
+export const deleteGallery = async (id) => {
+  const { data } = await api.delete(`/cms/gallery/${id}`);
+  return data;
+};
+
+/* ================= FILE UPLOAD ================= */
+
+export const generatePresignedUrl = async (payload) => {
+  const { data } = await api.post("/files/presign-upload", payload);
+  return data; 
+  
+  // returns:
+  // {
+  //   status: "success",
+  //   data: { uploadUrl, fileUrl }
+  // }
 };
 
 /* ================= NEWS ================= */
 
-export const getNews = (params) => {
-  return api.get("/cms/news", { params }); // ✅ fixed
+export const getNews = async (params) => {
+  const { data } = await api.get("/cms/news", { params });
+  return data;
 };
 
-export const createNews = (data) => {
-  return api.post("/cms/news", data); // ✅ fixed
+export const createNews = async (payload) => {
+  const { data } = await api.post("/cms/news", payload);
+  return data;
 };
 
-export const updateNews = (id, data) => {
-  return api.patch(`/cms/news/${id}`, data);
+export const updateNews = async (id, payload) => {
+  const { data } = await api.patch(`/cms/news/${id}`, payload);
+  return data;
 };
 
-export const deleteNews = (id) => {
-  return api.delete(`/cms/news/${id}`);
+export const deleteNews = async (id) => {
+  const { data } = await api.delete(`/cms/news/${id}`);
+  return data;
 };
 
 /* ================= NOTICE ================= */
 
-// export const getNotices = () => {
-//   return api.get("/cms/notices"); // ❌ remove params
-// };
-export const getNotices = (params) => {
-  return api.get("/cms/notices", { params });
+export const getNotices = async (params) => {
+  const { data } = await api.get("/cms/notices", { params });
+  return data;
 };
 
-export const createNotice = (data) => {
-  return api.post("/cms/notices", data);
+export const createNotice = async (payload) => {
+  const { data } = await api.post("/cms/notices", payload);
+  return data;
 };
 
-export const updateNotice = (id, data) => {
-  return api.patch(`/cms/notices/${id}`, data);
+export const updateNotice = async (id, payload) => {
+  const { data } = await api.patch(`/cms/notices/${id}`, payload);
+  return data;
 };
 
-export const deleteNotice = (id) => {
-  return api.delete(`/cms/notices/${id}`);
+export const deleteNotice = async (id) => {
+  const { data } = await api.delete(`/cms/notices/${id}`);
+  return data;
 };
