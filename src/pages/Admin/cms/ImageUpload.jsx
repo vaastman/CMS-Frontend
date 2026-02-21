@@ -4,11 +4,11 @@ import { generatePresignedUrl } from "@/api/cms.api";
 import { toast } from "react-toastify";
 
 const ImageUpload = ({ value, onChange }) => {
-  const [preview, setPreview] = useState(value);
+  const [preview, setPreview] = useState(value || "");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setPreview(value);
+    setPreview(value || "");
   }, [value]);
 
   const handleFile = async (e) => {
@@ -16,25 +16,29 @@ const ImageUpload = ({ value, onChange }) => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Only image files allowed");
+      toast.error("Only image files are allowed");
       return;
     }
 
     try {
       setLoading(true);
 
-      // ✅ Send correct payload to backend
+      // 1️⃣ Get presigned upload URL from backend
       const response = await generatePresignedUrl({
-        fileType: "gallery",   // 🔥 MUST BE fileType
+        fileType: "gallery",      // 🔥 MUST match backend folderMap key
         fileName: file.name,
         mimeType: file.type,
       });
 
-      // ✅ Extract correctly from backend response
+      // Backend returns: { status, data }
       const { uploadUrl, fileUrl } = response.data;
 
-      // ✅ Upload file directly to R2
-      await fetch(uploadUrl, {
+      if (!uploadUrl || !fileUrl) {
+        throw new Error("Invalid presigned response");
+      }
+
+      // 2️⃣ Upload file directly to R2
+      const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
           "Content-Type": file.type,
@@ -42,16 +46,18 @@ const ImageUpload = ({ value, onChange }) => {
         body: file,
       });
 
-      // ✅ Set final URL
+      if (!uploadResponse.ok) {
+        throw new Error("Upload to R2 failed");
+      }
+
+      // 3️⃣ Save permanent URL
       setPreview(fileUrl);
       onChange(fileUrl);
 
       toast.success("Image uploaded successfully");
-    } catch (err) {
-      console.error("Upload error:", err.response?.data || err);
-      toast.error(
-        err.response?.data?.message || "Image upload failed"
-      );
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Image upload failed");
     } finally {
       setLoading(false);
     }
@@ -65,7 +71,7 @@ const ImageUpload = ({ value, onChange }) => {
   return (
     <div className="space-y-3">
       {preview ? (
-        <div className="relative group">
+        <div className="relative">
           <img
             src={preview}
             alt="Preview"
@@ -75,13 +81,13 @@ const ImageUpload = ({ value, onChange }) => {
           <button
             type="button"
             onClick={removeImage}
-            className="absolute top-3 right-3 p-2 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 transition"
+            className="absolute top-3 right-3 p-2 rounded-full bg-red-600 text-white hover:opacity-90 transition"
           >
             <FaTrash size={14} />
           </button>
         </div>
       ) : (
-        <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 border-gray-300 transition">
+        <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
           <FaUpload className="text-3xl text-gray-400 mb-2" />
           <p className="text-sm font-medium text-gray-600">
             Click to upload image

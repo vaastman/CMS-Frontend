@@ -27,6 +27,7 @@ export const deleteGallery = async (id) => {
 export const generatePresignedUrl = async (payload) => {
   const { data } = await api.post("/files/presign-upload", payload);
   return data; 
+  
   // returns:
   // {
   //   status: "success",
