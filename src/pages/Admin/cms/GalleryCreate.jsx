@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createGallery } from "@/api/cms.api";
 import { toast } from "react-toastify";
 import ImageUpload from "./ImageUpload";
-import { FaImage, FaSave } from "react-icons/fa";
+import { FaSave } from "react-icons/fa";
 
 const GalleryCreate = () => {
   const [title, setTitle] = useState("");
@@ -12,19 +12,39 @@ const GalleryCreate = () => {
   const submit = async (e) => {
     e.preventDefault();
 
+    if (loading) return; // prevent double click
+
     if (!title.trim()) {
       toast.error("Gallery title is required");
       return;
     }
 
+    if (!coverUrl) {
+      toast.error("Please upload an image");
+      return;
+    }
+
     try {
       setLoading(true);
-      await createGallery({ title, coverUrl });
-      toast.success("Gallery item created successfully");
+
+      const response = await createGallery({
+        title: title.trim(),
+        coverUrl,
+      });
+
+      toast.success(
+        response?.message || "Gallery created successfully"
+      );
+
+      // Reset form
       setTitle("");
       setCoverUrl("");
+
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create gallery");
+      console.error("Create gallery error:", err.response?.data || err);
+      toast.error(
+        err.response?.data?.message || "Failed to create gallery"
+      );
     } finally {
       setLoading(false);
     }
@@ -42,13 +62,10 @@ const GalleryCreate = () => {
         </p>
       </div>
 
-      {/* Card */}
+      {/* Form */}
       <form
         onSubmit={submit}
-        className="
-          bg-white rounded-2xl border border-gray-200 shadow-sm
-          p-6 space-y-6
-        "
+        className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6"
       >
         {/* Title */}
         <div>
@@ -60,11 +77,7 @@ const GalleryCreate = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Annual Sports Day 2025"
-            className="
-              w-full px-4 py-2.5 rounded-lg border
-              focus:outline-none focus:ring-2
-              focus:ring-[color:var(--color-primary)]
-            "
+            className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
           />
         </div>
 
@@ -82,15 +95,12 @@ const GalleryCreate = () => {
         <div className="flex justify-end gap-3 pt-4 border-t">
           <button
             type="button"
+            disabled={loading}
             onClick={() => {
               setTitle("");
               setCoverUrl("");
             }}
-            className="
-              px-5 py-2.5 rounded-lg font-semibold
-              border border-gray-300 text-gray-700
-              hover:bg-gray-100 transition
-            "
+            className="px-5 py-2.5 rounded-lg font-semibold border border-gray-300 text-gray-700 hover:bg-gray-100 transition disabled:opacity-60"
           >
             Reset
           </button>
@@ -98,14 +108,8 @@ const GalleryCreate = () => {
           <button
             type="submit"
             disabled={loading}
-            className="
-              flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold
-              text-white transition
-              disabled:opacity-60 disabled:cursor-not-allowed
-            "
-            style={{
-              backgroundColor: "var(--color-primary)",
-            }}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ backgroundColor: "var(--color-primary)" }}
           >
             <FaSave />
             {loading ? "Saving..." : "Save Gallery"}
