@@ -13,16 +13,16 @@ import { uploadStudentDocument } from "@/api/files.api";
 
 
 /* ================= AUTO GENERATORS ================= */
-const generateRegNo = () => {
-  const year = new Date().getFullYear();
-  const rand = Math.floor(100000 + Math.random() * 900000);
-  return `REG-${year}-${rand}`;
-};
+// const generateRegNo = () => {
+//   const year = new Date().getFullYear();
+//   const rand = Math.floor(100000 + Math.random() * 900000);
+//   return `REG-${year}-${rand}`;
+// };
 
-const generateUanNo = () => {
-  const rand = Math.floor(100000 + Math.random() * 900000);
-  return `UAN-SSDM-${rand}`;
-};
+// const generateUanNo = () => {
+//   const rand = Math.floor(100000 + Math.random() * 900000);
+//   return `UAN-SSDM-${rand}`;
+// };
 
 /* ================= INITIAL FORM ================= */
 const initialForm = {
@@ -302,8 +302,8 @@ const Students = () => {
             setIsEdit(false);
             setForm({
               ...initialForm,
-              reg_no: generateRegNo(),
-              uan_no: generateUanNo(),
+              // reg_no: generateRegNo(),
+              // uan_no: generateUanNo(),
             });
             setOpenStudentModal(true);
           }}
@@ -383,8 +383,8 @@ const Students = () => {
 
               {/* ===== Auto Generated IDs ===== */}
               <div className="grid grid-cols-2 gap-4">
-                <input className="input bg-gray-100" value={form.reg_no} disabled />
-                <input className="input bg-gray-100" value={form.uan_no} disabled />
+                <input className="input" name="reg_no"onChange={handleChange}placeholder="Registration Number" value={form.reg_no}  />
+                <input className="input" name="uan_no" onChange={handleChange} placeholder="UAN Number" value={form.uan_no}  />
               </div>
 
               {/* ===== Personal Info ===== */}
