@@ -53,6 +53,7 @@ const Students = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [search, setSearch] = useState("");
+  const [errors, setErrors] = useState({});
   const [filters, setFilters] = useState({
     course: "",
     session: "",
@@ -116,22 +117,22 @@ const Students = () => {
 
     if (name === "departmentId") {
       setForm({ ...form, departmentId: value, courseId: "", semesterId: "" });
-      return;
-    }
-
-    if (name === "sessionId") {
+    } else if (name === "sessionId") {
       setForm({ ...form, sessionId: value, courseId: "", semesterId: "" });
-      return;
-    }
-
-    if (name === "courseId") {
+    } else if (name === "courseId") {
       setForm({ ...form, courseId: value, semesterId: "" });
-      return;
+    } else {
+      setForm({ ...form, [name]: value });
     }
 
-    setForm({ ...form, [name]: value });
+    // Clear error when typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
-
   /* ================= CLOSE MODAL ================= */
   const closeModal = () => {
     setOpenStudentModal(false);
@@ -139,6 +140,7 @@ const Students = () => {
     setIsEdit(false);
     setEditingStudentId(null);
     setPhoto(null);
+    setErrors({});
   };
 
   /* ================= PHOTO UPLOAD (MULTIPART) ================= */
@@ -175,30 +177,12 @@ const Students = () => {
       setUploadingPhoto(false);
     }
   };
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
 
-    if (!form.name || !form.email || !form.phone) {
-      toast.error("Name, Email and Phone are required");
-      return;
-    }
-
-    if (!/^\d{10}$/.test(form.phone)) {
-      toast.error("Phone number must be exactly 10 digits");
-      return;
-    }
-
-    if (!/^\d{4}-\d{2}$/.test(form.academicYear)) {
-      toast.error("Academic year must be like 2025-26");
-      return;
-    }
-
-    if (!form.departmentId || !form.sessionId || !form.courseId || !form.semesterId) {
-      toast.error("Please select Department, Session, Course and Semester");
+    if (!validateForm()) {
+      toast.error("Please fix the form errors");
       return;
     }
 
@@ -207,7 +191,6 @@ const Students = () => {
 
       let photoUrl;
 
-      // Upload photo ONLY if selected
       if (photo && isEdit) {
         photoUrl = await uploadStudentPhoto(photo, editingStudentId);
       }
@@ -232,7 +215,7 @@ const Students = () => {
         admissionType: form.admissionType,
         academicYear: form.academicYear,
 
-        ...(photoUrl && { photoUrl }), // ✅ CORRECT FIELD
+        ...(photoUrl && { photoUrl }),
       };
 
       if (isEdit) {
@@ -246,7 +229,6 @@ const Students = () => {
       closeModal();
       setRefreshKey((k) => k + 1);
     } catch (err) {
-      console.error(err);
       toast.error(
         err?.response?.data?.message ||
         err?.response?.data?.errors?.[0] ||
@@ -289,8 +271,62 @@ const Students = () => {
 
     setOpenStudentModal(true);
   };
+  const validateForm = () => {
+    const newErrors = {};
 
+    // Name
+    if (!form.name.trim()) {
+      newErrors.name = "Name is required";
+    }
 
+    // Email
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    // Phone
+    if (!form.phone.trim()) {
+      newErrors.phone = "Phone is required";
+    } else if (!/^\d{10}$/.test(form.phone)) {
+      newErrors.phone = "Phone must be exactly 10 digits";
+    }
+
+    // DOB (optional but if entered, must be 16+)
+    if (form.dob) {
+      const today = new Date();
+      const birthDate = new Date(form.dob);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 16) {
+        newErrors.dob = "Student must be at least 16 years old";
+      }
+    }
+
+    // Academic Year
+    if (!/^\d{4}-\d{2}$/.test(form.academicYear)) {
+      newErrors.academicYear = "Format must be 2025-26";
+    }
+
+    if (!form.departmentId) {
+      newErrors.departmentId = "Department is required";
+    }
+
+    if (!form.sessionId) {
+      newErrors.sessionId = "Session is required";
+    }
+
+    if (!form.courseId) {
+      newErrors.courseId = "Course is required";
+    }
+
+    if (!form.semesterId) {
+      newErrors.semesterId = "Semester is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
   /* ================= RENDER ================= */
   return (
     <div className="space-y-6">
@@ -383,20 +419,87 @@ const Students = () => {
 
               {/* ===== Auto Generated IDs ===== */}
               <div className="grid grid-cols-2 gap-4">
-                <input className="input" name="reg_no"onChange={handleChange}placeholder="Registration Number" value={form.reg_no}  />
-                <input className="input" name="uan_no" onChange={handleChange} placeholder="UAN Number" value={form.uan_no}  />
+                <input className="input" name="reg_no" onChange={handleChange} placeholder="Registration Number" value={form.reg_no} />
+                <input className="input" name="uan_no" onChange={handleChange} placeholder="UAN Number" value={form.uan_no} />
               </div>
 
               {/* ===== Personal Info ===== */}
               <div>
                 <h3 className="font-medium mb-3">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Name *" />
-                  <input className="input" name="email" value={form.email} onChange={handleChange} placeholder="Email *" />
-                  <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone *" />
-                  <input className="input" type="date" name="dob" value={form.dob} onChange={handleChange} />
-                  <input className="input col-span-2" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father Name" />
-                  <textarea className="input col-span-2" name="address" value={form.address} onChange={handleChange} placeholder="Address" />
+
+                  {/* Name */}
+                  <div>
+                    <input
+                      className={`input ${errors.name ? "border-red-500" : ""}`}
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      placeholder="Name *"
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <input
+                      className={`input ${errors.email ? "border-red-500" : ""}`}
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="Email *"
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <input
+                      className={`input ${errors.phone ? "border-red-500" : ""}`}
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="Phone *"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                    )}
+                  </div>
+
+                  {/* DOB */}
+                  <div>
+                    <input
+                      type="date"
+                      className={`input ${errors.dob ? "border-red-500" : ""}`}
+                      name="dob"
+                      value={form.dob}
+                      onChange={handleChange}
+                    />
+                    {errors.dob && (
+                      <p className="text-red-500 text-xs mt-1">{errors.dob}</p>
+                    )}
+                  </div>
+
+                  <input
+                    className="input col-span-2"
+                    name="fatherName"
+                    value={form.fatherName}
+                    onChange={handleChange}
+                    placeholder="Father Name"
+                  />
+
+                  <textarea
+                    className="input col-span-2"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="Address"
+                  />
+
                 </div>
               </div>
 
@@ -404,38 +507,105 @@ const Students = () => {
               <div>
                 <h3 className="font-medium mb-3">Academic Details</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <select className="input" name="departmentId" value={form.departmentId} onChange={handleChange}>
-                    <option value="">Department *</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
 
-                  <select className="input" name="sessionId" value={form.sessionId} onChange={handleChange}>
-                    <option value="">Session *</option>
-                    {sessions.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                  {/* Department */}
+                  <div>
+                    <select
+                      className={`input ${errors.departmentId ? "border-red-500" : ""}`}
+                      name="departmentId"
+                      value={form.departmentId}
+                      onChange={handleChange}
+                    >
+                      <option value="">Department *</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                    {errors.departmentId && (
+                      <p className="text-red-500 text-xs mt-1">{errors.departmentId}</p>
+                    )}
+                  </div>
 
-                  <select className="input" name="courseId" value={form.courseId} onChange={handleChange} disabled={!form.departmentId}>
-                    <option value="">Course *</option>
-                    {courses.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                  {/* Session */}
+                  <div>
+                    <select
+                      className={`input ${errors.sessionId ? "border-red-500" : ""}`}
+                      name="sessionId"
+                      value={form.sessionId}
+                      onChange={handleChange}
+                    >
+                      <option value="">Session *</option>
+                      {sessions.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                    {errors.sessionId && (
+                      <p className="text-red-500 text-xs mt-1">{errors.sessionId}</p>
+                    )}
+                  </div>
 
-                  <select className="input" name="semesterId" value={form.semesterId} onChange={handleChange} disabled={!form.courseId}>
-                    <option value="">Semester *</option>
-                    {filteredSemesters.map((s) => (
-                      <option key={s.id} value={s.id}>Semester {s.number}</option>
-                    ))}
-                  </select>
+                  {/* Course */}
+                  <div>
+                    <select
+                      className={`input ${errors.courseId ? "border-red-500" : ""}`}
+                      name="courseId"
+                      value={form.courseId}
+                      onChange={handleChange}
+                      disabled={!form.departmentId}
+                    >
+                      <option value="">Course *</option>
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {errors.courseId && (
+                      <p className="text-red-500 text-xs mt-1">{errors.courseId}</p>
+                    )}
+                  </div>
 
-                  <select className="input col-span-2" name="admissionType" value={form.admissionType} onChange={handleChange}>
+                  {/* Semester */}
+                  <div>
+                    <select
+                      className={`input ${errors.semesterId ? "border-red-500" : ""}`}
+                      name="semesterId"
+                      value={form.semesterId}
+                      onChange={handleChange}
+                      disabled={!form.courseId}
+                    >
+                      <option value="">Semester *</option>
+                      {filteredSemesters.map((s) => (
+                        <option key={s.id} value={s.id}>Semester {s.number}</option>
+                      ))}
+                    </select>
+                    {errors.semesterId && (
+                      <p className="text-red-500 text-xs mt-1">{errors.semesterId}</p>
+                    )}
+                  </div>
+
+                  {/* Academic Year */}
+                  <div>
+                    <input
+                      className={`input ${errors.academicYear ? "border-red-500" : ""}`}
+                      name="academicYear"
+                      value={form.academicYear}
+                      onChange={handleChange}
+                      placeholder="Academic Year (2025-26)"
+                    />
+                    {errors.academicYear && (
+                      <p className="text-red-500 text-xs mt-1">{errors.academicYear}</p>
+                    )}
+                  </div>
+
+                  <select
+                    className="input col-span-2"
+                    name="admissionType"
+                    value={form.admissionType}
+                    onChange={handleChange}
+                  >
                     <option value="NEW">New Admission</option>
                     <option value="CONTINUATION">Continuation</option>
                   </select>
+
                 </div>
               </div>
 
