@@ -25,9 +25,9 @@ const Sidebar = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
 
-  const handleLogoutConfirm = async() => {
-   await logout(); // 🔐 clear auth
-   setShowLogoutConfirm(false);
+  const handleLogoutConfirm = async () => {
+    await logout(); // 🔐 clear auth
+    setShowLogoutConfirm(false);
     navigate("/admin/login", { replace: true });
   };
 
@@ -53,6 +53,11 @@ const Sidebar = () => {
           path: "/admin/admissions",
           icon: <FaClipboardList />,
         },
+        {
+          name: "Admission Portal",
+          path: "/admin/admission-portal",
+          icon: <FaUniversity />,
+        },
         // {
         //   name: "Document Verification",
         //   path: "/admin/admissions/verify-documents",
@@ -76,6 +81,11 @@ const Sidebar = () => {
           path: "/admin/payments",
           icon: <FaMoneyCheckAlt />,
         },
+        {
+      name: "Fee Management",
+      path: "/admin/fees",
+      icon: <FaMoneyCheckAlt />,
+    },
         {
           name: "Receipts",
           path: "/admin/receipts",
@@ -149,29 +159,29 @@ const Sidebar = () => {
         },
       ],
     },
-/* ===== CMS / WEBSITE ===== */
-{
-  section: "CMS / Website",
-  items: [
-   
+    /* ===== CMS / WEBSITE ===== */
     {
-      name: "Add Gallery",
-      path: "/admin/cms/gallery/create",
-      icon: <FaFileAlt />,
+      section: "CMS / Website",
+      items: [
+
+        {
+          name: "Add Gallery",
+          path: "/admin/cms/gallery/create",
+          icon: <FaFileAlt />,
+        },
+        {
+          name: "Add News",
+          path: "/admin/cms/news/create",
+          icon: <FaBullhorn />,
+        },
+
+        {
+          name: "Add Notice",
+          path: "/admin/cms/notices/create",
+          icon: <FaClipboardList />,
+        },
+      ],
     },
-    {
-      name: "Add News",
-      path: "/admin/cms/news/create",
-      icon: <FaBullhorn />,
-    },
-    
-    {
-      name: "Add Notice",
-      path: "/admin/cms/notices/create",
-      icon: <FaClipboardList />,
-    },
-  ],
-},
 
     /* ===== SYSTEM ===== */
     {
