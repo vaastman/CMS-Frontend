@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
         const accessToken = localStorage.getItem("token");
         const refreshToken = localStorage.getItem("refreshToken");
 
+        // No stored session
         if (!storedUser || !refreshToken) {
           setLoading(false);
           return;
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
         const parsedUser = JSON.parse(storedUser);
 
-        // If access token exists, just restore
+        // If access token exists → restore directly
         if (accessToken) {
           setAdmin(parsedUser);
           setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
@@ -33,17 +34,21 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // 🔥 If access token missing, try refresh
+        // 🔥 If access token missing → try refresh
         const res = await refreshApi(refreshToken);
         const newAccessToken = res?.data?.data?.accessToken;
 
-        if (newAccessToken) {
-          localStorage.setItem("token", newAccessToken);
-          setAdmin(parsedUser);
-          setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+        if (!newAccessToken) {
+          throw new Error("Refresh failed");
         }
 
+        localStorage.setItem("token", newAccessToken);
+
+        setAdmin(parsedUser);
+        setIsAdmin(ADMIN_ROLES.includes(parsedUser.role));
+
       } catch (err) {
+        // If refresh fails → force logout
         localStorage.clear();
         setAdmin(null);
         setIsAdmin(false);
@@ -64,7 +69,9 @@ export const AuthProvider = ({ children }) => {
       const accessToken = res?.data?.data?.accessToken;
       const refreshToken = res?.data?.data?.refreshToken;
 
-      if (!user || !accessToken || !refreshToken) return false;
+      if (!user || !accessToken || !refreshToken) {
+        return false;
+      }
 
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
@@ -74,29 +81,38 @@ export const AuthProvider = ({ children }) => {
       setIsAdmin(ADMIN_ROLES.includes(user.role));
 
       return true;
-    } catch {
+    } catch (error) {
       return false;
     }
   };
 
   /* ================= LOGOUT ================= */
   const logout = async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-
     try {
+      const refreshToken = localStorage.getItem("refreshToken");
+
       if (refreshToken) {
         await logoutApi(refreshToken);
       }
-    } catch {}
-
-    localStorage.clear();
-    setAdmin(null);
-    setIsAdmin(false);
+    } catch (error) {
+      // even if backend fails → continue logout
+    } finally {
+      localStorage.clear();
+      setAdmin(null);
+      setIsAdmin(false);
+      window.location.href = "/admin/login"; // force redirect
+    }
   };
 
   return (
     <AuthContext.Provider
-      value={{ admin, isAdmin, login, logout, loading }}
+      value={{
+        admin,
+        isAdmin,
+        login,
+        logout,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>

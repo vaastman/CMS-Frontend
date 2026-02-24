@@ -1,44 +1,21 @@
 import api from "./api";
-import axios from "axios";
-/* LOGIN */
+/* ================= LOGIN ================= */
 export const adminLoginApi = (payload) => {
   return api.post("/auth/login", payload);
 };
 
-/* REFRESH */
-// export const refreshApi = (refreshToken) => {
-//   return api.post(
-//     "/auth/refresh-token",
-//     {},
-//     {
-//       headers: {
-//         Authorization: `Bearer ${refreshToken}`,
-//       },
-//     }
-//   );
-// };
+/* ================= REFRESH ================= */
+/* 🔥 Send refreshToken in BODY (matches backend) */
 export const refreshApi = (refreshToken) => {
-  return axios.post(
-    `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    }
-  );
+  return api.post("/auth/refresh-token", {
+    refreshToken,
+  });
 };
 
-
-/* LOGOUT */
+/* ================= LOGOUT ================= */
+/* 🔥 Also send refreshToken in BODY */
 export const logoutApi = (refreshToken) => {
-  return api.post(
-    "/auth/logout",
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    }
-  );
+  return api.post("/auth/logout", {
+    refreshToken,
+  });
 };
