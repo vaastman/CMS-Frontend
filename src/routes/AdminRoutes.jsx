@@ -29,6 +29,14 @@ import SubjectMaster from "../pages/Admin/subject/SubjectMaster";
 import GalleryCreate from "../pages/Admin/cms/GalleryCreate";
 import NewsCreate from "../pages/Admin/cms/NewsCreate";
 import NoticeCreate from "../pages/Admin/cms/NoticeCreate";
+import AdmissionPortal from "../pages/Admin/admissionPortal/AdmissionPortal";
+import CreateAdmission from "../pages/Admin/admissionPortal/CreateAdmission";
+import EditAdmission from "../pages/Admin/admissionPortal/EditAdmission";
+import FeeDashboard from "../pages/Admin/feeManagement/FeeDashboard";
+import CreateFeeStructure from "../pages/Admin/feeManagement/CreateFeeStructure";
+import CollectFee from "../pages/Admin/feeManagement/CollectFee";
+import FeeHistory from "../pages/Admin/feeManagement/FeeHistory";
+import ManageFeeStructure from "../pages/Admin/feeManagement/ManageFeeStructure";
 
 const AdminRoutes = () => {
   return (
@@ -57,6 +65,17 @@ const AdminRoutes = () => {
         <Route path="sessions" element={<Sessions />} />
         <Route path="add-subjects" element={<SubjectMaster />} />
         <Route path="assign-subjects" element={<Subjects />} />
+
+        {/* Admission Portal */}
+        <Route path="admission-portal" element={<AdmissionPortal />} />
+        <Route path="admission-portal/create" element={<CreateAdmission />} />
+        <Route path="admission-portal/edit/:id" element={<EditAdmission />} />
+
+        {/* Fee Management */}
+        <Route path="fees" element={<FeeDashboard />} />
+        <Route path="fees/manage-structure" element={<ManageFeeStructure />} />
+        <Route path="fees/collect" element={<CollectFee />} />
+        <Route path="fees/history" element={<FeeHistory />} />
 
         {/* CMS – Gallery */}
         <Route path="cms/gallery/create" element={<GalleryCreate />} />
