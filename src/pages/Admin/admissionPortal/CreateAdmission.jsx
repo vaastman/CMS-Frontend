@@ -1,116 +1,147 @@
-// src/pages/Admin/admissionPortal/CreateAdmission.jsx
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaSave, FaArrowLeft } from "react-icons/fa";
+import { toast } from "react-toastify";
+import { createAdmissionWindow } from "@/api/admissionWindow.api";
+import { getCourses } from "@/api/course.api";
+import { getDepartments } from "@/api/department.api";
 
 const CreateAdmission = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const [form, setForm] = useState({
-        courseName: "",
-        session: "",
-        startDate: "",
-        lastDate: "",
-        status: "OPEN",
-    });
+  const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+  const [form, setForm] = useState({
+    title: "",
+    courseId: "",
+    departmentId: "",
+    startDate: "",
+    endDate: "",
+  });
+
+  const handleChange = (e) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  /* ================= FETCH COURSES & DEPARTMENTS ================= */
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const courseRes = await getCourses();
+        const deptRes = await getDepartments();
+
+        setCourses(courseRes?.data?.data?.courses || []);
+        setDepartments(deptRes?.data?.data?.departments || []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load courses or departments");
+      }
     };
 
-    const submit = (e) => {
-        e.preventDefault();
+    fetchData();
+  }, []);
 
-        console.log("Admission Created:", form); // 🔥 Replace with API later
-        navigate("/admin/admission-portal");
-    };
+  /* ================= SUBMIT ================= */
+  const submit = async (e) => {
+    e.preventDefault();
 
-    return (
-        <div className="p-6 max-w-3xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-[color:var(--color-primary)]">
-                        Create Admission Portal
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Add a new admission cycle for students
-                    </p>
-                </div>
+    try {
+      await createAdmissionWindow(form);
+      toast.success("Admission window created successfully");
+      navigate("/admin/admission-portal");
+    } catch (err) {
+      console.error(err.response?.data);
+      toast.error(err.response?.data?.message || "Creation failed");
+      console.log("ERROR FULL RESPONSE:", err.response);
+    }
+  };
 
-                <button
-                    type="button"
-                    onClick={() => navigate("/admin/admission-portal")}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-                >
-                    <FaArrowLeft size={14} />
-                    Back
-                </button>
-            </div>
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-[color:var(--color-primary)]">
+        Create Admission Portal
+      </h2>
 
-            <form
-                onSubmit={submit}
-                className="bg-white p-6 rounded-xl shadow border space-y-4"
-            >
-                <input
-                    type="text"
-                    name="courseName"
-                    placeholder="Course Name"
-                    value={form.courseName}
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-lg"
-                    required
-                />
+      <form
+        onSubmit={submit}
+        className="bg-white p-6 rounded-xl shadow border space-y-4"
+      >
+        {/* Title */}
+        <input
+          type="text"
+          name="title"
+          placeholder="Admission Title"
+          value={form.title}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg"
+          required
+        />
 
-                <input
-                    type="text"
-                    name="session"
-                    placeholder="Session (e.g. 2025 - 2029)"
-                    value={form.session}
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-lg"
-                    required
-                />
+        {/* Course Dropdown */}
+        <select
+          name="courseId"
+          value={form.courseId}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg"
+          required
+        >
+          <option value="">Select Course</option>
+          {courses.map((course) => (
+            <option key={course.id} value={course.id}>
+              {course.name}
+            </option>
+          ))}
+        </select>
 
-                <input
-                    type="date"
-                    name="startDate"
-                    value={form.startDate}
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-lg"
-                    required
-                />
+        {/* Department Dropdown */}
+        <select
+          name="departmentId"
+          value={form.departmentId}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg"
+          required
+        >
+          <option value="">Select Department</option>
+          {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.name}
+            </option>
+          ))}
+        </select>
 
-                <input
-                    type="date"
-                    name="lastDate"
-                    value={form.lastDate}
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-lg"
-                    required
-                />
+        {/* Start Date */}
+        <input
+          type="date"
+          name="startDate"
+          value={form.startDate}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg"
+          required
+        />
 
-                <select
-                    name="status"
-                    value={form.status}
-                    onChange={handleChange}
-                    className="w-full border p-3 rounded-lg"
-                >
-                    <option value="OPEN">Open</option>
-                    <option value="CLOSED">Closed</option>
-                </select>
+        {/* End Date */}
+        <input
+          type="date"
+          name="endDate"
+          value={form.endDate}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg"
+          required
+        />
 
-                <button
-                    type="submit"
-                    className="flex items-center gap-2 px-6 py-2 rounded-lg text-white"
-                    style={{ backgroundColor: "var(--color-primary)" }}
-                >
-                    <FaSave />
-                    Save Admission
-                </button>
-            </form>
-        </div>
-    );
+        <button
+          type="submit"
+          className="px-6 py-2 rounded-lg text-white"
+          style={{ backgroundColor: "var(--color-primary)" }}
+        >
+          Save Admission
+        </button>
+      </form>
+    </div>
+  );
 };
 
 export default CreateAdmission;
