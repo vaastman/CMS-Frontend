@@ -1,13 +1,18 @@
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import { Outlet } from "react-router-dom";
 
-const PublicLayout = ({ children }) => {
+const PublicLayout = () => {
   return (
     <>
       <Header />
-      <Navbar />    
-      <main>{children}</main>
+      <Navbar />
+
+      <main>
+        <Outlet />
+      </main>
+
       <Footer />
     </>
   );
