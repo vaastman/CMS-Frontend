@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import AdminLayout from "../components/layout/AdminLayout";
 
 import AdminDashboard from "../pages/Admin/AdminDashboard";
@@ -29,73 +29,68 @@ import SubjectMaster from "../pages/Admin/subject/SubjectMaster";
 import GalleryCreate from "../pages/Admin/cms/GalleryCreate";
 import NewsCreate from "../pages/Admin/cms/NewsCreate";
 import NoticeCreate from "../pages/Admin/cms/NoticeCreate";
+
 import AdmissionPortal from "../pages/Admin/admissionPortal/AdmissionPortal";
 import CreateAdmission from "../pages/Admin/admissionPortal/CreateAdmission";
 import EditAdmission from "../pages/Admin/admissionPortal/EditAdmission";
+
 import FeeDashboard from "../pages/Admin/feeManagement/FeeDashboard";
-import CreateFeeStructure from "../pages/Admin/feeManagement/CreateFeeStructure";
 import CollectFee from "../pages/Admin/feeManagement/CollectFee";
 import FeeHistory from "../pages/Admin/feeManagement/FeeHistory";
 import ManageFeeStructure from "../pages/Admin/feeManagement/ManageFeeStructure";
 
 const AdminRoutes = () => {
   return (
-    <AdminLayout>
-      <Routes>
-        {/* Dashboard */}
-        <Route index element={<AdminDashboard />} />
+    <Route path="/admin" element={<AdminLayout />}>
+      {/* Dashboard */}
+      <Route index element={<AdminDashboard />} />
 
-        {/* Admissions */}
-        <Route path="admissions" element={<Admissions />} />
-        <Route path="admissions/add-student" element={<AddStudent />} />
-        <Route path="admissions/:id" element={<AdmissionDetails />} />
-        <Route path="admissions/:id/verify" element={<VerifyDocuments />} />
+      {/* Admissions */}
+      <Route path="admissions" element={<Admissions />} />
+      <Route path="admissions/add-student" element={<AddStudent />} />
+      <Route path="admissions/:id" element={<AdmissionDetails />} />
+      <Route path="admissions/:id/verify" element={<VerifyDocuments />} />
 
-        {/* Payments */}
-        <Route path="payments" element={<Payments />} />
-        <Route path="receipts" element={<Receipts />} />
-        <Route path="dcr1" element={<Dcr1 />} />
-        <Route path="dcr2" element={<Dcr2 />} />
+      {/* Payments */}
+      <Route path="payments" element={<Payments />} />
+      <Route path="receipts" element={<Receipts />} />
+      <Route path="dcr1" element={<Dcr1 />} />
+      <Route path="dcr2" element={<Dcr2 />} />
 
-        {/* Academics */}
-        <Route path="students" element={<Students />} />
-        <Route path="students/:id" element={<StudentDetails />} />
-        <Route path="courses" element={<Course />} />
-        <Route path="exams" element={<Exams />} />
-        <Route path="sessions" element={<Sessions />} />
-        <Route path="add-subjects" element={<SubjectMaster />} />
-        <Route path="assign-subjects" element={<Subjects />} />
+      {/* Academics */}
+      <Route path="students" element={<Students />} />
+      <Route path="students/:id" element={<StudentDetails />} />
+      <Route path="courses" element={<Course />} />
+      <Route path="exams" element={<Exams />} />
+      <Route path="sessions" element={<Sessions />} />
+      <Route path="add-subjects" element={<SubjectMaster />} />
+      <Route path="assign-subjects" element={<Subjects />} />
 
-        {/* Admission Portal */}
-        <Route path="admission-portal" element={<AdmissionPortal />} />
-        <Route path="admission-portal/create" element={<CreateAdmission />} />
-        <Route path="admission-portal/edit/:id" element={<EditAdmission />} />
+      {/* Admission Portal */}
+      <Route path="admission-portal" element={<AdmissionPortal />} />
+      <Route path="admission-portal/create" element={<CreateAdmission />} />
+      <Route path="admission-portal/edit/:id" element={<EditAdmission />} />
 
-        {/* Fee Management */}
-        <Route path="fees" element={<FeeDashboard />} />
-        <Route path="fees/manage-structure" element={<ManageFeeStructure />} />
-        <Route path="fees/collect" element={<CollectFee />} />
-        <Route path="fees/history" element={<FeeHistory />} />
+      {/* Fee Management */}
+      <Route path="fees" element={<FeeDashboard />} />
+      <Route path="fees/manage-structure" element={<ManageFeeStructure />} />
+      <Route path="fees/collect" element={<CollectFee />} />
+      <Route path="fees/history" element={<FeeHistory />} />
 
-        {/* CMS – Gallery */}
-        <Route path="cms/gallery/create" element={<GalleryCreate />} />
+      {/* CMS */}
+      <Route path="cms/gallery/create" element={<GalleryCreate />} />
+      <Route path="cms/news/create" element={<NewsCreate />} />
+      <Route path="cms/notices/create" element={<NoticeCreate />} />
 
-        {/* CMS – News */}
-        <Route path="cms/news/create" element={<NewsCreate />} />
+      {/* Others */}
+      <Route path="departments" element={<Departments />} />
+      <Route path="audit-logs" element={<AuditLogs />} />
+      <Route path="notices" element={<Notices />} />
+      <Route path="settings" element={<Setting />} />
 
-        {/* CMS – Notices */}
-        <Route path="cms/notices/create" element={<NoticeCreate />} />
-
-        {/* Others */}
-        <Route path="departments" element={<Departments />} />
-        <Route path="audit-logs" element={<AuditLogs />} />
-        <Route path="notices" element={<Notices />} />
-        <Route path="settings" element={<Setting />} />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
-    </AdminLayout>
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/admin" replace />} />
+    </Route>
   );
 };
 

@@ -29,14 +29,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
     if (!error.response) return Promise.reject(error);
+
+    const originalRequest = error.config;
 
     const isAuthRoute =
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/refresh-token");
 
+    // Handle 401
     if (
       error.response.status === 401 &&
       !originalRequest._retry &&
@@ -47,22 +48,22 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refreshToken");
 
-        if (!refreshToken) throw new Error("No refresh token");
+        // If no refresh token → do NOT force redirect for public pages
+        if (!refreshToken) {
+          return Promise.reject(error);
+        }
 
-        // 🔥 VERY IMPORTANT: use plain axios here
+        // 🔥 Use plain axios (not api) to avoid interceptor loop
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${refreshToken}`,
-            },
-          }
+          { refreshToken }
         );
 
         const newAccessToken = res.data?.data?.accessToken;
 
-        if (!newAccessToken) throw new Error("No new access token");
+        if (!newAccessToken) {
+          throw new Error("No new access token received");
+        }
 
         localStorage.setItem("token", newAccessToken);
 
@@ -70,13 +71,18 @@ api.interceptors.response.use(
 
         return api(originalRequest);
 
-      } catch (err) {
-        console.log("Refresh expired → Logging out");
+      } catch (refreshError) {
+        console.log("Refresh failed");
 
-        localStorage.clear();
-        window.location.href = "/admin/login";
+        const currentPath = window.location.pathname;
 
-        return Promise.reject(err);
+        // 🔥 ONLY redirect if inside admin panel
+        if (currentPath.startsWith("/admin")) {
+          localStorage.clear();
+          window.location.href = "/admin/login";
+        }
+
+        return Promise.reject(refreshError);
       }
     }
 
