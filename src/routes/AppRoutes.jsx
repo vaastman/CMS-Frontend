@@ -67,7 +67,7 @@ import NewAdmission from "../pages/admission/NewAdmission";
 import AdmissionHome from "../pages/admission/AdmissionHome";
 import StudentRegistration from "../pages/admission/StudentRegistration";
 import StudentAdmissionDetails from "../pages/admission/StudentAdmissionDetails";
-import AdmissionPayment from "../pages/admission/AdmissionPayment";
+// import AdmissionPayment from "../pages/admission/AdmissionPayment";
 import DocumentUpload from "../pages/admission/DocumentUpload";
 
 import Faculty from "../pages/academics/Faculty";
@@ -85,6 +85,8 @@ import StudentGrievance from "../pages/Student Support/StudentGrievance";
 import RefundPolicy from "../pages/RefundPolicy";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsConditions from "../pages/TermsConditions";
+import StudentAdmissionPayment from "../pages/admission/StudentAdmissionPayment";
+import PaymentGatewayMock from "../pages/admission/PaymentGatewayMock";
 
 function AppRoutes() {
   return (
@@ -168,8 +170,9 @@ function AppRoutes() {
         <Route path="admission/student-registration" element={<StudentRegistration />} />
 
         <Route path="student/details/:id" element={<StudentAdmissionDetails />} />
-        <Route path="student/admission/:id/payment" element={<AdmissionPayment />} />
+        <Route path="student/admission/:id/payment" element={<StudentAdmissionPayment />} />
         <Route path="student/document-upload/:admissionId/verify" element={<DocumentUpload />} />
+        <Route path="student/payment-gateway/:id" element={<PaymentGatewayMock />} />
 
         {/* Academics */}
         <Route path="faculty" element={<Faculty />} />
