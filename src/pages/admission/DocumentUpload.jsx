@@ -64,28 +64,52 @@ const DocumentUpload = () => {
     loadDocuments();
   }, [admissionId]);
 
-  const loadDocuments = async () => {
-    try {
-      const res = await getStudentDocuments(admissionId);
-      setDocuments(
-        res.data.data.documents.map((doc) => ({
-          id: doc.id,
-          name: doc.fileUrl.split("/").pop(),
-          url: doc.fileUrl,
-          type: doc.fileUrl.includes(".pdf")
-            ? "application/pdf"
-            : "image/jpeg",
-          verified: doc.verified,
-          notes: doc.notes,
-          documentType: doc.type,
-          backendType: "document",
-        }))
-      );
-    } catch {
-      toast.error("Failed to load documents");
-    }
-  };
+  // const loadDocuments = async () => {
+  //   try {
+  //     const res = await getStudentDocuments(admissionId);
+  //     setDocuments(
+  //       res.data.data.documents.map((doc) => ({
+  //         id: doc.id,
+  //         name: doc.fileUrl.split("/").pop(),
+  //         url: doc.fileUrl,
+  //         type: doc.fileUrl.includes(".pdf")
+  //           ? "application/pdf"
+  //           : "image/jpeg",
+  //         verified: doc.verified,
+  //         notes: doc.notes,
+  //         documentType: doc.type,
+  //         backendType: "document",
+  //       }))
+  //     );
+  //   } catch {
+  //     toast.error("Failed to load documents");
+  //   }
+  // };
+const loadDocuments = async () => {
+  try {
+    const res = await getStudentDocuments(admissionId);
 
+    const docs = res?.data?.data?.documents || [];
+
+    setDocuments(
+      docs.map((doc) => ({
+        id: doc.id,
+        name: doc.fileUrl?.split("/").pop() || "Unknown",
+        url: doc.fileUrl,
+        type: doc.fileUrl?.includes(".pdf")
+          ? "application/pdf"
+          : "image/jpeg",
+        verified: doc.verified,
+        notes: doc.notes,
+        documentType: doc.type,
+        backendType: "document",
+      }))
+    );
+  } catch (err) {
+    console.error("Document load error:", err.response?.data || err);
+    toast.error("Failed to load documents");
+  }
+};
   /* ================= DRAG & DROP ================= */
   const handleDrag = (e) => {
     e.preventDefault();
