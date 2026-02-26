@@ -15,33 +15,42 @@ const ImageUpload = ({ value, onChange }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Only image files are allowed");
+    const extension = file.name.split(".").pop().toLowerCase();
+
+    let mimeType;
+
+    if (extension === "jpg" || extension === "jpeg") {
+      mimeType = "image/jpeg";
+    } else if (extension === "png") {
+      mimeType = "image/png";
+    } else {
+      toast.error("Only JPG and PNG images are allowed");
       return;
     }
+
+    // 🔥 Clean safe filename (avoid backend rejection)
+    const safeFileName = `gallery-${Date.now()}.${extension}`;
 
     try {
       setLoading(true);
 
-      // 1️⃣ Get presigned upload URL from backend
+      // ✅ IMPORTANT FIX HERE
       const response = await generatePresignedUrl({
-        fileType: "gallery",      // 🔥 MUST match backend folderMap key
-        fileName: file.name,
-        mimeType: file.type,
+        fileType: "photo",     // 🔥 MUST be fileType (NOT folder)
+        fileName: safeFileName,
+        mimeType,
       });
 
-      // Backend returns: { status, data }
-      const { uploadUrl, fileUrl } = response.data;
+      const { uploadUrl, fileUrl } = response?.data || {};
 
       if (!uploadUrl || !fileUrl) {
         throw new Error("Invalid presigned response");
       }
 
-      // 2️⃣ Upload file directly to R2
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
-          "Content-Type": file.type,
+          "Content-Type": mimeType,
         },
         body: file,
       });
@@ -50,14 +59,14 @@ const ImageUpload = ({ value, onChange }) => {
         throw new Error("Upload to R2 failed");
       }
 
-      // 3️⃣ Save permanent URL
       setPreview(fileUrl);
       onChange(fileUrl);
 
       toast.success("Image uploaded successfully");
+
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Image upload failed");
+      console.error("Upload error:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Image upload failed");
     } finally {
       setLoading(false);
     }
@@ -77,7 +86,6 @@ const ImageUpload = ({ value, onChange }) => {
             alt="Preview"
             className="w-full h-56 object-cover rounded-xl border"
           />
-
           <button
             type="button"
             onClick={removeImage}
@@ -93,12 +101,12 @@ const ImageUpload = ({ value, onChange }) => {
             Click to upload image
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            PNG, JPG, JPEG supported
+            JPG, JPEG, PNG supported
           </p>
 
           <input
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png"
             onChange={handleFile}
             className="hidden"
           />
