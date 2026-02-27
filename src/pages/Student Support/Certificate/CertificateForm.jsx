@@ -23,6 +23,12 @@ const CertificateForm = () => {
     characterCertificate: "No",
   });
 
+  const certificateFees = {
+    Bonafide: 200,
+    CLC: 500,
+    Character: 300,
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -32,115 +38,185 @@ const CertificateForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     console.log("Form Data:", formData);
 
-    // Next Step:
+    // Next:
     // 1. Call backend API
     // 2. Redirect to payment page
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-8">
 
-      {/* Degree */}
-      <select
-        name="degree"
-        value={formData.degree}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      >
-        <option value="">Select Degree</option>
-        <option value="BA">BA</option>
-        <option value="BSc">BSc</option>
-        <option value="BCom">BCom</option>
-      </select>
-
-      {/* Course */}
-      <input
-        type="text"
-        name="course"
-        placeholder="Course"
-        value={formData.course}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      {/* Certificate Type */}
-      <select
-        name="certificateType"
-        value={formData.certificateType}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      >
-        <option value="">Select Certificate Type</option>
-        <option value="Bonafide">Bonafide</option>
-        <option value="CLC">CLC / Transfer Certificate</option>
-        <option value="Character">Character Certificate</option>
-      </select>
-
-      {/* Name */}
-      <input
-        type="text"
-        name="name"
-        placeholder="Student Name"
-        value={formData.name}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      {/* Father Name */}
-      <input
-        type="text"
-        name="fatherName"
-        placeholder="Father's Name"
-        value={formData.fatherName}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      {/* Roll No */}
-      <input
-        type="text"
-        name="rollNo"
-        placeholder="Class Roll No"
-        value={formData.rollNo}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      {/* DOB */}
-      <input
-        type="date"
-        name="dob"
-        value={formData.dob}
-        onChange={handleChange}
-        className="w-full border p-2 rounded"
-        required
-      />
-
-      {/* Upload Documents */}
+      {/* ================= Academic Details ================= */}
       <div>
-        <label className="block mb-1 font-medium">
-          Upload No Dues (PDF)
-        </label>
-        <input type="file" accept=".pdf" className="w-full" />
+        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
+          Academic Details
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="form-label">Degree *</label>
+            <select
+              name="degree"
+              value={formData.degree}
+              onChange={handleChange}
+              className="form-input"
+              required
+            >
+              <option value="">Select Degree</option>
+              <option value="BA">BA</option>
+              <option value="BSc">BSc</option>
+              <option value="BCom">BCom</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="form-label">Course *</label>
+            <input
+              type="text"
+              name="course"
+              value={formData.course}
+              onChange={handleChange}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Subject *</label>
+            <input
+              type="text"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Certificate Type *</label>
+            <select
+              name="certificateType"
+              value={formData.certificateType}
+              onChange={handleChange}
+              className="form-input"
+              required
+            >
+              <option value="">Select Certificate</option>
+              <option value="Bonafide">Bonafide Certificate</option>
+              <option value="CLC">CLC / Transfer Certificate</option>
+              <option value="Character">Character Certificate</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      {/* Submit */}
+      {/* ================= Personal Details ================= */}
+      <div>
+        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
+          Personal Details
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <Input label="Class Roll No *" name="rollNo" value={formData.rollNo} onChange={handleChange} />
+          <Input label="Student Name *" name="name" value={formData.name} onChange={handleChange} />
+          <Input label="Father's Name *" name="fatherName" value={formData.fatherName} onChange={handleChange} />
+          <Input label="Mother's Name *" name="motherName" value={formData.motherName} onChange={handleChange} />
+          <Input label="Domicile *" name="domicile" value={formData.domicile} onChange={handleChange} />
+          <Input type="date" label="Date of Birth *" name="dob" value={formData.dob} onChange={handleChange} />
+
+          <div>
+            <label className="form-label">Gender *</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="form-input"
+            >
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= University Details ================= */}
+      <div>
+        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
+          University Details
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <Input label="University Registration No *" name="universityRegNo" value={formData.universityRegNo} onChange={handleChange} />
+          <Input label="University Roll No *" name="universityRollNo" value={formData.universityRollNo} onChange={handleChange} />
+          <Input label="Academic Start Year *" name="academicStartYear" value={formData.academicStartYear} onChange={handleChange} />
+          <Input label="Academic End Year *" name="academicEndYear" value={formData.academicEndYear} onChange={handleChange} />
+          <Input label="Passing Year *" name="passingYear" value={formData.passingYear} onChange={handleChange} />
+          <Input label="Division *" name="division" value={formData.division} onChange={handleChange} />
+        </div>
+      </div>
+
+      {/* ================= Document Upload ================= */}
+      <div>
+        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
+          Required Documents (PDF only)
+        </h2>
+
+        <div className="space-y-3">
+          <FileUpload label="No Dues Certificate (PDF)" />
+          <FileUpload label="Final Year Fee Receipt (PDF)" />
+          <FileUpload label="Final Year Marksheet (PDF)" />
+        </div>
+      </div>
+
+      {/* ================= Fee Display ================= */}
+      {formData.certificateType && (
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm">
+          Certificate Fee: ₹ {certificateFees[formData.certificateType]}
+        </div>
+      )}
+
+      {/* ================= Submit ================= */}
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+        className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] 
+                   text-white py-3 rounded-lg font-semibold transition"
       >
         Submit & Proceed to Payment
       </button>
     </form>
   );
 };
+
+/* ================= Reusable Components ================= */
+
+const Input = ({ label, type = "text", name, value, onChange }) => (
+  <div>
+    <label className="form-label">{label}</label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="form-input"
+      required
+    />
+  </div>
+);
+
+const FileUpload = ({ label }) => (
+  <div>
+    <label className="form-label">{label}</label>
+    <input
+      type="file"
+      accept=".pdf"
+      className="form-input"
+    />
+  </div>
+);
 
 export default CertificateForm;
