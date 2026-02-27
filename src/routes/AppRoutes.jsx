@@ -87,6 +87,7 @@ import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsConditions from "../pages/TermsConditions";
 import StudentAdmissionPayment from "../pages/admission/StudentAdmissionPayment";
 import PaymentGatewayMock from "../pages/admission/PaymentGatewayMock";
+import ApplyCertificate from "../pages/Student Support/Certificate/ApplyCertificate";
 
 function AppRoutes() {
   return (
@@ -187,6 +188,9 @@ function AppRoutes() {
         <Route path="anti-ragging" element={<AntiRagging />} />
         <Route path="rules-regulations" element={<RulesRegulations />} />
         <Route path="student-grievance" element={<StudentGrievance />} />
+
+        {/* Certificate Apply Public Route */}
+        <Route path="apply-certificate" element={<ApplyCertificate />} />
 
         <Route path="refund-policy" element={<RefundPolicy />} />
         <Route path="privacy-policy" element={<PrivacyPolicy />} />

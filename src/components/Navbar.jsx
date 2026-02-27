@@ -42,6 +42,7 @@ const Navbar = () => {
         { label: "Anti-Ragging", to: "/anti-ragging" },
         { label: "Rules & Regulations", to: "/rules-regulations" },
         { label: "Student Grievance", to: "/student-grievance" },
+         { label: "Apply Certificate", to: "/apply-certificate" },
       ],
     },
     { label: "Gallery", to: "/gallery" },
