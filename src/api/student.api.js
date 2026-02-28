@@ -29,6 +29,7 @@ export const deleteStudent = (id) => {
   return api.delete(`/students/${id}`);
 };
 
-export const verifyStudent = (params) => {
-  return api.get("/students");
+/* ================= VERIFY ================= */
+export const verifyStudent = (payload) => {
+  return api.post("/students/verify-student", payload);
 };

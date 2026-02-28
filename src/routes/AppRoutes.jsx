@@ -172,7 +172,10 @@ function AppRoutes() {
 
         <Route path="student/details/:id" element={<StudentAdmissionDetails />} />
         <Route path="student/admission/:id/payment" element={<StudentAdmissionPayment />} />
-        <Route path="student/document-upload/:admissionId/verify" element={<DocumentUpload />} />
+       <Route 
+  path="student/document-upload/:admissionId/verify" 
+  element={<DocumentUpload />} 
+/>
         <Route path="student/payment-gateway/:id" element={<PaymentGatewayMock />} />
 
         {/* Academics */}

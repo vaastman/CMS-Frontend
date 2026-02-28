@@ -37,7 +37,6 @@ const StudentRegistration = () => {
       });
     }
   };
-
 const handleVerify = async (e) => {
   e.preventDefault();
 
@@ -66,42 +65,45 @@ const handleVerify = async (e) => {
   try {
     setLoading(true);
 
-    const res = await verifyStudent(); // fetch all students
+    const payload = hasReference
+      ? {
+          uan_no: form.referenceNumber.trim().toUpperCase(),
+          phone: mobile,
+        }
+      : {
+          reg_no: form.regNumber.trim().toUpperCase(),
+          phone: mobile,
+        };
 
-    const students = res?.data?.data?.students || [];
+    const res = await verifyStudent(payload);
 
-    console.log("All students:", students);
+    console.log("VERIFY RESPONSE:", res.data);
 
-    let matchedStudent;
+    // 🔥 IMPORTANT: Your backend returns studentId
+    const studentId = res?.data?.data?.studentId;
 
-    if (hasReference) {
-      matchedStudent = students.find(
-        (s) =>
-          s.uan_no?.trim().toUpperCase() ===
-            form.referenceNumber.trim().toUpperCase() &&
-          s.phone?.trim() === mobile
-      );
-    } else {
-      matchedStudent = students.find(
-        (s) =>
-          s.reg_no?.trim().toUpperCase() ===
-            form.regNumber.trim().toUpperCase() &&
-          s.phone?.trim() === mobile
-      );
-    }
-
-    if (!matchedStudent) {
-      toast.error("Student not found. Please check details.");
+    if (!studentId) {
+      toast.error("Student not found");
       return;
     }
 
     toast.success("Verification successful 🎉");
 
-    navigate(`/student/details/${matchedStudent.id}`);
+    navigate(`/student/details/${studentId}`);
 
   } catch (err) {
-    console.error(err);
-    toast.error("Verification failed");
+    console.error("VERIFY ERROR:", err.response?.data);
+
+    if (err.response?.status === 404) {
+      toast.error("Student not found");
+    } else if (err.response?.status === 401) {
+      toast.error("Mobile number does not match");
+    } else if (err.response?.status === 400) {
+      toast.error(err.response?.data?.message || "Invalid input");
+    } else {
+      toast.error("Verification failed. Try again.");
+    }
+
   } finally {
     setLoading(false);
   }

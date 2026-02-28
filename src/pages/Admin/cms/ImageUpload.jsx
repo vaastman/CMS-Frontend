@@ -31,45 +31,44 @@ const ImageUpload = ({ value, onChange }) => {
     // 🔥 Clean safe filename (avoid backend rejection)
     const safeFileName = `gallery-${Date.now()}.${extension}`;
 
-    try {
-      setLoading(true);
+   try {
+  setLoading(true);
 
-      // ✅ IMPORTANT FIX HERE
-      const response = await generatePresignedUrl({
-        fileType: "photo",     // 🔥 MUST be fileType (NOT folder)
-        fileName: safeFileName,
-        mimeType,
-      });
+  const response = await generatePresignedUrl({
+    fileName: safeFileName,
+    mimeType,
+    folder: "gallery",
+  });
 
-      const { uploadUrl, fileUrl } = response?.data || {};
+  const { uploadUrl, fileUrl } = response.data;
 
-      if (!uploadUrl || !fileUrl) {
-        throw new Error("Invalid presigned response");
-      }
+  if (!uploadUrl || !fileUrl) {
+    throw new Error("Invalid presigned response");
+  }
 
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": mimeType,
-        },
-        body: file,
-      });
+  const uploadResponse = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": mimeType,
+    },
+    body: file,
+  });
 
-      if (!uploadResponse.ok) {
-        throw new Error("Upload to R2 failed");
-      }
+  if (!uploadResponse.ok) {
+    throw new Error("Upload failed");
+  }
 
-      setPreview(fileUrl);
-      onChange(fileUrl);
+  setPreview(fileUrl);
+  onChange(fileUrl);
 
-      toast.success("Image uploaded successfully");
+  toast.success("Image uploaded successfully");
 
-    } catch (error) {
-      console.error("Upload error:", error.response?.data || error);
-      toast.error(error.response?.data?.message || "Image upload failed");
-    } finally {
-      setLoading(false);
-    }
+} catch (error) {
+  console.error(error);
+  toast.error("Image upload failed");
+} finally {
+  setLoading(false);
+}
   };
 
   const removeImage = () => {
