@@ -1,10 +1,18 @@
 import api from "./api";
 
 /* ================= UPLOAD FILE (PHOTO / DOCUMENT) ================= */
-export const uploadStudentDocument = (formData) => {
+export const uploadStudentDocument = (formData, onUploadProgress) => {
   return api.post("/files", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
+    },
+    onUploadProgress: (progressEvent) => {
+      if (onUploadProgress) {
+        const percent = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        onUploadProgress(percent);
+      }
     },
   });
 };

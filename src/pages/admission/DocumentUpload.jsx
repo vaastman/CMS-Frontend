@@ -60,31 +60,11 @@ const DocumentUpload = () => {
   const [dragActive, setDragActive] = useState(false);
 
   /* ================= LOAD DOCUMENTS ================= */
-  useEffect(() => {
-    loadDocuments();
-  }, [admissionId]);
+ useEffect(() => {
+  if (!admissionId) return;
+  loadDocuments();
+}, [admissionId]);
 
-  // const loadDocuments = async () => {
-  //   try {
-  //     const res = await getStudentDocuments(admissionId);
-  //     setDocuments(
-  //       res.data.data.documents.map((doc) => ({
-  //         id: doc.id,
-  //         name: doc.fileUrl.split("/").pop(),
-  //         url: doc.fileUrl,
-  //         type: doc.fileUrl.includes(".pdf")
-  //           ? "application/pdf"
-  //           : "image/jpeg",
-  //         verified: doc.verified,
-  //         notes: doc.notes,
-  //         documentType: doc.type,
-  //         backendType: "document",
-  //       }))
-  //     );
-  //   } catch {
-  //     toast.error("Failed to load documents");
-  //   }
-  // };
 const loadDocuments = async () => {
   try {
     const res = await getStudentDocuments(admissionId);
@@ -100,14 +80,21 @@ const loadDocuments = async () => {
           ? "application/pdf"
           : "image/jpeg",
         verified: doc.verified,
-        notes: doc.notes,
+        notes: doc.verificationNotes,
         documentType: doc.type,
         backendType: "document",
       }))
     );
+
   } catch (err) {
+    // ✅ If no documents found → don't show error
+    if (err.response?.status === 404) {
+      setDocuments([]);
+      return;
+    }
+
+    // ❌ Only show error for real server issues
     console.error("Document load error:", err.response?.data || err);
-    toast.error("Failed to load documents");
   }
 };
   /* ================= DRAG & DROP ================= */
@@ -120,62 +107,85 @@ const loadDocuments = async () => {
       setDragActive(false);
     }
   };
+const handleDrop = (e, category) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setDragActive(false);
 
-  const handleDrop = (e, category) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    handleFileUpload({ target: { files: e.dataTransfer.files } }, category);
+  }
+};
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload({ target: { files: [e.dataTransfer.files[0]] } }, category);
-    }
-  };
-
-  /* ================= UPLOAD ================= */
   const handleFileUpload = async (e, category) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    if (!admissionId) {
+  toast.error("Invalid Student ID");
+  return;
+}
+  const file = e.target.files?.[0];
 
-    const allowedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/png",
-    ];
+  if (!file) {
+    toast.error("Please select a file before uploading.");
+    return;
+  }
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only PDF, JPG, PNG allowed");
-      return;
-    }
+  // ✅ File size validation (5MB limit - backend rule)
+  const MAX_SIZE = 5 * 1024 * 1024;
 
+  if (file.size > MAX_SIZE) {
+    toast.error("File size must be less than 5MB.");
+    return;
+  }
+
+  // ✅ Allowed types (match backend exactly)
+  const allowedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Invalid file type. Only PDF, JPG, PNG, DOC, DOCX, XLS, XLSX allowed.");
+    return;
+  }
+
+  try {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append(
-      "fileType",
-      category === "Photo" ? "photo" : "document"
-    );
+    formData.append("fileType", category === "Photo" ? "photo" : "document");
     formData.append("studentId", admissionId);
 
     if (category === "Document") {
       formData.append("documentType", documentType);
     }
 
-    try {
-      setLoading(true);
-      setUploadProgress(0);
+    setLoading(true);
+    setUploadProgress(0);
 
-      await uploadStudentDocument(formData, setUploadProgress);
+    await uploadStudentDocument(formData, (progress) => {
+      setUploadProgress(progress);
+    });
 
-      toast.success("File uploaded successfully");
-      loadDocuments();
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Upload failed"
-      );
-    } finally {
-      setLoading(false);
-      setUploadProgress(0);
-    }
-  };
+    toast.success("File uploaded successfully 🎉");
+
+    loadDocuments();
+
+  } catch (err) {
+    console.error("Upload error:", err.response?.data || err);
+
+    toast.error(
+      err.response?.data?.message || "Upload failed. Please try again."
+    );
+  } finally {
+    setLoading(false);
+    setUploadProgress(0);
+  }
+};
 
   /* ================= DELETE ================= */
   const handleDelete = async (doc) => {
@@ -213,7 +223,7 @@ const loadDocuments = async () => {
                   Document Verification Portal
                 </h1>
                 <p className="text-sm text-slate-500 mt-1">
-                  Admission ID: <span className="font-semibold text-slate-700">{admissionId}</span>
+                   Admission ID: <span className="font-semibold text-slate-700">{admissionId}</span>
                 </p>
               </div>
             </div>
@@ -283,12 +293,15 @@ const loadDocuments = async () => {
                     Supports: JPG, PNG (Max 5MB)
                   </p>
                   <input
-                    type="file"
-                    hidden
-                    accept="image/png,image/jpeg"
-                    onChange={(e) => handleFileUpload(e, "Photo")}
-                    disabled={loading}
-                  />
+  type="file"
+  hidden
+  accept="application/pdf,image/png,image/jpeg"
+  onChange={(e) => {
+  handleFileUpload(e, "Photo");   // ✅ Correct
+  e.target.value = null;
+}}
+  disabled={loading}
+/>
                 </label>
               </div>
             </div>
@@ -343,12 +356,15 @@ const loadDocuments = async () => {
                     Supports: PDF, JPG, PNG (Max 10MB)
                   </p>
                   <input
-                    type="file"
-                    hidden
-                    accept="application/pdf,image/png,image/jpeg"
-                    onChange={(e) => handleFileUpload(e, "Document")}
-                    disabled={loading}
-                  />
+  type="file"
+  hidden
+  accept="application/pdf,image/png,image/jpeg"
+  onChange={(e) => {
+    handleFileUpload(e, "Document");
+    e.target.value = null; // 🔥 reset input
+  }}
+  disabled={loading}
+/>
                 </label>
 
                 {/* PROGRESS BAR */}
