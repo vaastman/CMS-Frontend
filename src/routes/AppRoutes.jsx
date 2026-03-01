@@ -170,13 +170,30 @@ function AppRoutes() {
         <Route path="admission/admission-portal" element={<AdmissionHome />} />
         <Route path="admission/student-registration" element={<StudentRegistration />} />
 
-        <Route path="student/details/:id" element={<StudentAdmissionDetails />} />
+        {/* <Route path="student/details/:id" element={<StudentAdmissionDetails />} />
         <Route path="student/admission/:id/payment" element={<StudentAdmissionPayment />} />
        <Route 
   path="student/document-upload/:admissionId/verify" 
   element={<DocumentUpload />} 
 />
-        <Route path="student/payment-gateway/:id" element={<PaymentGatewayMock />} />
+        <Route path="student/payment-gateway/:id" element={<PaymentGatewayMock />} /> */}
+        {/* Student Flow */}
+<Route path="student/details/:id" element={<StudentAdmissionDetails />} />
+
+<Route
+  path="student/document-upload/:admissionId/verify"
+  element={<DocumentUpload />}
+/>
+
+<Route
+  path="student/admission/:admissionId/payment"
+  element={<StudentAdmissionPayment />}
+/>
+
+<Route
+  path="student/payment-gateway/:admissionId"
+  element={<PaymentGatewayMock />}
+/>
 
         {/* Academics */}
         <Route path="faculty" element={<Faculty />} />

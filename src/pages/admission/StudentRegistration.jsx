@@ -40,22 +40,15 @@ const StudentRegistration = () => {
 const handleVerify = async (e) => {
   e.preventDefault();
 
-  const hasReference =
-    form.referenceNumber.trim() && form.mobile1.trim();
-
-  const hasReg =
-    form.regNumber.trim() && form.mobile2.trim();
+  const hasReference = form.referenceNumber.trim() && form.mobile1.trim();
+  const hasReg = form.regNumber.trim() && form.mobile2.trim();
 
   if (!hasReference && !hasReg) {
-    toast.error(
-      "Enter Reference/UAN + Mobile OR Registration No + Mobile"
-    );
+    toast.error("Enter Reference/UAN + Mobile OR Registration No + Mobile");
     return;
   }
 
-  const mobile = hasReference
-    ? form.mobile1.trim()
-    : form.mobile2.trim();
+  const mobile = hasReference ? form.mobile1.trim() : form.mobile2.trim();
 
   if (!isValidMobile(mobile)) {
     toast.error("Enter valid 10-digit mobile starting from 6-9");
@@ -77,32 +70,30 @@ const handleVerify = async (e) => {
 
     const res = await verifyStudent(payload);
 
-    console.log("VERIFY RESPONSE:", res.data);
+    const studentData = res?.data?.data;
 
-    // 🔥 IMPORTANT: Your backend returns studentId
-    const studentId = res?.data?.data?.studentId;
-
-    if (!studentId) {
+    if (!studentData) {
       toast.error("Student not found");
       return;
     }
 
     toast.success("Verification successful 🎉");
 
-    navigate(`/student/details/${studentId}`);
+    // Save for refresh safety
+    localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
+
+    const routeId = studentData.reg_no || studentData.uan_no;
+
+    navigate(`/student/details/${routeId}`, {
+      state: studentData,
+    });
 
   } catch (err) {
     console.error("VERIFY ERROR:", err.response?.data);
 
-    if (err.response?.status === 404) {
-      toast.error("Student not found");
-    } else if (err.response?.status === 401) {
-      toast.error("Mobile number does not match");
-    } else if (err.response?.status === 400) {
-      toast.error(err.response?.data?.message || "Invalid input");
-    } else {
-      toast.error("Verification failed. Try again.");
-    }
+    if (err.response?.status === 404) toast.error("Student not found");
+    else if (err.response?.status === 401) toast.error("Mobile mismatch");
+    else toast.error("Verification failed");
 
   } finally {
     setLoading(false);
