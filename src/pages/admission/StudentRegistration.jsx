@@ -69,19 +69,27 @@ const handleVerify = async (e) => {
         };
 
     const res = await verifyStudent(payload);
-
-    const studentData = res?.data?.data;
+    let studentData = res?.data?.data;
 
     if (!studentData) {
       toast.error("Student not found");
       return;
     }
 
-    toast.success("Verification successful 🎉");
+    // 🔥 Attach Admission Fee & Payment Status
+    studentData.lastAdmission = {
+      ...studentData.lastAdmission,
+      feeAmount: 5000, // you can later fetch from backend
+      paymentStatus:
+        studentData.lastAdmission?.paymentStatus || "PENDING",
+    };
 
-    // Save for refresh safety
+    // 🔥 Save for full flow (details + payment + refresh safety)
     localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
 
+    toast.success("Verification successful 🎉");
+
+    // Use safe route id
     const routeId = studentData.reg_no || studentData.uan_no;
 
     navigate(`/student/details/${routeId}`, {
@@ -91,9 +99,15 @@ const handleVerify = async (e) => {
   } catch (err) {
     console.error("VERIFY ERROR:", err.response?.data);
 
-    if (err.response?.status === 404) toast.error("Student not found");
-    else if (err.response?.status === 401) toast.error("Mobile mismatch");
-    else toast.error("Verification failed");
+    if (err.response?.status === 404) {
+      toast.error("Student not found");
+    } else if (err.response?.status === 401) {
+      toast.error("Mobile number does not match");
+    } else if (err.response?.status === 400) {
+      toast.error(err.response?.data?.message || "Invalid input");
+    } else {
+      toast.error("Verification failed. Try again.");
+    }
 
   } finally {
     setLoading(false);
