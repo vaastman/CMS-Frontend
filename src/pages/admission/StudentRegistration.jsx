@@ -40,22 +40,15 @@ const StudentRegistration = () => {
 const handleVerify = async (e) => {
   e.preventDefault();
 
-  const hasReference =
-    form.referenceNumber.trim() && form.mobile1.trim();
-
-  const hasReg =
-    form.regNumber.trim() && form.mobile2.trim();
+  const hasReference = form.referenceNumber.trim() && form.mobile1.trim();
+  const hasReg = form.regNumber.trim() && form.mobile2.trim();
 
   if (!hasReference && !hasReg) {
-    toast.error(
-      "Enter Reference/UAN + Mobile OR Registration No + Mobile"
-    );
+    toast.error("Enter Reference/UAN + Mobile OR Registration No + Mobile");
     return;
   }
 
-  const mobile = hasReference
-    ? form.mobile1.trim()
-    : form.mobile2.trim();
+  const mobile = hasReference ? form.mobile1.trim() : form.mobile2.trim();
 
   if (!isValidMobile(mobile)) {
     toast.error("Enter valid 10-digit mobile starting from 6-9");
@@ -76,20 +69,32 @@ const handleVerify = async (e) => {
         };
 
     const res = await verifyStudent(payload);
+    let studentData = res?.data?.data;
 
-    console.log("VERIFY RESPONSE:", res.data);
-
-    // 🔥 IMPORTANT: Your backend returns studentId
-    const studentId = res?.data?.data?.studentId;
-
-    if (!studentId) {
+    if (!studentData) {
       toast.error("Student not found");
       return;
     }
 
+    // 🔥 Attach Admission Fee & Payment Status
+    studentData.lastAdmission = {
+      ...studentData.lastAdmission,
+      feeAmount: 5000, // you can later fetch from backend
+      paymentStatus:
+        studentData.lastAdmission?.paymentStatus || "PENDING",
+    };
+
+    // 🔥 Save for full flow (details + payment + refresh safety)
+    localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
+
     toast.success("Verification successful 🎉");
 
-    navigate(`/student/details/${studentId}`);
+    // Use safe route id
+    const routeId = studentData.reg_no || studentData.uan_no;
+
+    navigate(`/student/details/${routeId}`, {
+      state: studentData,
+    });
 
   } catch (err) {
     console.error("VERIFY ERROR:", err.response?.data);

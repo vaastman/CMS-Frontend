@@ -104,3 +104,6 @@ export const verifyAdmissionPayment = (admissionId, payload) => {
 
   return api.post(`/admissions/${admissionId}/payment/verify`, payload);
 };
+export const verifyStudent = async (payload) => {
+  return api.post("/students/verify-student", payload);
+};
