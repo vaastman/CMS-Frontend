@@ -16,6 +16,7 @@ import {
   FaGlobe,
   FaSignOutAlt
 } from "react-icons/fa";
+import { FaCertificate } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -142,6 +143,17 @@ const Sidebar = () => {
 
       ],
     },
+    /* ===== CERTIFICATES ===== */
+{
+  section: "Certificates",
+  items: [
+    {
+      name: "Manage Certificates",
+      path: "/admin/certificates",
+      icon: <FaCertificate />,
+    },
+  ],
+},
 
     /* ===== COMMUNICATION ===== */
     {

@@ -88,6 +88,7 @@ import TermsConditions from "../pages/TermsConditions";
 import StudentAdmissionPayment from "../pages/admission/StudentAdmissionPayment";
 import PaymentGatewayMock from "../pages/admission/PaymentGatewayMock";
 import ApplyCertificate from "../pages/Student Support/Certificate/ApplyCertificate";
+import AdminCertificates from "../pages/Admin/certificates/AdminCertificates";
 
 function AppRoutes() {
   return (
@@ -136,6 +137,9 @@ function AppRoutes() {
         <Route path="fees/manage-structure" element={<ManageFeeStructure />} />
         <Route path="fees/collect" element={<CollectFee />} />
         <Route path="fees/history" element={<FeeHistory />} />
+
+        {/* Certificate */}
+        <Route path="certificates" element={<AdminCertificates />} />
 
         {/* CMS */}
         <Route path="cms/gallery/create" element={<GalleryCreate />} />

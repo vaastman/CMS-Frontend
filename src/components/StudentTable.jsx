@@ -34,59 +34,118 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
   }, [search, course, session, status]);
 
   /* ================= FETCH STUDENTS ================= */
+  // useEffect(() => {
+  //   const load = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const res = await fetchStudents({
+  //         search,
+  //         courseId: course,
+  //         sessionId: session,
+  //         status,
+  //         page,
+  //         limit: perPage,
+  //       });
+
+  //       const response = res?.data?.data;
+
+  //       const studentsList =
+  //         response?.students ||
+  //         res?.data?.students ||
+  //         [];
+
+  //       setStudents(Array.isArray(studentsList) ? studentsList : []);
+
+  //       // ✅ SAFE pagination extraction
+  //       const pagination =
+  //         response?.pagination ||
+  //         res?.data?.pagination ||
+  //         null;
+
+  //       if (pagination) {
+  //         if (pagination.totalPages) {
+  //           setTotalPages(pagination.totalPages);
+  //         } else if (pagination.total && pagination.limit) {
+  //           setTotalPages(Math.ceil(pagination.total / pagination.limit));
+  //         } else {
+  //           setTotalPages(1);
+  //         }
+  //       } else {
+  //         setTotalPages(1);
+  //       }
+
+  //     } catch (err) {
+  //       console.error("❌ Fetch students error:", err);
+  //       toast.error("Failed to load students");
+  //       setStudents([]);
+  //       setTotalPages(1);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   load();
+  // }, [search, course, session, status, page, refreshKey]);
+
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await fetchStudents({
-          search,
-          courseId: course,
-          sessionId: session,
-          status,
-          page,
-          limit: perPage,
-        });
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchStudents({
+        search,
+        courseId: course,
+        sessionId: session,
+        status,
+        page,
+        limit: perPage,
+      });
 
-        const response = res?.data?.data;
+      const response = res?.data?.data;
 
-        const studentsList =
-          response?.students ||
-          res?.data?.students ||
-          [];
+      const studentsList =
+        response?.students ||
+        res?.data?.students ||
+        [];
 
-        setStudents(Array.isArray(studentsList) ? studentsList : []);
+      const finalList = Array.isArray(studentsList) ? studentsList : [];
 
-        // ✅ SAFE pagination extraction
-        const pagination =
-          response?.pagination ||
-          res?.data?.pagination ||
-          null;
+      // ✅ LOG STUDENT IDS ON LOAD
+      console.log("Loaded Students:");
+      finalList.forEach((student) => {
+        console.log("Student ID:", student.id);
+      });
 
-        if (pagination) {
-          if (pagination.totalPages) {
-            setTotalPages(pagination.totalPages);
-          } else if (pagination.total && pagination.limit) {
-            setTotalPages(Math.ceil(pagination.total / pagination.limit));
-          } else {
-            setTotalPages(1);
-          }
+      setStudents(finalList);
+
+      const pagination =
+        response?.pagination ||
+        res?.data?.pagination ||
+        null;
+
+      if (pagination) {
+        if (pagination.totalPages) {
+          setTotalPages(pagination.totalPages);
+        } else if (pagination.total && pagination.limit) {
+          setTotalPages(Math.ceil(pagination.total / pagination.limit));
         } else {
           setTotalPages(1);
         }
-
-      } catch (err) {
-        console.error("❌ Fetch students error:", err);
-        toast.error("Failed to load students");
-        setStudents([]);
+      } else {
         setTotalPages(1);
-      } finally {
-        setLoading(false);
       }
-    };
 
-    load();
-  }, [search, course, session, status, page, refreshKey]);
+    } catch (err) {
+      console.error("❌ Fetch students error:", err);
+      toast.error("Failed to load students");
+      setStudents([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  load();
+}, [search, course, session, status, page, refreshKey]);
   /* ================= CONFIRM DELETE ================= */
   const confirmDelete = async () => {
     try {
