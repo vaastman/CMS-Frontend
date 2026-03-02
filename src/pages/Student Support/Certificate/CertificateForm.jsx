@@ -1,222 +1,187 @@
 import { useState } from "react";
+import { createCertificate } from "@/api/certificate.api";
+import { toast } from "react-toastify";
 
 const CertificateForm = () => {
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    degree: "",
-    course: "",
-    subject: "",
+    studentId: "",
+    departmentId: "",
     certificateType: "",
-    rollNo: "",
-    name: "",
-    fatherName: "",
-    motherName: "",
-    gender: "Male",
-    dob: "",
-    domicile: "",
-    universityRegNo: "",
-    universityRollNo: "",
-    academicStartYear: "",
-    academicEndYear: "",
-    passingYear: "",
-    passingMonth: "",
-    division: "",
-    characterCertificate: "No",
+    purpose: "",
   });
 
   const certificateFees = {
-    Bonafide: 200,
+    BONAFIDE: 200,
     CLC: 500,
-    Character: 300,
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Form Data:", formData);
+    if (!formData.studentId || !formData.departmentId) {
+      toast.error("Student ID and Department ID are required");
+      return;
+    }
 
-    // Next:
-    // 1. Call backend API
-    // 2. Redirect to payment page
+    if (!formData.certificateType) {
+      toast.error("Please select certificate type");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        studentId: formData.studentId,
+        departmentId: formData.departmentId,
+        type: formData.certificateType,
+        purpose:
+          formData.purpose ||
+          `${formData.certificateType} Certificate`,
+      };
+
+      await createCertificate(payload);
+
+      toast.success("Certificate Request Submitted Successfully 🎉");
+
+      setFormData({
+        studentId: "",
+        departmentId: "",
+        certificateType: "",
+        purpose: "",
+      });
+
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Failed to submit certificate request"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-8">
 
-      {/* ================= Academic Details ================= */}
-      <div>
-        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
-          Academic Details
-        </h2>
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Apply for Certificate
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Submit certificate request using Student & Department ID
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Student ID */}
           <div>
-            <label className="form-label">Degree *</label>
-            <select
-              name="degree"
-              value={formData.degree}
-              onChange={handleChange}
-              className="form-input"
-              required
-            >
-              <option value="">Select Degree</option>
-              <option value="BA">BA</option>
-              <option value="BSc">BSc</option>
-              <option value="BCom">BCom</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">Course *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Student ID *
+            </label>
             <input
               type="text"
-              name="course"
-              value={formData.course}
+              name="studentId"
+              value={formData.studentId}
               onChange={handleChange}
-              className="form-input"
+              placeholder="Enter Student UUID"
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--color-primary)] outline-none"
+              required
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Example: d1a9e7e9-775d-45d7-96a2-9b13f10c09d4
+            </p>
+          </div>
+
+          {/* Department ID */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Department ID *
+            </label>
+            <input
+              type="text"
+              name="departmentId"
+              value={formData.departmentId}
+              onChange={handleChange}
+              placeholder="Enter Department UUID"
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--color-primary)] outline-none"
               required
             />
           </div>
 
+          {/* Certificate Type */}
           <div>
-            <label className="form-label">Subject *</label>
-            <input
-              type="text"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              className="form-input"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Certificate Type *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Certificate Type *
+            </label>
             <select
               name="certificateType"
               value={formData.certificateType}
               onChange={handleChange}
-              className="form-input"
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--color-primary)] outline-none"
               required
             >
               <option value="">Select Certificate</option>
-              <option value="Bonafide">Bonafide Certificate</option>
+              <option value="BONAFIDE">Bonafide Certificate</option>
               <option value="CLC">CLC / Transfer Certificate</option>
-              <option value="Character">Character Certificate</option>
             </select>
           </div>
-        </div>
-      </div>
 
-      {/* ================= Personal Details ================= */}
-      <div>
-        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
-          Personal Details
-        </h2>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <Input label="Class Roll No *" name="rollNo" value={formData.rollNo} onChange={handleChange} />
-          <Input label="Student Name *" name="name" value={formData.name} onChange={handleChange} />
-          <Input label="Father's Name *" name="fatherName" value={formData.fatherName} onChange={handleChange} />
-          <Input label="Mother's Name *" name="motherName" value={formData.motherName} onChange={handleChange} />
-          <Input label="Domicile *" name="domicile" value={formData.domicile} onChange={handleChange} />
-          <Input type="date" label="Date of Birth *" name="dob" value={formData.dob} onChange={handleChange} />
-
+          {/* Purpose */}
           <div>
-            <label className="form-label">Gender *</label>
-            <select
-              name="gender"
-              value={formData.gender}
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Purpose (Optional)
+            </label>
+            <input
+              type="text"
+              name="purpose"
+              value={formData.purpose}
               onChange={handleChange}
-              className="form-input"
-            >
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
-            </select>
+              placeholder="Example: Bank Loan, Passport"
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--color-primary)] outline-none"
+            />
           </div>
-        </div>
+
+          {/* Fee Box */}
+          {formData.certificateType && (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm flex justify-between items-center">
+              <span className="font-medium text-gray-700">
+                Certificate Fee
+              </span>
+              <span className="text-lg font-semibold text-[var(--color-primary)]">
+                ₹ {certificateFees[formData.certificateType]}
+              </span>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[var(--color-primary)] hover:opacity-90 text-white py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 disabled:opacity-60"
+          >
+            {loading && (
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            )}
+            {loading ? "Submitting..." : "Submit Certificate Request"}
+          </button>
+
+        </form>
       </div>
-
-      {/* ================= University Details ================= */}
-      <div>
-        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
-          University Details
-        </h2>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <Input label="University Registration No *" name="universityRegNo" value={formData.universityRegNo} onChange={handleChange} />
-          <Input label="University Roll No *" name="universityRollNo" value={formData.universityRollNo} onChange={handleChange} />
-          <Input label="Academic Start Year *" name="academicStartYear" value={formData.academicStartYear} onChange={handleChange} />
-          <Input label="Academic End Year *" name="academicEndYear" value={formData.academicEndYear} onChange={handleChange} />
-          <Input label="Passing Year *" name="passingYear" value={formData.passingYear} onChange={handleChange} />
-          <Input label="Division *" name="division" value={formData.division} onChange={handleChange} />
-        </div>
-      </div>
-
-      {/* ================= Document Upload ================= */}
-      <div>
-        <h2 className="text-lg font-semibold border-b pb-2 mb-4">
-          Required Documents (PDF only)
-        </h2>
-
-        <div className="space-y-3">
-          <FileUpload label="No Dues Certificate (PDF)" />
-          <FileUpload label="Final Year Fee Receipt (PDF)" />
-          <FileUpload label="Final Year Marksheet (PDF)" />
-        </div>
-      </div>
-
-      {/* ================= Fee Display ================= */}
-      {formData.certificateType && (
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm">
-          Certificate Fee: ₹ {certificateFees[formData.certificateType]}
-        </div>
-      )}
-
-      {/* ================= Submit ================= */}
-      <button
-        type="submit"
-        className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] 
-                   text-white py-3 rounded-lg font-semibold transition"
-      >
-        Submit & Proceed to Payment
-      </button>
-    </form>
+    </div>
   );
 };
-
-/* ================= Reusable Components ================= */
-
-const Input = ({ label, type = "text", name, value, onChange }) => (
-  <div>
-    <label className="form-label">{label}</label>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      className="form-input"
-      required
-    />
-  </div>
-);
-
-const FileUpload = ({ label }) => (
-  <div>
-    <label className="form-label">{label}</label>
-    <input
-      type="file"
-      accept=".pdf"
-      className="form-input"
-    />
-  </div>
-);
 
 export default CertificateForm;
