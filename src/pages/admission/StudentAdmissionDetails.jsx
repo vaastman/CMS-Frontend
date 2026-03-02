@@ -72,62 +72,136 @@ const StudentAdmissionDetails = () => {
   const session = admission?.session || {};
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
+    <div className="max-w-6xl mx-auto space-y-6">
 
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Student Admission Profile</h1>
-            <button onClick={() => navigate(-1)} className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-lg">
-              <FaArrowLeft /> Back
-            </button>
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-md border p-6 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-2xl">
+            <FaUserGraduate />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Student Admission Profile
+            </h1>
+            <p className="text-slate-500 text-sm">
+              Admission ID: {admission?.id}
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition"
+        >
+          <FaArrowLeft /> Back
+        </button>
+      </div>
 
-          <div className="lg:col-span-2 space-y-6">
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <div className="bg-white border rounded-2xl p-6">
-              <h3 className="font-bold mb-4">Student Information</h3>
-              <p>Name: {student?.name}</p>
-              <p>Phone: {student?.phone}</p>
-              <p>Reg No: {student?.reg_no}</p>
-              <p>UAN No: {student?.uan_no}</p>
+        {/* Left Section */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* Student Info Card */}
+          <div className="bg-white border rounded-2xl shadow-sm p-6">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-600">
+              <FaUser /> Student Information
+            </h3>
+
+            <div className="grid sm:grid-cols-2 gap-4 text-slate-700">
+              <p className="flex items-center gap-2">
+                <FaUserGraduate className="text-indigo-500" />
+                {student?.name}
+              </p>
+              <p className="flex items-center gap-2">
+                <FaPhone className="text-indigo-500" />
+                {student?.phone}
+              </p>
+              <p className="flex items-center gap-2">
+                <FaIdCard className="text-indigo-500" />
+                Reg No: {student?.reg_no}
+              </p>
+              <p className="flex items-center gap-2">
+                <FaFileAlt className="text-indigo-500" />
+                UAN: {student?.uan_no}
+              </p>
             </div>
-
-            <div className="bg-white border rounded-2xl p-6">
-              <h3 className="font-bold mb-4">Academic Info</h3>
-              <p>Course: {course?.name}</p>
-              <p>Session: {session?.name}</p>
-            </div>
-
           </div>
 
-          <div>
+          {/* Academic Info */}
+          <div className="bg-white border rounded-2xl shadow-sm p-6">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-600">
+              <FaGraduationCap /> Academic Details
+            </h3>
+
+            <div className="grid sm:grid-cols-2 gap-4 text-slate-700">
+              <p className="flex items-center gap-2">
+                <FaBookOpen className="text-indigo-500" />
+                Course: {course?.name}
+              </p>
+              <p className="flex items-center gap-2">
+                <FaCalendarAlt className="text-indigo-500" />
+                Session: {session?.name}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div className="space-y-4">
+
+          {/* Status Card */}
+          <div className="bg-white border rounded-2xl shadow-sm p-6 text-center">
+            <h3 className="font-semibold mb-3">Admission Status</h3>
+
+            {status === "approved" && (
+              <span className="flex items-center justify-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-lg">
+                <FaCheckCircle /> Approved
+              </span>
+            )}
+
+            {status === "pending" && (
+              <span className="flex items-center justify-center gap-2 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg">
+                <FaClock /> Pending
+              </span>
+            )}
+
+            {status === "rejected" && (
+              <span className="flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg">
+                <FaExclamationCircle /> Rejected
+              </span>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="bg-white border rounded-2xl shadow-sm p-6 space-y-3">
             <button
               onClick={() =>
                 navigate(`/student/document-upload/${admission.id}/verify`)
               }
-              className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold"
+              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition flex items-center justify-center gap-2"
             >
-              Upload / Verify Documents
+              <FaFileAlt /> Upload / Verify Documents
             </button>
 
             <button
               onClick={() =>
                 navigate(`/student/admission/${admission.id}/payment`)
               }
-              className="w-full mt-3 py-3 rounded-xl bg-green-600 text-white font-semibold"
+              className="w-full py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition flex items-center justify-center gap-2"
             >
-              Pay Admission Fee
+              <FaMoneyBillWave /> Pay Admission Fee
             </button>
           </div>
 
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default StudentAdmissionDetails;
