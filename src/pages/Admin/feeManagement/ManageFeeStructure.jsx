@@ -10,7 +10,7 @@ const createRow = (name, defaultValue = 0) => ({
 
 const ManageFeeStructure = () => {
   const [partA, setPartA] = useState([
-    createRow("Admission Fee", 350),
+    createRow("Admission Fee", 1350),
     createRow("Tuition Fee", 600),
     createRow("Cultural Charges", 25),
   ]);
