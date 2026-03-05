@@ -1,35 +1,39 @@
 import api from "./api";
 
-/* ================= UPLOAD FILE (PHOTO / DOCUMENT) ================= */
-export const uploadStudentDocument = (formData, onUploadProgress) => {
+/* ================= GET PRESIGNED URL ================= */
+export const getPresignedUploadUrl = (data) => {
+  return api.post("/files/presign-upload", data);
+};
+
+/* ================= UPLOAD FILE TO R2 ================= */
+export const uploadFileToR2 = async (uploadUrl, file) => {
+  return fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+};
+
+/* ================= SIMPLE FILE UPLOAD ================= */
+export const uploadStudentDocument = (formData) => {
   return api.post("/files", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
-    },
-    onUploadProgress: (progressEvent) => {
-      if (onUploadProgress) {
-        const percent = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        onUploadProgress(percent);
-      }
     },
   });
 };
 
 /* ================= GET STUDENT DOCUMENTS ================= */
 export const getStudentDocuments = (studentId) => {
-  if (!studentId) {
-    throw new Error("studentId is required");
-  }
   return api.get(`/files/students/${studentId}/documents`);
 };
 
-/* ================= VERIFY DOCUMENT (ADMIN / HOD) ================= */
-export const verifyDocument = (documentId, verified = true, notes = "") => {
+/* ================= VERIFY DOCUMENT ================= */
+export const verifyDocument = (documentId, verified = true) => {
   return api.patch(`/files/documents/${documentId}/verify`, {
     verified,
-    notes,
   });
 };
 
@@ -38,7 +42,7 @@ export const getDocumentDownloadUrl = (id, fileType = "document") => {
   return api.get(`/files/${id}/${fileType}/download`);
 };
 
-/* ================= DELETE FILE (ADMIN ONLY) ================= */
-export const deleteFile = (id, fileType) => {
+/* ================= DELETE FILE ================= */
+export const deleteFile = (id, fileType = "document") => {
   return api.delete(`/files/${id}/${fileType}`);
 };
