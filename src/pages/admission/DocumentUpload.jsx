@@ -17,8 +17,8 @@ import {
 import { toast } from "react-toastify";
 
 import {
-  uploadStudentDocument,
   getStudentDocuments,
+  getPresignedUploadUrl,
   deleteFile,
 } from "@/api/files.api";
 
@@ -60,43 +60,51 @@ const DocumentUpload = () => {
   const [dragActive, setDragActive] = useState(false);
 
   /* ================= LOAD DOCUMENTS ================= */
- useEffect(() => {
-  if (!admissionId) return;
-  loadDocuments();
-}, [admissionId]);
+  useEffect(() => {
+    if (!admissionId) return;
+    loadDocuments();
+  }, [admissionId]);
 
-const loadDocuments = async () => {
-  try {
-    const res = await getStudentDocuments(admissionId);
+  const loadDocuments = async () => {
+    try {
+      const res = await getStudentDocuments(admissionId);
 
-    const docs = res?.data?.data?.documents || [];
+      const docs = res?.data?.data?.documents || [];
 
-    setDocuments(
-      docs.map((doc) => ({
-        id: doc.id,
-        name: doc.fileUrl?.split("/").pop() || "Unknown",
-        url: doc.fileUrl,
-        type: doc.fileUrl?.includes(".pdf")
-          ? "application/pdf"
-          : "image/jpeg",
-        verified: doc.verified,
-        notes: doc.verificationNotes,
-        documentType: doc.type,
-        backendType: "document",
-      }))
-    );
+      setDocuments(
+        docs.map((doc) => {
+          const fileName = doc.fileUrl?.split("/").pop() || "Unknown";
+          const ext = fileName.split(".").pop()?.toLowerCase();
 
-  } catch (err) {
-    // ✅ If no documents found → don't show error
-    if (err.response?.status === 404) {
-      setDocuments([]);
-      return;
+          let type = "image/jpeg";
+
+          if (ext === "pdf") type = "application/pdf";
+          if (["jpg", "jpeg", "png"].includes(ext)) type = "image/jpeg";
+
+          return {
+            id: doc.id,
+            name: fileName,
+            url: doc.fileUrl,
+            type,
+            verified: doc.verified,
+            notes: doc.verificationNotes,
+            documentType: doc.type,
+            backendType: "document",
+          };
+        })
+      );
+
+    } catch (err) {
+      // ✅ If no documents found → don't show error
+      if (err.response?.status === 404) {
+        setDocuments([]);
+        return;
+      }
+
+      // ❌ Only show error for real server issues
+      console.error("Document load error:", err.response?.data || err);
     }
-
-    // ❌ Only show error for real server issues
-    console.error("Document load error:", err.response?.data || err);
-  }
-};
+  };
   /* ================= DRAG & DROP ================= */
   const handleDrag = (e) => {
     e.preventDefault();
@@ -107,90 +115,67 @@ const loadDocuments = async () => {
       setDragActive(false);
     }
   };
-const handleDrop = (e, category) => {
+ const handleDrop = (e, category) => {
   e.preventDefault();
   e.stopPropagation();
   setDragActive(false);
 
-  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    handleFileUpload({ target: { files: e.dataTransfer.files } }, category);
+  const files = e.dataTransfer.files;
+
+  if (files && files.length > 0) {
+    handleFileUpload({ target: { files } }, category);
   }
 };
-
   const handleFileUpload = async (e, category) => {
-    if (!admissionId) {
-  toast.error("Invalid Student ID");
-  return;
-}
-  const file = e.target.files?.[0];
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  if (!file) {
-    toast.error("Please select a file before uploading.");
-    return;
-  }
+    const MAX_SIZE = 5 * 1024 * 1024;
 
-  // ✅ File size validation (5MB limit - backend rule)
-  const MAX_SIZE = 5 * 1024 * 1024;
-
-  if (file.size > MAX_SIZE) {
-    toast.error("File size must be less than 5MB.");
-    return;
-  }
-
-  // ✅ Allowed types (match backend exactly)
-  const allowedTypes = [
-    "application/pdf",
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  ];
-
-  if (!allowedTypes.includes(file.type)) {
-    toast.error("Invalid file type. Only PDF, JPG, PNG, DOC, DOCX, XLS, XLSX allowed.");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("fileType", category === "Photo" ? "photo" : "document");
-    formData.append("studentId", admissionId);
-
-    if (category === "Document") {
-      formData.append("documentType", documentType);
+    if (file.size > MAX_SIZE) {
+      toast.error("File must be less than 5MB");
+      return;
     }
 
-    setLoading(true);
-    setUploadProgress(0);
+    try {
+      setLoading(true);
+      setUploadProgress(0);
 
-    await uploadStudentDocument(formData, (progress) => {
-      setUploadProgress(progress);
-    });
+      const presignRes = await getPresignedUploadUrl({
+        fileType: category === "Photo" ? "photo" : "document",
+        fileName: file.name,
+        mimeType: file.type,
+      });
 
-    toast.success("File uploaded successfully 🎉");
+      const { uploadUrl } = presignRes.data.data;
 
-    loadDocuments();
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
 
-  } catch (err) {
-    console.error("Upload error:", err.response?.data || err);
+      if (!uploadRes.ok) {
+        throw new Error("Upload failed");
+      }
 
-    toast.error(
-      err.response?.data?.message || "Upload failed. Please try again."
-    );
-  } finally {
-    setLoading(false);
-    setUploadProgress(0);
-  }
-};
+      toast.success("File uploaded successfully");
+
+      loadDocuments();
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* ================= DELETE ================= */
   const handleDelete = async (doc) => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
-    
+
     try {
       await deleteFile(doc.id, doc.backendType);
       toast.success("File deleted");
@@ -223,7 +208,7 @@ const handleDrop = (e, category) => {
                   Document Verification Portal
                 </h1>
                 <p className="text-sm text-slate-500 mt-1">
-                   Admission ID: <span className="font-semibold text-slate-700">{admissionId}</span>
+                  Admission ID: <span className="font-semibold text-slate-700">{admissionId}</span>
                 </p>
               </div>
             </div>
@@ -271,39 +256,42 @@ const handleDrop = (e, category) => {
                 <p className="text-xs text-blue-100 mt-1">Upload a clear passport-size photo</p>
               </div>
 
-              <div className="p-6">
-                <label
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={(e) => handleDrop(e, "Photo")}
-                  className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center cursor-pointer transition-all ${
-                    dragActive
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-slate-300 hover:border-blue-400 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-4">
-                    <FaCloudUploadAlt className="text-3xl text-blue-600" />
-                  </div>
-                  <p className="font-semibold text-slate-800 mb-1">
-                    Drop photo here or click to browse
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Supports: JPG, PNG (Max 5MB)
-                  </p>
-                  <input
-  type="file"
-  hidden
-  accept="application/pdf,image/png,image/jpeg"
-  onChange={(e) => {
-  handleFileUpload(e, "Photo");   // ✅ Correct
-  e.target.value = null;
-}}
-  disabled={loading}
-/>
-                </label>
-              </div>
+             <div className="p-6">
+  <label
+    onDragEnter={handleDrag}
+    onDragLeave={handleDrag}
+    onDragOver={handleDrag}
+    onDrop={(e) => handleDrop(e, "Photo")}
+    className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center cursor-pointer transition-all ${
+      dragActive
+        ? "border-blue-500 bg-blue-50"
+        : "border-slate-300 hover:border-blue-400 hover:bg-slate-50"
+    }`}
+  >
+    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-4">
+      <FaCloudUploadAlt className="text-3xl text-blue-600" />
+    </div>
+
+    <p className="font-semibold text-slate-800 mb-1">
+      Drop photo here or click to browse
+    </p>
+
+    <p className="text-xs text-slate-500">
+      Supports: JPG, PNG (Max 5MB)
+    </p>
+
+    <input
+      type="file"
+      className="hidden"
+      accept="image/png,image/jpeg"
+      onChange={(e) => {
+        handleFileUpload(e, "Photo");
+        e.target.value = null;
+      }}
+      disabled={loading}
+    />
+  </label>
+</div>
             </div>
 
             {/* DOCUMENT UPLOAD */}
@@ -340,11 +328,10 @@ const handleDrop = (e, category) => {
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
                   onDrop={(e) => handleDrop(e, "Document")}
-                  className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center cursor-pointer transition-all ${
-                    dragActive
+                  className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center cursor-pointer transition-all ${dragActive
                       ? "border-indigo-500 bg-indigo-50"
                       : "border-slate-300 hover:border-indigo-400 hover:bg-slate-50"
-                  }`}
+                    }`}
                 >
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4">
                     <FaCloudUploadAlt className="text-3xl text-indigo-600" />
@@ -353,18 +340,18 @@ const handleDrop = (e, category) => {
                     Drop document here or click to browse
                   </p>
                   <p className="text-xs text-slate-500">
-                    Supports: PDF, JPG, PNG (Max 10MB)
+                    Supports: PDF, JPG, PNG (Max 5MB)
                   </p>
                   <input
-  type="file"
-  hidden
-  accept="application/pdf,image/png,image/jpeg"
-  onChange={(e) => {
-    handleFileUpload(e, "Document");
-    e.target.value = null; // 🔥 reset input
-  }}
-  disabled={loading}
-/>
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                    onChange={(e) => {
+                      handleFileUpload(e, "Document");
+                      e.target.value = null; // 🔥 reset input
+                    }}
+                    disabled={loading}
+                  />
                 </label>
 
                 {/* PROGRESS BAR */}
@@ -411,11 +398,10 @@ const handleDrop = (e, category) => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        doc.type.includes("pdf")
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${doc.type.includes("pdf")
                           ? "bg-red-50 text-red-600"
                           : "bg-blue-50 text-blue-600"
-                      }`}>
+                        }`}>
                         {doc.type.includes("pdf") ? (
                           <FaFilePdf className="text-lg" />
                         ) : (
