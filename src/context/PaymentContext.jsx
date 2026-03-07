@@ -3,33 +3,17 @@ import { createContext, useContext, useState } from "react";
 const PaymentContext = createContext();
 
 export const PaymentProvider = ({ children }) => {
-  const [payments, setPayments] = useState([]);
-  const [receipts, setReceipts] = useState([]);
+  const [currentPayment, setCurrentPayment] = useState(null);
 
-  /* ✅ Called when payment succeeds */
-  const addSuccessfulPayment = (payment) => {
-    setPayments((prev) => [...prev, payment]);
-
-    // 🔹 Auto-generate receipt
-    const receipt = {
-      receiptId: `RCPT-${Date.now()}`,
-      transactionId: payment.transactionId,
-      student: payment.student,
-      course: payment.course,
-      amount: payment.amount,
-      date: new Date().toISOString().split("T")[0],
-    };
-
-    setReceipts((prev) => [...prev, receipt]);
+  const setPayment = (payment) => {
+    setCurrentPayment(payment);
   };
 
   return (
-    <PaymentContext.Provider
-      value={{ payments, receipts, addSuccessfulPayment }}
-    >
+    <PaymentContext.Provider value={{ currentPayment, setPayment }}>
       {children}
     </PaymentContext.Provider>
   );
 };
 
-export const usePayments = () => useContext(PaymentContext);
+export const usePayment = () => useContext(PaymentContext);
