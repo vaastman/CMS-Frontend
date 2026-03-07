@@ -85,10 +85,11 @@ import StudentGrievance from "../pages/Student Support/StudentGrievance";
 import RefundPolicy from "../pages/RefundPolicy";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsConditions from "../pages/TermsConditions";
-import StudentAdmissionPayment from "../pages/admission/StudentAdmissionPayment";
-import PaymentGatewayMock from "../pages/admission/PaymentGatewayMock";
 import ApplyCertificate from "../pages/Student Support/Certificate/ApplyCertificate";
 import AdminCertificates from "../pages/Admin/certificates/AdminCertificates";
+import PaymentProcessing from "../pages/payment/PaymentProcessing";
+import PaymentSuccess from "../pages/payment/PaymentSuccess";
+import StudentAdmissionPayment from "../pages/payment/StudentAdmissionPayment";
 
 function AppRoutes() {
   return (
@@ -195,10 +196,14 @@ function AppRoutes() {
 />
 
 <Route
-  path="student/payment-gateway/:admissionId"
-  element={<PaymentGatewayMock />}
+  path="payment-processing"
+  element={<PaymentProcessing />}
 />
 
+<Route
+  path="payment-success/:paymentId"
+  element={<PaymentSuccess />}
+/>
         {/* Academics */}
         <Route path="faculty" element={<Faculty />} />
         <Route path="staff" element={<Staff />} />

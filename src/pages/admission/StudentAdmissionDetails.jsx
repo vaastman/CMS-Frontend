@@ -5,7 +5,6 @@ import {
   FaPhone,
   FaBookOpen,
   FaCalendarAlt,
-  FaIdCard,
   FaArrowLeft,
   FaCheckCircle,
   FaExclamationCircle,
@@ -18,6 +17,7 @@ import {
 import { toast } from "react-toastify";
 
 const StudentAdmissionDetails = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,6 +26,7 @@ const StudentAdmissionDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
+
     let data = location.state;
 
     if (!data) {
@@ -41,7 +42,8 @@ const StudentAdmissionDetails = () => {
 
     setAdmission({
       id: data.lastAdmission?.id,
-      status: data.lastAdmission?.status,
+      status: data.lastAdmission?.status || "PENDING",
+      paymentStatus: data.lastAdmission?.paymentStatus || "PENDING",
       student: {
         name: data.name,
         phone: data.phone,
@@ -53,9 +55,11 @@ const StudentAdmissionDetails = () => {
     });
 
     setLoading(false);
+
   }, []);
 
   const handleChange = (field, value) => {
+
     setAdmission((prev) => ({
       ...prev,
       student: {
@@ -63,12 +67,14 @@ const StudentAdmissionDetails = () => {
         [field]: value,
       },
     }));
+
   };
 
   const handleSave = () => {
+
     setIsEditing(false);
     toast.success("Profile updated successfully");
-    // 👉 Call backend PATCH API here
+
   };
 
   if (loading) {
@@ -79,50 +85,49 @@ const StudentAdmissionDetails = () => {
     );
   }
 
-  if (!admission) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <h2>No Admission Found</h2>
-      </div>
-    );
-  }
-
-  const { student, course, status } = admission;
+  const { student, course, status, paymentStatus } = admission;
   const session = admission?.session || {};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-10 px-4">
+
       <div className="max-w-6xl mx-auto space-y-8">
 
-        {/* ================= HEADER ================= */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 flex justify-between items-center hover:shadow-xl transition">
+        {/* HEADER */}
+
+        <div className="bg-white rounded-2xl shadow-lg border p-6 flex justify-between items-center">
 
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 text-white rounded-2xl flex items-center justify-center text-2xl shadow-md">
+
+            <div className="w-16 h-16 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-2xl">
               <FaUserGraduate />
             </div>
+
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+              <h1 className="text-2xl font-bold">
                 Student Admission Profile
               </h1>
-              <p className="text-slate-500 text-sm mt-1">
-                Admission ID: <span className="font-medium">{admission?.id}</span>
+
+              <p className="text-sm text-gray-500">
+                Admission ID: {admission.id}
               </p>
             </div>
+
           </div>
 
           <div className="flex gap-3">
+
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-md"
+                className="px-5 py-2 bg-indigo-600 text-white rounded-lg"
               >
                 Edit
               </button>
             ) : (
               <button
                 onClick={handleSave}
-                className="px-5 py-2.5 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition shadow-md"
+                className="px-5 py-2 bg-green-600 text-white rounded-lg"
               >
                 Save
               </button>
@@ -130,26 +135,32 @@ const StudentAdmissionDetails = () => {
 
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-5 py-2.5 rounded-xl transition shadow-sm"
+              className="px-5 py-2 bg-gray-100 rounded-lg flex items-center gap-2"
             >
               <FaArrowLeft /> Back
             </button>
+
           </div>
+
         </div>
 
-        {/* ================= MAIN GRID ================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* MAIN GRID */}
 
-          {/* LEFT SIDE */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+
+          {/* LEFT */}
+
+          <div className="lg:col-span-2 space-y-6">
 
             {/* STUDENT INFO */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 hover:shadow-md transition">
-              <h3 className="font-semibold text-lg mb-5 flex items-center gap-2 text-indigo-600">
+
+            <div className="bg-white rounded-xl border p-6">
+
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-600">
                 <FaUser /> Student Information
               </h3>
 
-              <div className="grid sm:grid-cols-2 gap-6 text-sm">
+              <div className="grid sm:grid-cols-2 gap-5">
 
                 <EditableField
                   label="Full Name"
@@ -169,117 +180,135 @@ const StudentAdmissionDetails = () => {
                   label="Registration No"
                   value={student?.reg_no}
                   disabled={!isEditing}
-                  onChange={(val) => handleChange("reg_no", val)}
                 />
 
                 <EditableField
                   label="UAN Number"
                   value={student?.uan_no}
-                  disabled={true}
+                  disabled
                 />
 
               </div>
+
             </div>
 
             {/* ACADEMIC INFO */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 hover:shadow-md transition">
-              <h3 className="font-semibold text-lg mb-5 flex items-center gap-2 text-indigo-600">
+
+            <div className="bg-white rounded-xl border p-6">
+
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-indigo-600">
                 <FaGraduationCap /> Academic Details
               </h3>
 
-              <div className="grid sm:grid-cols-2 gap-6 text-slate-700 text-sm">
-                <InfoItem icon={<FaBookOpen />} label="Course" value={course?.name} />
-                <InfoItem icon={<FaCalendarAlt />} label="Session" value={session?.name} />
-              </div>
+              <InfoItem icon={<FaBookOpen />} label="Course" value={course?.name} />
+              <InfoItem icon={<FaCalendarAlt />} label="Session" value={session?.name} />
+
             </div>
+
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT */}
+
           <div className="space-y-6">
 
             {/* STATUS */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 text-center hover:shadow-md transition">
-              <h3 className="font-semibold text-slate-700 mb-4">
+
+            <div className="bg-white border rounded-xl p-6 text-center">
+
+              <h3 className="font-semibold mb-4">
                 Admission Status
               </h3>
 
-              {status === "approved" && (
-                <StatusBadge color="green" icon={<FaCheckCircle />} text="Approved" />
+              {status === "CONFIRMED" && (
+                <StatusBadge color="green" icon={<FaCheckCircle />} text="Admission Confirmed" />
               )}
-              {status === "pending" && (
+
+              {status === "PENDING" && (
                 <StatusBadge color="yellow" icon={<FaClock />} text="Pending Review" />
               )}
-              {status === "rejected" && (
+
+              {status === "REJECTED" && (
                 <StatusBadge color="red" icon={<FaExclamationCircle />} text="Rejected" />
               )}
+
             </div>
 
             {/* ACTIONS */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 space-y-4 hover:shadow-md transition">
+
+            <div className="bg-white border rounded-xl p-6 space-y-4">
+
               <button
                 onClick={() =>
                   navigate(`/student/document-upload/${admission.id}/verify`)
                 }
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white font-semibold transition shadow-md flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-indigo-600 text-white flex items-center justify-center gap-2"
               >
-                <FaFileAlt /> Upload / Verify Documents
+                <FaFileAlt /> Upload Documents
               </button>
 
-              <button
-                onClick={() =>
-                  navigate(`/student/admission/${admission.id}/payment`)
-                }
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 text-white font-semibold transition shadow-md flex items-center justify-center gap-2"
-              >
-                <FaMoneyBillWave /> Pay Admission Fee
-              </button>
+              {paymentStatus !== "SUCCESS" ? (
+
+                <button
+                  onClick={() =>
+                    navigate(`/student/admission/${admission.id}/payment`)
+                  }
+                  className="w-full py-3 rounded-xl bg-green-600 text-white flex items-center justify-center gap-2"
+                >
+                  <FaMoneyBillWave /> Pay Admission Fee
+                </button>
+
+              ) : (
+
+                <div className="w-full py-3 rounded-xl bg-green-100 text-green-700 text-center font-semibold">
+                  Payment Completed
+                </div>
+
+              )}
+
             </div>
 
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 };
 
-/* ================= Reusable Components ================= */
+/* COMPONENTS */
 
 const EditableField = ({ label, value, disabled, onChange }) => (
   <div>
-    <p className="text-xs text-slate-500 mb-1">{label}</p>
+    <p className="text-xs text-gray-500 mb-1">{label}</p>
     <input
       type="text"
       value={value || ""}
       disabled={disabled}
       onChange={(e) => onChange && onChange(e.target.value)}
-      className={`w-full px-3 py-2 rounded-lg border transition
-        ${disabled
-          ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-          : "bg-white border-indigo-300 focus:ring-2 focus:ring-indigo-400"}
-      `}
+      className="w-full px-3 py-2 border rounded-lg"
     />
   </div>
 );
 
 const InfoItem = ({ icon, label, value }) => (
-  <div className="flex items-start gap-3">
-    <div className="text-indigo-500 mt-1">{icon}</div>
-    <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="font-medium text-slate-800">{value || "-"}</p>
-    </div>
+  <div className="flex items-center gap-3 text-sm text-gray-700">
+    {icon}
+    <span>{label}: <strong>{value || "-"}</strong></span>
   </div>
 );
 
 const StatusBadge = ({ color, icon, text }) => {
+
   const colors = {
     green: "bg-green-100 text-green-700",
     yellow: "bg-yellow-100 text-yellow-700",
-    red: "bg-red-100 text-red-700",
+    red: "bg-red-100 text-red-700"
   };
 
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium ${colors[color]}`}>
+    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${colors[color]}`}>
       {icon} {text}
     </div>
   );
