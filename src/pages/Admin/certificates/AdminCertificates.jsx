@@ -21,10 +21,24 @@ const AdminCertificates = () => {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
+
       const res = await getCertificates();
-      setCertificates(res.data.certificateRequests || []);
+
+      console.log("Certificates API Response:", res);
+
+      const list =
+        res?.data?.certificateRequests ||
+        res?.certificateRequests ||
+        [];
+
+      setCertificates(list);
+
     } catch (error) {
-      toast.error("Failed to load certificates");
+      console.log("API ERROR:", error?.response?.data);
+
+      toast.error(
+        error?.response?.data?.message || "Failed to load certificates"
+      );
     } finally {
       setLoading(false);
     }
@@ -39,7 +53,7 @@ const AdminCertificates = () => {
       await updateCertificateStatus(id, { status: "APPROVED" });
       toast.success("Certificate Approved");
       fetchCertificates();
-    } catch (err) {
+    } catch {
       toast.error("Approval failed");
     }
   };
@@ -49,7 +63,7 @@ const AdminCertificates = () => {
       await updateCertificateStatus(id, { status: "REJECTED" });
       toast.success("Certificate Rejected");
       fetchCertificates();
-    } catch (err) {
+    } catch {
       toast.error("Rejection failed");
     }
   };
@@ -59,7 +73,7 @@ const AdminCertificates = () => {
       await issueCertificate(id);
       toast.success("Certificate Issued");
       fetchCertificates();
-    } catch (err) {
+    } catch {
       toast.error("Issuing failed");
     }
   };
@@ -67,14 +81,16 @@ const AdminCertificates = () => {
   const handleDownload = async (id) => {
     try {
       const blob = await downloadCertificate(id);
-      const url = window.URL.createObjectURL(new Blob([blob]));
+
+      const url = window.URL.createObjectURL(blob);
+
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `certificate_${id}.pdf`);
-      document.body.appendChild(link);
+      link.download = `certificate_${id}.pdf`;
       link.click();
-      link.remove();
-    } catch (err) {
+
+      window.URL.revokeObjectURL(url);
+    } catch {
       toast.error("Download failed");
     }
   };
@@ -82,7 +98,7 @@ const AdminCertificates = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-semibold mb-6">
-        Certificate Management
+        Certificate Applications
       </h1>
 
       <div className="bg-white rounded-xl shadow overflow-x-auto">
@@ -91,7 +107,7 @@ const AdminCertificates = () => {
             <tr>
               <th className="p-4 text-left">Student</th>
               <th>Reg No</th>
-              <th>Type</th>
+              <th>Certificate</th>
               <th>Department</th>
               <th>Status</th>
               <th className="text-center">Actions</th>
@@ -108,25 +124,34 @@ const AdminCertificates = () => {
             ) : certificates.length === 0 ? (
               <tr>
                 <td colSpan="6" className="text-center py-6">
-                  No certificate requests found
+                  No certificate applications found
                 </td>
               </tr>
             ) : (
               certificates.map((cert) => (
                 <tr key={cert.id} className="border-b">
-                  <td className="p-4">{cert.student?.name}</td>
-                  <td>{cert.student?.reg_no}</td>
-                  <td>{cert.type}</td>
-                  <td>{cert.department?.name}</td>
+
+                  <td className="p-4">{cert.student?.name || "-"}</td>
+
+                  <td>{cert.student?.reg_no || "-"}</td>
+
+                  <td>{cert.type || cert.certificateType || "-"}</td>
+
+                  <td>{cert.department?.name || "-"}</td>
+
                   <td>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs ${statusStyles[cert.status]}`}
+                      className={`px-3 py-1 rounded-full text-xs ${
+                        statusStyles[cert.status] ||
+                        "bg-gray-100 text-gray-600"
+                      }`}
                     >
                       {cert.status}
                     </span>
                   </td>
 
                   <td className="text-center space-x-2">
+
                     {cert.status === "PENDING" && (
                       <>
                         <button
@@ -162,7 +187,9 @@ const AdminCertificates = () => {
                         Download
                       </button>
                     )}
+
                   </td>
+
                 </tr>
               ))
             )}

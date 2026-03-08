@@ -1,70 +1,62 @@
 import { useEffect, useState } from "react";
 import CollectionCard from "../../../components/CollectionCard";
 import TransactionTable from "../../../components/TransactionTable";
-// import { getDcr1Data } from "@/api/fee.api"; // when backend ready
+import { getDcr1Report } from "@/api/dcr1.api";
 
 const Dcr1 = () => {
   const [transactions, setTransactions] = useState([]);
+  const [summary, setSummary] = useState({
+    total: 0,
+    month: 0,
+    today: 0,
+  });
 
-  // Example college admission payment data
+  const fetchDcr1Data = async () => {
+    try {
+      const res = await getDcr1Report();
+
+      const report = res.data.report;
+
+      setSummary({
+        total: report.summary.totalCollection.amount || 0,
+        month: report.summary.monthCollection.amount || 0,
+        today: report.summary.todayCollection.amount || 0,
+      });
+
+      const formatted = report.details.todayPayments.map((p) => ({
+        id: p.txnId,
+        studentName: p.student?.name || "-",
+        admissionNo: p.admission?.admissionNo || "-",
+        course: p.admission?.course?.name || "-",
+        semester: "-",
+        date: new Date(p.createdAt).toLocaleDateString("en-IN"),
+        amount: Number(p.totalAmount || 0),
+        paymentMode: p.gateway || "-",
+        status: p.status === "SUCCESS" ? "Paid" : "Pending",
+      }));
+
+      setTransactions(formatted);
+    } catch (err) {
+      console.error("Failed to load DCR1", err);
+    }
+  };
+
   useEffect(() => {
-    const demoData = [
-      {
-        id: "ADM2025001",
-        studentName: "Sumit Kumar",
-        admissionNo: "2025BCA001",
-        course: "BCA",
-        semester: "1st",
-        date: "12 Feb 2026",
-        amount: 25000,
-        paymentMode: "UPI",
-        status: "Paid",
-      },
-      {
-        id: "ADM2025002",
-        studentName: "Birendra Kumar",
-        admissionNo: "2025BBA002",
-        course: "BBA",
-        semester: "1st",
-        date: "12 Feb 2026",
-        amount: 30000,
-        paymentMode: "Cash",
-        status: "Paid",
-      },
-    ];
-
-    setTransactions(demoData);
-
-    // When backend ready:
-    // getDcr1Data().then(res => setTransactions(res.data))
+    fetchDcr1Data();
   }, []);
-
-  // Calculations
-  const totalCollection = transactions.reduce(
-    (sum, txn) => sum + txn.amount,
-    0
-  );
-
-  const todayCollection = transactions
-    .filter((txn) => txn.date === "12 Feb 2026") // replace with dynamic date logic
-    .reduce((sum, txn) => sum + txn.amount, 0);
-
-  const thisMonthCollection = totalCollection; // replace with month filter logic
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">
-        Daily Collection Report (DCR1) – Admission Fees
+        Daily Collection Report (DCR1)
       </h1>
 
-      {/* Collection Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <CollectionCard title="Total Admission Collection" amount={totalCollection} />
-        <CollectionCard title="This Month Admission Collection" amount={thisMonthCollection} />
-        <CollectionCard title="Today's Admission Collection" amount={todayCollection} />
+        <CollectionCard title="Total Admission Collection" amount={summary.total} />
+        <CollectionCard title="This Month Admission Collection" amount={summary.month} />
+        <CollectionCard title="Today's Admission Collection" amount={summary.today} />
       </div>
 
-      {/* Transaction Table */}
       <TransactionTable data={transactions} />
     </div>
   );

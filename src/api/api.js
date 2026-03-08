@@ -37,7 +37,6 @@ api.interceptors.response.use(
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/refresh-token");
 
-    // Handle 401
     if (
       error.response.status === 401 &&
       !originalRequest._retry &&
@@ -48,12 +47,10 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refreshToken");
 
-        // If no refresh token → do NOT force redirect for public pages
         if (!refreshToken) {
           return Promise.reject(error);
         }
 
-        // 🔥 Use plain axios (not api) to avoid interceptor loop
         const res = await axios.post(
           `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
           { refreshToken }
@@ -67,7 +64,15 @@ api.interceptors.response.use(
 
         localStorage.setItem("token", newAccessToken);
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        // update axios default header
+        api.defaults.headers.common["Authorization"] =
+          `Bearer ${newAccessToken}`;
+
+        // update original request
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newAccessToken}`,
+        };
 
         return api(originalRequest);
 
@@ -76,7 +81,6 @@ api.interceptors.response.use(
 
         const currentPath = window.location.pathname;
 
-        // 🔥 ONLY redirect if inside admin panel
         if (currentPath.startsWith("/admin")) {
           localStorage.clear();
           window.location.href = "/admin/login";

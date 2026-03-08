@@ -9,8 +9,10 @@ const PaymentSummary = ({
   loading = false
 }) => {
 
-  const total = feeBreakdown.reduce((sum, item) => sum + item.amount, 0);
-
+  const total = feeBreakdown.reduce(
+  (sum, item) => sum + Number(item.amount || 0),
+  0
+);
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
 

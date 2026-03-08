@@ -19,7 +19,7 @@ const Payments = () => {
   const fetchPayments = async () => {
     try {
       const res = await getAllPayments();
-      setPayments(res.data.payments || []);
+      setPayments(res?.data?.payments || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -27,14 +27,21 @@ const Payments = () => {
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const res = await getPaymentStats();
-      setStats(res.data.stats || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+ const fetchStats = async () => {
+  try {
+
+    const res = await getPaymentStats();
+
+    setStats(
+      res?.data?.stats ||
+      res?.data?.data?.stats ||
+      []
+    );
+
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   /* ================= SEARCH ================= */
 
@@ -168,7 +175,9 @@ const Payments = () => {
                   </td>
 
                   <td className="px-6 py-4">
-                    {new Date(p.createdAt).toLocaleDateString()}
+                    {p.createdAt
+  ? new Date(p.createdAt).toLocaleDateString()
+  : "-"}
                   </td>
 
                   <td className="px-6 py-4">
