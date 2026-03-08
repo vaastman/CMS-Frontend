@@ -5,12 +5,13 @@ import { getPaymentStatus } from "@/api/payment.api";
 const PaymentProcessing = () => {
 
   const [params] = useSearchParams();
-
   const paymentId = params.get("paymentId");
 
   const [status, setStatus] = useState("VERIFYING");
 
   useEffect(() => {
+
+    if (!paymentId) return;
 
     const verify = async () => {
 
@@ -18,17 +19,19 @@ const PaymentProcessing = () => {
 
         const res = await getPaymentStatus(paymentId);
 
-        setStatus(res.data.payment.status);
+        setStatus(res?.data?.payment?.status || "FAILED");
 
       } catch {
+
         setStatus("FAILED");
+
       }
 
     };
 
     verify();
 
-  }, []);
+  }, [paymentId]);
 
   return (
     <div className="flex items-center justify-center h-screen">

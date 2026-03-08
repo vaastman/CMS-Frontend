@@ -1,112 +1,60 @@
 import api from "./api";
 
-/* ================================
-   CREATE PAYMENT
-================================ */
+/* CREATE PAYMENT */
 export const createPayment = async (data) => {
-  try {
-    const res = await api.post("/payments", data);
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.post("/payments", data);
+  return res.data;
 };
 
-/* ================================
-   GENERATE PAYMENT LINK (ADMIN)
-================================ */
+/* ADMIN PAYMENT LINK */
 export const generatePaymentLink = async (paymentId) => {
-  try {
-    const res = await api.post(`/payments/${paymentId}/generate-link`);
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
-};
-
-/* ================================
-   GENERATE PAYMENT LINK (STUDENT)
-================================ */
-export const studentGeneratePaymentLink = async (paymentId) => {
   const res = await api.post(`/payments/${paymentId}/generate-link`);
   return res.data;
 };
 
-/* ================================
-   GET ALL PAYMENTS
-================================ */
+/* STUDENT PAYMENT LINK */
+export const studentGeneratePaymentLink = async (paymentId) => {
+  const res = await api.post(`/payments/${paymentId}/student-generate-link`);
+  return res.data;
+};
+
+/* GET ALL PAYMENTS */
 export const getAllPayments = async (params = {}) => {
-  try {
-    const res = await api.get("/payments", { params });
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.get("/payments", { params });
+  return res.data;
 };
 
-/* ================================
-   GET PAYMENT DETAILS
-================================ */
+/* GET PAYMENT DETAILS */
 export const getPaymentById = async (paymentId) => {
-  try {
-    const res = await api.get(`/payments/${paymentId}`);
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.get(`/payments/${paymentId}`);
+  return res.data;
 };
 
-/* ================================
-   GET PAYMENT STATUS (PUBLIC)
-================================ */
+/* GET PUBLIC PAYMENT STATUS */
 export const getPaymentStatus = async (paymentId) => {
-  try {
-    const res = await api.get(`/payments/public/${paymentId}/status`);
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.get(`/payments/public/${paymentId}/status`);
+  return res.data;
 };
 
-/* ================================
-   DOWNLOAD INVOICE
-================================ */
+/* DOWNLOAD INVOICE */
 export const downloadInvoice = (paymentId) => {
-  return `${api.defaults.baseURL}/payments/public/${paymentId}/invoice`;
+  return `${import.meta.env.VITE_API_URL}/payments/public/${paymentId}/invoice`;
 };
 
-/* ================================
-   UPDATE PAYMENT STATUS
-================================ */
+/* UPDATE PAYMENT STATUS */
 export const updatePaymentStatus = async (paymentId, data) => {
-  try {
-    const res = await api.patch(`/payments/${paymentId}/status`, data);
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.patch(`/payments/${paymentId}/status`, data);
+  return res.data;
 };
 
-/* ================================
-   REFUND PAYMENT
-================================ */
+/* REFUND PAYMENT */
 export const refundPayment = async (paymentId, data) => {
-  try {
-    const res = await api.post(`/payments/${paymentId}/refund`, data);
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.post(`/payments/${paymentId}/refund`, data);
+  return res.data;
 };
 
-/* ================================
-   PAYMENT STATS
-================================ */
+/* PAYMENT STATS */
 export const getPaymentStats = async () => {
-  try {
-    const res = await api.get("/payments/stats");
-    return res.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.get("/payments/stats");
+  return res.data;
 };

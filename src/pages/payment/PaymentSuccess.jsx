@@ -1,11 +1,13 @@
 import { useSearchParams } from "react-router-dom";
-import { downloadInvoice } from "@/api/payment.api";
 
 const PaymentSuccess = () => {
 
   const [params] = useSearchParams();
-
   const paymentId = params.get("paymentId");
+
+  const invoiceUrl = paymentId
+    ? `${import.meta.env.VITE_API_URL}/payments/public/${paymentId}/invoice`
+    : null;
 
   return (
     <div className="text-center mt-20">
@@ -14,13 +16,16 @@ const PaymentSuccess = () => {
         Payment Successful
       </h1>
 
-      <a
-        href={downloadInvoice(paymentId)}
-        target="_blank"
-        className="mt-6 inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg"
-      >
-        Download Receipt
-      </a>
+      {invoiceUrl && (
+        <a
+          href={invoiceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg"
+        >
+          Download Receipt
+        </a>
+      )}
 
     </div>
   );

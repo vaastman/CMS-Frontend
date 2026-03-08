@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createPayment, studentGeneratePaymentLink } from "@/api/payment.api";
+// import { createPayment, studentGeneratePaymentLink } from "@/api/payment.api";
+import { createPayment, generatePaymentLink } from "@/api/payment.api";
 import PaymentSummary from "@/components/payment/PaymentSummary";
 
 const StudentAdmissionPayment = () => {
@@ -46,13 +47,13 @@ const handlePayment = async () => {
     setLoading(true);
 
     const payload = {
-  admissionId: admissionId,
-  studentId: student?.studentId,
-  totalAmount: total,
-  gateway: "GETEPAY",
-  txnId: `TXN-${Date.now()}`,
-  breakups: feeBreakdown
-};
+      admissionId: admissionId,
+      studentId: student.studentId,
+      totalAmount: total,
+      gateway: "GETEPAY",
+      txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+      breakups: feeBreakdown
+    };
 
     const res = await createPayment(payload);
 
@@ -62,7 +63,7 @@ const handlePayment = async () => {
       throw new Error("Payment creation failed");
     }
 
-    const linkRes = await studentGeneratePaymentLink(paymentId);
+    const linkRes = await generatePaymentLink(paymentId);
 
     const paymentUrl = linkRes?.data?.paymentUrl;
 
@@ -74,8 +75,8 @@ const handlePayment = async () => {
 
   } catch (err) {
 
-    console.error(err);
-console.error("FULL ERROR:", err.response);
+    console.log("FULL ERROR:", err.response?.data);
+
     toast.error(
       err?.response?.data?.message ||
       err?.message ||
@@ -83,11 +84,12 @@ console.error("FULL ERROR:", err.response);
     );
 
   } finally {
+
     setLoading(false);
+
   }
 
 };
-
   /* ================= LOADING ================= */
 
   if (!student) {

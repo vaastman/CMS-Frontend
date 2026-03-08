@@ -4,65 +4,62 @@ import api from "./api";
    Create Certificate Request
 =========================== */
 export const createCertificate = async (payload) => {
-  const { data } = await api.post("/certificates", payload);
-  return data;
+  const res = await api.post("/certificates", payload);
+  return res.data;
 };
 
 /* ===========================
-   Get All Certificates
-   (Admin / HOD / Student)
+   Get All Certificates (Admin)
 =========================== */
 export const getCertificates = async (params = {}) => {
-  const { data } = await api.get("/certificates", { params });
-  return data;
+  try {
+    const res = await api.get("/certificates", { params });
+    return res.data;
+  } catch (error) {
+    console.error("Get Certificates Error:", error.response?.data);
+    throw error;
+  }
 };
 
 /* ===========================
    Get Single Certificate
 =========================== */
 export const getCertificateById = async (id) => {
-  const { data } = await api.get(`/certificates/${id}`);
-  return data;
+  const res = await api.get(`/certificates/${id}`);
+  return res.data;
 };
 
 /* ===========================
    Update Certificate Status
-   (APPROVED / REJECTED)
 =========================== */
 export const updateCertificateStatus = async (id, payload) => {
-  const { data } = await api.patch(
-    `/certificates/${id}/status`,
-    payload
-  );
-  return data;
+  const res = await api.patch(`/certificates/${id}/status`, payload);
+  return res.data;
 };
 
 /* ===========================
-   Issue Certificate (Generate PDF)
+   Issue Certificate
 =========================== */
 export const issueCertificate = async (id) => {
-  const { data } = await api.post(`/certificates/${id}/issue`);
-  return data;
+  const res = await api.post(`/certificates/${id}/issue`);
+  return res.data;
 };
 
 /* ===========================
-   Download Certificate PDF
+   Download Certificate
 =========================== */
 export const downloadCertificate = async (id) => {
-  const response = await api.get(
-    `/certificates/${id}/download`,
-    {
-      responseType: "blob", // important for PDF
-    }
-  );
+  const res = await api.get(`/certificates/${id}/download`, {
+    responseType: "blob"
+  });
 
-  return response.data;
+  return res.data;
 };
 
 /* ===========================
    Delete Certificate
 =========================== */
 export const deleteCertificate = async (id) => {
-  const { data } = await api.delete(`/certificates/${id}`);
-  return data;
+  const res = await api.delete(`/certificates/${id}`);
+  return res.data;
 };
