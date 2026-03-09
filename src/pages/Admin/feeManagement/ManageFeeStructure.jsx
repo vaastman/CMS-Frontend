@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { FaSave } from "react-icons/fa";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const semesters = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 
@@ -7,6 +9,7 @@ const createRow = (name, defaultValue = 0) => ({
   name,
   values: Array(8).fill(defaultValue),
 });
+
 
 const ManageFeeStructure = () => {
   const [partA, setPartA] = useState([
@@ -33,6 +36,62 @@ const ManageFeeStructure = () => {
     createRow("Handbook/Directory", 50),
   ]);
 
+const downloadPDF = () => {
+  const doc = new jsPDF();
+
+  const headers = ["Head / Item", ...semesters.map((s) => `Sem ${s}`)];
+
+  const rows = [];
+
+  const addRows = (data) => {
+    data.forEach((row) => {
+      rows.push([
+        row.name,
+        ...row.values.map((v) => `₹${Number(v).toFixed(0)}`),
+      ]);
+    });
+  };
+
+  addRows(partA);
+  addRows(partB);
+
+  rows.push([
+    "Grand Total",
+    ...semesters.map((_, i) => `₹${calculateGrandTotal(i)}`),
+  ]);
+
+  doc.setFontSize(16);
+  doc.text("Semester Fee Structure", 14, 15);
+
+  autoTable(doc, {
+    startY: 20,
+    head: [headers],
+    body: rows,
+
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+      halign: "center",
+      valign: "middle",
+    },
+
+    headStyles: {
+      fillColor: [40, 116, 166],
+      textColor: 255,
+      fontStyle: "bold",
+    },
+
+    columnStyles: {
+      0: { halign: "left", cellWidth: 50 }, // Head column
+    },
+
+    alternateRowStyles: {
+      fillColor: [240, 240, 240],
+    },
+  });
+
+  doc.save("fee-structure.pdf");
+};
   const handleChange = (section, rowIndex, semIndex, value) => {
     const updater = section === "A" ? [...partA] : [...partB];
     updater[rowIndex].values[semIndex] = Number(value);
@@ -125,13 +184,14 @@ const ManageFeeStructure = () => {
       </div>
 
       <div className="mt-6">
-        <button
-          className="flex items-center gap-2 px-6 py-2 rounded-lg text-white"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          <FaSave />
-          Save Fee Structure
-        </button>
+      <button
+  onClick={downloadPDF}
+  className="flex items-center gap-2 px-6 py-2 rounded-lg text-white"
+  style={{ backgroundColor: "var(--color-primary)" }}
+>
+  <FaSave />
+  Save Fee Structure
+</button>
       </div>
     </div>
   );
