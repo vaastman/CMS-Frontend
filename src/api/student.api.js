@@ -1,8 +1,15 @@
 import api from "./api";
 
 /* ================= CREATE ================= */
-export const createStudent = (payload) => {
-  return api.post("/students", payload);
+/* ================= CREATE ================= */
+export const createStudent = async (payload) => {
+  try {
+    const res = await api.post("/students", payload);
+    return res;
+  } catch (error) {
+    console.error("Create Student Error:", error?.response?.data);
+    throw error;
+  }
 };
 
 /* ================= READ ================= */
