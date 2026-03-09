@@ -27,15 +27,7 @@ const CollectionCard = ({ title, amount }) => {
           ₹ {amount.toLocaleString()}
         </h2>
       </div>
-
-      <button
-        onClick={exportCSV}
-        className="mt-4 self-start text-sm px-4 py-2 rounded-lg text-white"
-        style={{ backgroundColor: "var(--color-primary)" }}
-      >
-        Export Report
-      </button>
-    </div>
+          </div>
   );
 };
 
