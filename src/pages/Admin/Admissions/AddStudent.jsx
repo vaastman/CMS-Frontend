@@ -8,15 +8,19 @@ import { getDepartments } from "@/api/department.api";
 import { getSemesters } from "@/api/semester.api";
 import { uploadStudentDocument } from "@/api/files.api";
 
+const inputClass =
+  "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+
 const INITIAL_FORM = {
   name: "",
   email: "",
   phone: "",
   uan_no: "",
+   reg_no: "",
 
   fatherName: "",
-  gender: "Gender",
-  category: "GENERAL",
+  gender: "",
+  category: "",
   address: "",
 
   departmentId: "",
@@ -71,7 +75,7 @@ const AddStudent = ({ onSuccess }) => {
       .catch(() => toast.error("Failed to load semesters"));
   }, [form.courseId]);
 
-  /* ================= HANDLER ================= */
+  /* ================= FORM CHANGE ================= */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -99,12 +103,26 @@ const AddStudent = ({ onSuccess }) => {
 
       const res = await uploadStudentDocument(formData);
       return res?.data?.data?.fileUrl;
-    } catch (err) {
+    } catch {
       toast.error("Photo upload failed");
-      throw err;
     } finally {
       setUploadingPhoto(false);
     }
+  };
+
+  /* ================= VALIDATION ================= */
+
+  const validate = () => {
+    if (!form.name) return toast.error("Student name required");
+    if (!form.email) return toast.error("Email required");
+    if (!form.phone) return toast.error("Phone required");
+    if (!form.uan_no) return toast.error("UAN number required");
+    if (!form.departmentId) return toast.error("Select department");
+    if (!form.courseId) return toast.error("Select course");
+    if (!form.sessionId) return toast.error("Select session");
+    if (!form.semesterId) return toast.error("Select semester");
+
+    return true;
   };
 
   /* ================= SUBMIT ================= */
@@ -112,13 +130,10 @@ const AddStudent = ({ onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name) return toast.error("Name required");
-    if (!form.phone) return toast.error("Phone required");
+    if (!validate()) return;
 
     try {
       setLoading(true);
-
-      let photoUrl;
 
       const payload = {
         ...form,
@@ -132,11 +147,10 @@ const AddStudent = ({ onSuccess }) => {
       };
 
       const res = await createStudent(payload);
-
-      const studentId = res?.data?.data?.student?.id;
+      const studentId = res?.data?.data?.id;
 
       if (photo && studentId) {
-        photoUrl = await uploadStudentPhoto(photo, studentId);
+        await uploadStudentPhoto(photo, studentId);
       }
 
       toast.success("Student admitted successfully 🎉");
@@ -155,164 +169,153 @@ const AddStudent = ({ onSuccess }) => {
   /* ================= UI ================= */
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-
-      {/* ===== Profile Upload ===== */}
-     {/* ===== Profile Upload ===== */}
-<div className="flex items-center gap-6 border-b pb-4">
-
-  <div className="w-24 h-24 rounded-full border flex items-center justify-center overflow-hidden bg-gray-100">
-    {photo ? (
-      <img
-        src={URL.createObjectURL(photo)}
-        alt="preview"
-        className="w-full h-full object-cover"
-      />
-    ) : (
-      <span className="text-gray-400 text-sm">Photo</span>
-    )}
-  </div>
-
-  <div>
-    <label className="cursor-pointer">
-      <input
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={(e) => setPhoto(e.target.files[0])}
-      />
-
-      <span className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-100">
-        Upload Profile Photo
-      </span>
-    </label>
-
-  </div>
-
-</div>
-
-      {/* ===== Personal Info ===== */}
-
-      <div>
-        <h3 className="font-semibold mb-3">Personal Information</h3>
-
-        <div className="grid grid-cols-2 gap-4">
-
-          <input className="input" name="name" placeholder="Student Name *" value={form.name} onChange={handleChange}/>
-          <input className="input" name="email" placeholder="Email" value={form.email} onChange={handleChange}/>
-
-          <input className="input" name="phone" placeholder="Phone *" value={form.phone} onChange={handleChange}/>
-          <input className="input" name="uan_no" placeholder="UAN Number" value={form.uan_no} onChange={handleChange}/>
-
-          <input className="input" name="fatherName" placeholder="Father Name" value={form.fatherName} onChange={handleChange}/>
-          <input className="input" name="profileNo" placeholder="Profile Number" value={form.profileNo} onChange={handleChange}/>
-
-          <select className="input" name="gender" value={form.gender} onChange={handleChange}>
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-            <option value="OTHER">Other</option>
-          </select>
-
-          <select className="input" name="category" value={form.category} onChange={handleChange}>
-            <option value="GENERAL">General</option>
-            <option value="SC">SC</option>
-            <option value="ST">ST</option>
-            <option value="BC_I">BC-I</option>
-            <option value="BC_II">BC-II</option>
-            <option value="EWS">EWS</option>
-          </select>
-
-          <textarea className="input col-span-2" name="address" placeholder="Address" value={form.address} onChange={handleChange}/>
-
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 bg-white p-6 rounded-xl shadow-sm"
+    >
+      {/* PHOTO */}
+      <div className="flex items-center gap-6 border-b pb-6">
+        <div className="w-24 h-24 rounded-full border overflow-hidden bg-gray-100 flex items-center justify-center">
+          {photo ? (
+            <img
+              src={URL.createObjectURL(photo)}
+              alt="preview"
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <span className="text-gray-400 text-sm">Photo</span>
+          )}
         </div>
+
+        <label className="cursor-pointer text-sm border px-4 py-2 rounded-lg hover:bg-gray-50">
+          Upload Photo
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={(e) => setPhoto(e.target.files[0])}
+          />
+        </label>
       </div>
 
-      {/* ===== Academic Details ===== */}
+      {/* PERSONAL INFO */}
+      <Section title="Personal Information">
+        <Input name="name" label="Student Name *" value={form.name} onChange={handleChange} />
+        <Input name="email" label="Email *" value={form.email} onChange={handleChange} />
+        <Input name="phone" label="Phone *" value={form.phone} onChange={handleChange} />
+        <Input name="reg_no" label="Registration Number" value={form.reg_no} onChange={handleChange} />
+        <Input name="uan_no" label="UAN Number *" value={form.uan_no} onChange={handleChange} />
+        <Input name="fatherName" label="Father Name" value={form.fatherName} onChange={handleChange} />
+        <Input name="profileNo" label="Profile Number" value={form.profileNo} onChange={handleChange} />
 
-      <div>
-        <h3 className="font-semibold mb-3">Academic Details</h3>
+        <Select name="gender" label="Gender" value={form.gender} onChange={handleChange}>
+          <option value="">Select Gender</option>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+          <option value="OTHER">Other</option>
+        </Select>
 
-        <div className="grid grid-cols-2 gap-4">
+        <Select name="category" label="Category" value={form.category} onChange={handleChange}>
+          <option value="">Select Category</option>
+          <option value="GENERAL">General</option>
+          <option value="SC">SC</option>
+          <option value="ST">ST</option>
+          <option value="BC_I">BC-I</option>
+          <option value="BC_II">BC-II</option>
+          <option value="EWS">EWS</option>
+        </Select>
 
-          <select className="input" name="departmentId" value={form.departmentId} onChange={handleChange}>
-            <option value="">Department</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
+        <textarea
+          className={`${inputClass} col-span-2`}
+          name="address"
+          placeholder="Address"
+          value={form.address}
+          onChange={handleChange}
+        />
+      </Section>
 
-          <select className="input" name="sessionId" value={form.sessionId} onChange={handleChange}>
-            <option value="">Session</option>
-            {sessions.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+      {/* ACADEMIC */}
+      <Section title="Academic Details">
+        <Select name="departmentId" label="Department" value={form.departmentId} onChange={handleChange}>
+          <option value="">Select Department</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </Select>
 
-          <select className="input" name="courseId" value={form.courseId} onChange={handleChange}>
-            <option value="">Course</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+        <Select name="sessionId" label="Session" value={form.sessionId} onChange={handleChange}>
+          <option value="">Select Session</option>
+          {sessions.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </Select>
 
-          <select className="input" name="semesterId" value={form.semesterId} onChange={handleChange}>
-            <option value="">Semester</option>
-            {semesters.map((s) => (
-              <option key={s.id} value={s.id}>Semester {s.number}</option>
-            ))}
-          </select>
+        <Select name="courseId" label="Course" value={form.courseId} onChange={handleChange}>
+          <option value="">Select Course</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </Select>
 
-          <input className="input" name="academicYear" value={form.academicYear} onChange={handleChange} placeholder="Academic Year"/>
+        <Select name="semesterId" label="Semester" value={form.semesterId} onChange={handleChange}>
+          <option value="">Select Semester</option>
+          {semesters.map((s) => (
+            <option key={s.id} value={s.id}>
+              Semester {s.number}
+            </option>
+          ))}
+        </Select>
 
-          <select className="input" name="admissionType" value={form.admissionType} onChange={handleChange}>
-            <option value="NEW">New Admission</option>
-            <option value="CONTINUATION">Continuation</option>
-          </select>
+        <Input name="academicYear" label="Academic Year" value={form.academicYear} onChange={handleChange} />
 
-        </div>
-      </div>
+        <Select name="admissionType" label="Admission Type" value={form.admissionType} onChange={handleChange}>
+          <option value="NEW">New Admission</option>
+          <option value="CONTINUATION">Continuation</option>
+        </Select>
+      </Section>
 
-      {/* ===== Extra University Details ===== */}
-
-      <div>
-        <h3 className="font-semibold mb-3">University Details</h3>
-
-        <div className="grid grid-cols-2 gap-4">
-
-          <input className="input" name="meritListType" placeholder="Merit List Type" value={form.meritListType} onChange={handleChange}/>
-          <input className="input" name="confidentialNo" placeholder="Confidential Number" value={form.confidentialNo} onChange={handleChange}/>
-
-          <input className="input" name="admissionNo" placeholder="Admission Number" value={form.admissionNo} onChange={handleChange}/>
-          <input className="input" name="university_roll" placeholder="University Roll Number" value={form.university_roll} onChange={handleChange}/>
-
-        </div>
-      </div>
+      {/* UNIVERSITY */}
+      <Section title="University Details">
+        <Input name="meritListType" label="Merit List Type" value={form.meritListType} onChange={handleChange} />
+        <Input name="confidentialNo" label="Confidential Number" value={form.confidentialNo} onChange={handleChange} />
+        <Input name="admissionNo" label="Admission Number" value={form.admissionNo} onChange={handleChange} />
+        <Input name="university_roll" label="University Roll Number" value={form.university_roll} onChange={handleChange} />
+      </Section>
 
       <button
-  disabled={loading || uploadingPhoto}
-  className="
-    w-full
-    py-3
-    rounded-lg
-    text-white
-    font-medium
-    transition
-    disabled:opacity-60
-    hover:opacity-90
-  "
-  style={{ backgroundColor: "var(--color-primary)" }}
-  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "var(--color-secondary)")}
-  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "var(--color-primary)")}
->
-  {uploadingPhoto
-    ? "Uploading Photo..."
-    : loading
-    ? "Saving..."
-    : "Create Admission"}
-</button>
-
+        disabled={loading || uploadingPhoto}
+        className="w-full py-3 rounded-lg text-white font-medium transition disabled:opacity-60"
+        style={{ backgroundColor: "var(--color-primary)" }}
+      >
+        {uploadingPhoto ? "Uploading Photo..." : loading ? "Saving..." : "Create Admission"}
+      </button>
     </form>
   );
 };
+
+/* ---------- Reusable Components ---------- */
+
+const Section = ({ title, children }) => (
+  <div>
+    <h3 className="font-semibold mb-4 text-gray-700">{title}</h3>
+    <div className="grid grid-cols-2 gap-4">{children}</div>
+  </div>
+);
+
+const Input = ({ label, ...props }) => (
+  <div>
+    <label className="text-sm text-gray-600 mb-1 block">{label}</label>
+    <input {...props} className={inputClass} />
+  </div>
+);
+
+const Select = ({ label, children, ...props }) => (
+  <div>
+    <label className="text-sm text-gray-600 mb-1 block">{label}</label>
+    <select {...props} className={inputClass}>
+      {children}
+    </select>
+  </div>
+);
 
 export default AddStudent;
