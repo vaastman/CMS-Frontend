@@ -24,6 +24,7 @@ const StudentAdmissionDetails = () => {
   const [admission, setAdmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [practical, setPractical] = useState(false);
 
   useEffect(() => {
 
@@ -230,7 +231,20 @@ const StudentAdmissionDetails = () => {
               {status === "REJECTED" && (
                 <StatusBadge color="red" icon={<FaExclamationCircle />} text="Rejected" />
               )}
+<div className="mt-4">
+  <label className="text-sm font-medium text-gray-600">
+    Practical Subject
+  </label>
 
+  <select
+    value={practical}
+    onChange={(e) => setPractical(e.target.value === "true")}
+    className="mt-1 w-full border px-3 py-2 rounded-lg"
+  >
+    <option value="false">No Practical</option>
+    <option value="true">Yes Practical</option>
+  </select>
+</div>
             </div>
 
             {/* ACTIONS */}
@@ -250,7 +264,11 @@ const StudentAdmissionDetails = () => {
 
                 <button
                   onClick={() =>
-                    navigate(`/student/admission/${admission.id}/payment`)
+                   navigate(`/student/admission/${admission.id}/payment`, {
+  state: {
+    practical
+  }
+})
                   }
                   className="w-full py-3 rounded-xl bg-green-600 text-white flex items-center justify-center gap-2"
                 >

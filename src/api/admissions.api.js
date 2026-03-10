@@ -107,3 +107,35 @@ export const verifyAdmissionPayment = (admissionId, payload) => {
 export const verifyStudent = async (payload) => {
   return api.post("/students/verify-student", payload);
 };
+
+// 
+/**
+ * Get admission fee preview
+ * Public API
+ */
+export const getAdmissionFeePreview = async (
+  courseId,
+  semester,
+  practical = false
+) => {
+  if (!courseId) throw new Error("courseId is required");
+  if (!semester) throw new Error("semester is required");
+
+  try {
+    const res = await api.get("/admissions/fee-preview", {
+      params: {
+        courseId,
+        semester,
+        practical,
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    console.error(
+      "getAdmissionFeePreview error:",
+      error?.response?.data || error
+    );
+    throw error;
+  }
+};

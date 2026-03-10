@@ -7,7 +7,6 @@ import {
   updateStudent,
 } from "@/api/student.api";
 
-import { assignSemesterToStudent } from "@/api/semester.api";
 
 const StudentDetails = () => {
   const { id } = useParams();
