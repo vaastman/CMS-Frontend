@@ -8,7 +8,6 @@ import {
   getStudentDocuments,
   verifyDocument,
   getDocumentDownloadUrl,
-  uploadStudentDocument
 } from "@/api/files.api";
 
 

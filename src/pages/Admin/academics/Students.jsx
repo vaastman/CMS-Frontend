@@ -9,7 +9,7 @@ import { getSessions } from "@/api/session.api";
 import { getCourses } from "@/api/course.api";
 import { getDepartments } from "@/api/department.api";
 import { getSemesters } from "@/api/semester.api";
-import { uploadStudentDocument } from "@/api/files.api";
+// import { uploadStudentDocument } from "@/api/files.api";
 import AddStudent from "../Admissions/AddStudent";
 
 
