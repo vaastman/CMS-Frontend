@@ -35,10 +35,11 @@ const ImageUpload = ({ value, onChange }) => {
   setLoading(true);
 
   const response = await generatePresignedUrl({
-    fileName: safeFileName,
-    mimeType,
-    folder: "gallery",
-  });
+  fileName: safeFileName,
+  mimeType,
+  fileType: "gallery"
+});
+
 
   const { uploadUrl, fileUrl } = response.data;
 
