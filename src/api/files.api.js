@@ -32,49 +32,59 @@ export const uploadFileToR2 = async (uploadUrl, file) => {
 2 → Upload file to R2
 3 → Save metadata
 */
+// export const uploadFile = async ({
+//   file,
+//   fileType = "document",
+//   studentId,
+//   documentType = "OTHER",
+// }) => {
 
+//   /* STEP 1 — GET PRESIGNED URL */
+
+//   const presignRes = await getPresignedUploadUrl({
+//     fileType,
+//     fileName: file.name,
+//     mimeType: file.type,
+//   });
+
+//   const { uploadUrl, fileUrl } = presignRes.data.data;
+
+//   /* STEP 2 — UPLOAD TO R2 */
+
+//   await uploadFileToR2(uploadUrl, file);
+
+//   /* STEP 3 — SAVE METADATA */
+
+//   await api.post("/files", {
+//     fileType,
+//     studentId,
+//     documentType,
+//     fileUrl,
+//   });
+
+//   return fileUrl;
+// };
 export const uploadFile = async ({
   file,
-  fileType = "document",
+  fileType = "photo",
   studentId,
-  documentType = "OTHER",
+  documentType
 }) => {
 
-  /* STEP 1 — GET PRESIGNED URL */
+  const formData = new FormData();
 
-  const presignRes = await getPresignedUploadUrl({
-    fileType,
-    fileName: file.name,
-    mimeType: file.type,
-  });
+  formData.append("file", file);
+  formData.append("fileType", fileType);
+  formData.append("studentId", studentId);
 
-  const { uploadUrl, fileUrl } = presignRes.data.data;
+  // Only send documentType when needed
+  if (fileType === "document" && documentType) {
+    formData.append("documentType", documentType);
+  }
 
-  /* STEP 2 — UPLOAD TO R2 */
+  const res = await api.post("/files", formData);
 
-  await uploadFileToR2(uploadUrl, file);
-
-  /* STEP 3 — SAVE METADATA */
-
-  await api.post("/files", {
-    fileType,
-    studentId,
-    documentType,
-    fileUrl,
-  });
-
-  return fileUrl;
-};
-
-
-/* ================= SAVE FILE METADATA ================= */
-
-export const uploadStudentDocument = (formData) => {
-  return api.post("/files", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  return res.data;
 };
 
 /* ================= GET STUDENT DOCUMENTS ================= */

@@ -110,10 +110,10 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
       const finalList = Array.isArray(studentsList) ? studentsList : [];
 
       // ✅ LOG STUDENT IDS ON LOAD
-      console.log("Loaded Students:");
-      finalList.forEach((student) => {
-        console.log("Student ID:", student.id);
-      });
+      // console.log("Loaded Students:");
+      // finalList.forEach((student) => {
+      //   console.log("Student ID:", student.id);
+      // });
 
       setStudents(finalList);
 

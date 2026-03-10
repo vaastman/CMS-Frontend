@@ -6,7 +6,7 @@ import { getCourses } from "@/api/course.api";
 import { getSessions } from "@/api/session.api";
 import { getDepartments } from "@/api/department.api";
 import { getSemesters } from "@/api/semester.api";
-import { uploadStudentDocument } from "@/api/files.api";
+import { uploadFile } from "@/api/files.api";
 
 const inputClass =
   "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary";
@@ -93,25 +93,43 @@ const AddStudent = ({ onSuccess }) => {
 
   /* ================= PHOTO UPLOAD ================= */
 
-  const uploadStudentPhoto = async (file, studentId) => {
-    try {
-      setUploadingPhoto(true);
+// const uploadStudentPhoto = async (file, studentId) => {
+//   try {
+//     setUploadingPhoto(true);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("fileType", "photo");
-      formData.append("documentType", "PHOTO");
-      formData.append("studentId", studentId);
+//     const formData = new FormData();
+//     formData.append("file", file);
+//     formData.append("fileType", "photo");
+//     formData.append("documentType", "PHOTO");
+//     formData.append("studentId", studentId);
 
-      const res = await uploadStudentDocument(formData);
-      return res?.data?.data?.fileUrl;
-    } catch {
-      toast.error("Photo upload failed");
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
+//     await uploadStudentDocument(formData);
 
+//   } catch {
+//     toast.error("Photo upload failed");
+//   } finally {
+//     setUploadingPhoto(false);
+//   }
+// };
+const uploadStudentPhoto = async (file, studentId) => {
+  try {
+    setUploadingPhoto(true);
+
+    const res = await uploadFile({
+      file,
+      fileType: "photo",
+      studentId
+    });
+
+    console.log("Upload success:", res);
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Photo upload failed");
+  } finally {
+    setUploadingPhoto(false);
+  }
+};
   /* ================= VALIDATION ================= */
 
   const validate = () => {
@@ -175,13 +193,16 @@ const handleSubmit = async (e) => {
 
     const studentId = res?.data?.data?.id;
 
-    if (photo && studentId) {
-      const photoUrl = await uploadStudentPhoto(photo, studentId);
+    // if (photo && studentId) {
+    //   const photoUrl = await uploadStudentPhoto(photo, studentId);
 
-      if (photoUrl) {
-        await updateStudent(studentId, { photoUrl });
-      }
-    }
+    //   if (photoUrl) {
+    //     await updateStudent(studentId, { photoUrl });
+    //   }
+    // }
+    if (photo && studentId) {
+  await uploadStudentPhoto(photo, studentId);
+}
 
     toast.success("Student admitted successfully 🎉");
 
@@ -226,11 +247,20 @@ const handleSubmit = async (e) => {
         <label className="cursor-pointer text-sm border px-4 py-2 rounded-lg hover:bg-gray-50">
           Upload Photo
           <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={(e) => setPhoto(e.target.files[0])}
-          />
+  type="file"
+  hidden
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files[0];
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image allowed");
+      return;
+    }
+
+    setPhoto(file);
+  }}
+/>
         </label>
       </div>
 
