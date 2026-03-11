@@ -9,64 +9,124 @@ const StudentRegistration = () => {
   const [form, setForm] = useState({
     referenceNumber: "",
     regNumber: "",
+    universityRoll: "",
     mobile1: "",
     mobile2: "",
+    mobile3: "",
   });
 
   const [loading, setLoading] = useState(false);
 
   const isValidMobile = (mobile) => /^[6-9]\d{9}$/.test(mobile);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
 
-    if (name === "referenceNumber" || name === "mobile1") {
-      setForm({
-        referenceNumber:
-          name === "referenceNumber" ? value : form.referenceNumber,
-        mobile1: name === "mobile1" ? value : form.mobile1,
-        regNumber: "",
-        mobile2: "",
-      });
-    } else {
-      setForm({
-        regNumber: name === "regNumber" ? value : form.regNumber,
-        mobile2: name === "mobile2" ? value : form.mobile2,
-        referenceNumber: "",
-        mobile1: "",
-      });
-    }
-  };
+  //   if (name === "referenceNumber" || name === "mobile1") {
+  //     setForm({
+  //       referenceNumber:
+  //         name === "referenceNumber" ? value : form.referenceNumber,
+  //       mobile1: name === "mobile1" ? value : form.mobile1,
+  //       regNumber: "",
+  //       mobile2: "",
+  //     });
+  //   } else {
+  //     setForm({
+  //       regNumber: name === "regNumber" ? value : form.regNumber,
+  //       mobile2: name === "mobile2" ? value : form.mobile2,
+  //       referenceNumber: "",
+  //       mobile1: "",
+  //     });
+  //   }
+  // };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  if (name === "referenceNumber" || name === "mobile1") {
+    setForm({
+      referenceNumber:
+        name === "referenceNumber" ? value : form.referenceNumber,
+      mobile1: name === "mobile1" ? value : form.mobile1,
+
+      regNumber: "",
+      mobile2: "",
+      universityRoll: "",
+      mobile3: "",
+    });
+
+  } else if (name === "regNumber" || name === "mobile2") {
+    setForm({
+      regNumber: name === "regNumber" ? value : form.regNumber,
+      mobile2: name === "mobile2" ? value : form.mobile2,
+
+      referenceNumber: "",
+      mobile1: "",
+      universityRoll: "",
+      mobile3: "",
+    });
+
+  } else {
+    setForm({
+      universityRoll: name === "universityRoll" ? value : form.universityRoll,
+      mobile3: name === "mobile3" ? value : form.mobile3,
+
+      referenceNumber: "",
+      mobile1: "",
+      regNumber: "",
+      mobile2: "",
+    });
+  }
+};
 const handleVerify = async (e) => {
   e.preventDefault();
 
-  const hasReference = form.referenceNumber.trim() && form.mobile1.trim();
-  const hasReg = form.regNumber.trim() && form.mobile2.trim();
+  const hasReference =
+  form.referenceNumber.trim().length > 0 &&
+  form.mobile1.trim().length > 0;
 
-  if (!hasReference && !hasReg) {
-    toast.error("Enter Reference/UAN + Mobile OR Registration No + Mobile");
+const hasReg =
+  form.regNumber.trim().length > 0 &&
+  form.mobile2.trim().length > 0;
+
+const hasUniversity =
+  form.universityRoll.trim().length > 0 &&
+  form.mobile3.trim().length > 0;
+
+  if (!hasReference && !hasReg && !hasUniversity) {
+    toast.error("Enter UAN + Mobile OR Reg No + Mobile OR University Roll + Mobile");
     return;
   }
 
-  const mobile = hasReference ? form.mobile1.trim() : form.mobile2.trim();
+  // Select correct mobile
+  const mobile = hasReference
+    ? form.mobile1.trim()
+    : hasReg
+    ? form.mobile2.trim()
+    : form.mobile3.trim();
 
   if (!isValidMobile(mobile)) {
     toast.error("Enter valid 10-digit mobile starting from 6-9");
     return;
   }
 
+  // Build payload
+  const payload = hasReference
+    ? {
+        uan_no: form.referenceNumber.trim().toUpperCase(),
+        phone: mobile,
+      }
+    : hasReg
+    ? {
+        reg_no: form.regNumber.trim().toUpperCase(),
+        phone: mobile,
+      }
+    : {
+        university_roll: form.universityRoll.trim().toUpperCase(),
+        phone: mobile,
+      };
+
   try {
     setLoading(true);
-
-    const payload = hasReference
-      ? {
-          uan_no: form.referenceNumber.trim().toUpperCase(),
-          phone: mobile,
-        }
-      : {
-          reg_no: form.regNumber.trim().toUpperCase(),
-          phone: mobile,
-        };
 
     const res = await verifyStudent(payload);
     let studentData = res?.data?.data;
@@ -76,21 +136,24 @@ const handleVerify = async (e) => {
       return;
     }
 
-    // 🔥 Attach Admission Fee & Payment Status
+    // Attach Admission Fee & Payment Status
     studentData.lastAdmission = {
       ...studentData.lastAdmission,
-      feeAmount: 5000, // you can later fetch from backend
+      feeAmount: 5000,
       paymentStatus:
         studentData.lastAdmission?.paymentStatus || "PENDING",
     };
 
-    // 🔥 Save for full flow (details + payment + refresh safety)
+    // Save for refresh safety
     localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
 
     toast.success("Verification successful 🎉");
 
-    // Use safe route id
-    const routeId = studentData.reg_no || studentData.uan_no;
+    const routeId =
+  studentData.reg_no ||
+  studentData.uan_no ||
+  studentData.university_roll ||
+  studentData.studentId;
 
     navigate(`/student/details/${routeId}`, {
       state: studentData,
@@ -135,7 +198,7 @@ const handleVerify = async (e) => {
               REFERENCE NUMBER (SSM / PPU)
             </legend>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <Input
                 label="REFERENCE / UAN NUMBER"
                 name="referenceNumber"
@@ -152,7 +215,7 @@ const handleVerify = async (e) => {
 
             <div className="text-center my-6 font-bold text-gray-500">
               — OR —
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
@@ -168,6 +231,25 @@ const handleVerify = async (e) => {
                 onChange={handleChange}
               />
             </div>
+            <div className="text-center my-6 font-bold text-gray-500">
+  — OR —
+</div>
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <Input
+    label="UNIVERSITY ROLL NUMBER"
+    name="universityRoll"
+    value={form.universityRoll}
+    onChange={handleChange}
+  />
+
+  <Input
+    label="MOBILE NUMBER"
+    name="mobile3"
+    value={form.mobile3}
+    onChange={handleChange}
+  />
+</div>
           </fieldset>
 
           <div className="flex justify-end">
