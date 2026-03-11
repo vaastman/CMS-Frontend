@@ -90,6 +90,7 @@ import AdminCertificates from "../pages/Admin/certificates/AdminCertificates";
 import PaymentProcessing from "../pages/payment/PaymentProcessing";
 import PaymentSuccess from "../pages/payment/PaymentSuccess";
 import StudentAdmissionPayment from "../pages/payment/StudentAdmissionPayment";
+import CreateStudentAdmission from "../pages/Admin/Admissions/CreateStudentAdmission";
 
 function AppRoutes() {
   return (
@@ -112,6 +113,7 @@ function AppRoutes() {
         {/* Admissions */}
         <Route path="admissions" element={<Admissions />} />
         <Route path="admissions/add-student" element={<AddStudent />} />
+        <Route path="admissions/create" element={<CreateStudentAdmission />} />
         <Route path="admissions/:id" element={<AdmissionDetails />} />
         <Route path="admissions/:id/verify" element={<VerifyDocuments />} />
 

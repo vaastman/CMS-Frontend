@@ -64,9 +64,31 @@ export const uploadFileToR2 = async (uploadUrl, file) => {
 
 //   return fileUrl;
 // };
+// export const uploadFile = async ({
+//   file,
+//   fileType = "photo",
+//   studentId,
+//   documentType
+// }) => {
+
+//   const formData = new FormData();
+
+//   formData.append("file", file);
+//   formData.append("fileType", fileType);
+//   formData.append("studentId", studentId);
+
+//   // Only send documentType when needed
+//   if (fileType === "document" && documentType) {
+//     formData.append("documentType", documentType);
+//   }
+
+//   const res = await api.post("/files", formData);
+
+//   return res.data;
+// };
 export const uploadFile = async ({
   file,
-  fileType = "photo",
+  fileType = "document",
   studentId,
   documentType
 }) => {
@@ -77,16 +99,18 @@ export const uploadFile = async ({
   formData.append("fileType", fileType);
   formData.append("studentId", studentId);
 
-  // Only send documentType when needed
-  if (fileType === "document" && documentType) {
+  if (fileType === "document") {
     formData.append("documentType", documentType);
   }
 
-  const res = await api.post("/files", formData);
+  const res = await api.post("/files", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
 
   return res.data;
 };
-
 /* ================= GET STUDENT DOCUMENTS ================= */
 
 export const getStudentDocuments = (studentId) => {
