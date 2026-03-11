@@ -22,24 +22,24 @@ const Admissions = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
 
   /* ================= FETCH ALL ================= */
-  const fetchAdmissions = async () => {
-    try {
-      setLoading(true);
+const fetchAdmissions = async () => {
+  try {
+    setLoading(true);
 
-      const res = await getAdmissions();
+    const res = await getAdmissions();
 
-      const admissions =
-        res?.data?.data?.admissions || [];
+    const admissions = res?.data?.admissions || [];
 
-      setAllAdmissions(admissions);
+    setAllAdmissions(admissions);
 
-    } catch (error) {
-      toast.error("Failed to load admissions");
-      setAllAdmissions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to load admissions");
+    setAllAdmissions([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* ================= PAGINATION LOGIC ================= */
   useEffect(() => {
@@ -73,11 +73,11 @@ const Admissions = () => {
         </div>
 
         <button
-          onClick={() => setOpenAddModal(true)}
+          onClick={() => navigate("/admin/admissions/create")}
           className="flex items-center gap-2 bg-[color:var(--color-primary)] text-white px-4 py-2 rounded-lg"
         >
           <FaPlus />
-          Add Student
+          Add Admission
         </button>
       </div>
 

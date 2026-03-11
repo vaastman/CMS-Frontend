@@ -34,16 +34,16 @@ const StudentAdmissionPayment = () => {
       throw new Error("Fee breakdown missing from API");
     }
 
-    const fees = [
-      { head: "ADMISSION FEE", amount: breakdown.admissionFee }
-    ];
+   const fees = [
+  { head: "TUITION", amount: breakdown.admissionFee }
+];
 
-    if (practical) {
-      fees.push({
-        head: "PRACTICAL FEE",
-        amount: breakdown.practicalFee
-      });
-    }
+if (practical) {
+  fees.push({
+    head: "MISC",
+    amount: breakdown.practicalFee
+  });
+}
 
     setFeeBreakdown(fees);
     setTotal(breakdown.totalFee);
@@ -78,56 +78,166 @@ const StudentAdmissionPayment = () => {
 
   /* ================= HANDLE PAYMENT ================= */
 
-  const handlePayment = async () => {
+  // const handlePayment = async () => {
 
-    try {
+  //   try {
 
-      setLoading(true);
+  //     setLoading(true);
 
-      const payload = {
-        admissionId: admissionId,
-        studentId: student.studentId,
-        totalAmount: total,
-        gateway: "GETEPAY",
-        txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-        breakups: feeBreakdown
-      };
+  //     const payload = {
+  //       admissionId: admissionId,
+  //       studentId: student.studentId,
+  //       totalAmount: total,
+  //       gateway: "GETEPAY",
+  //       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+  //       breakups: feeBreakdown
+  //     };
 
-      const res = await createPayment(payload);
+  //     const res = await createPayment(payload);
 
-      const paymentId = res?.data?.payment?.id;
+  //     // const paymentId = res?.data?.payment?.id;
+  //     const paymentId = res?.data?.payment?.id || res?.data?.data?.payment?.id;
 
-      if (!paymentId) {
-        throw new Error("Payment creation failed");
-      }
+  //     if (!paymentId) {
+  //       throw new Error("Payment creation failed");
+  //     }
 
-      const linkRes = await generatePaymentLink(paymentId);
+  //     const linkRes = await generatePaymentLink(paymentId);
 
-      const paymentUrl = linkRes?.data?.paymentUrl;
+  //     // const paymentUrl = linkRes?.data?.paymentUrl;
+  //     const paymentUrl = linkRes?.paymentUrl;
 
-      if (!paymentUrl) {
-        throw new Error("Payment link generation failed");
-      }
+  //     if (!paymentUrl) {
+  //       throw new Error("Payment link generation failed");
+  //     }
 
-      window.location.href = paymentUrl;
+  //     window.location.href = paymentUrl;
 
-    } catch (err) {
+  //   } catch (err) {
 
-      console.log("FULL ERROR:", err.response?.data);
+  //     console.log("FULL ERROR:", err.response?.data);
 
-      toast.error(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Payment initiation failed"
-      );
+  //     toast.error(
+  //       err?.response?.data?.message ||
+  //       err?.message ||
+  //       "Payment initiation failed"
+  //     );
 
-    } finally {
+  //   } finally {
 
-      setLoading(false);
+  //     setLoading(false);
 
+  //   }
+
+  // };
+//   const handlePayment = async () => {
+
+//   try {
+
+//     setLoading(true);
+
+//     const payload = {
+//       admissionId: admissionId,
+//       studentId: student.studentId,
+//       totalAmount: total,
+//       gateway: "GETEPAY",
+//       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+//       breakups: feeBreakdown
+//     };
+
+//     // STEP 1 - create payment
+//     const res = await createPayment(payload);
+
+// const paymentId = res?.payment?.id;
+
+//     if (!paymentId) {
+//       throw new Error("Payment creation failed");
+//     }
+
+//     // STEP 2 - generate payment link
+//     const linkRes = await generatePaymentLink(paymentId);
+
+//     const paymentUrl = linkRes?.paymentUrl;
+
+//     if (!paymentUrl) {
+//       throw new Error("Payment link generation failed");
+//     }
+
+//     // STEP 3 - redirect to gateway
+//     window.location.href = paymentUrl;
+
+//   } catch (err) {
+
+//     console.log("FULL ERROR:", err);
+
+//     toast.error(
+//       err?.response?.data?.message ||
+//       err?.message ||
+//       "Payment initiation failed"
+//     );
+
+//   } finally {
+
+//     setLoading(false);
+
+//   }
+
+// };
+const handlePayment = async () => {
+  try {
+    setLoading(true);
+
+    console.log("===== PAYMENT FLOW START =====");
+
+    const payload = {
+      admissionId,
+      studentId: student.studentId,
+      totalAmount: total,
+      gateway: "GETEPAY",
+      txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+      breakups: feeBreakdown
+    };
+
+    console.log("Payment payload:", payload);
+
+    /* STEP 1: Create Payment */
+    const res = await createPayment(payload);
+
+    console.log("CREATE PAYMENT RESPONSE:", res);
+
+    const paymentId = res?.data?.payment?.id;
+
+    if (!paymentId) {
+      throw new Error("Payment creation failed");
     }
 
-  };
+    /* STEP 2: Generate Payment Link */
+    const linkRes = await generatePaymentLink(paymentId);
+
+    console.log("PAYMENT LINK RESPONSE:", linkRes);
+
+    const paymentUrl = linkRes?.data?.paymentUrl;
+
+    if (!paymentUrl) {
+      throw new Error("Payment link generation failed");
+    }
+
+    /* STEP 3: Redirect */
+    window.location.href = paymentUrl;
+
+  } catch (err) {
+    console.log("FULL ERROR:", err);
+    console.log("SERVER RESPONSE:", err?.response?.data);
+
+    toast.error(
+      err?.response?.data?.message ||
+      err?.message ||
+      "Payment initiation failed"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* ================= LOADING ================= */
 

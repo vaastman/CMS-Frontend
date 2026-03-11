@@ -4,10 +4,20 @@ import api from "./api";
  * Get all admissions
  * Access: ADMIN, HOD
  */
+// export const getAdmissions = async (params = {}) => {
+//   try {
+//     const res = await api.get("/admissions", { params });
+//     return res;
+//   } catch (error) {
+//     console.error("getAdmissions error:", error?.response?.data || error);
+//     throw error;
+//   }
+// };
 export const getAdmissions = async (params = {}) => {
   try {
     const res = await api.get("/admissions", { params });
-    return res;
+
+    return res?.data?.data?.admissions || [];
   } catch (error) {
     console.error("getAdmissions error:", error?.response?.data || error);
     throw error;
@@ -18,6 +28,19 @@ export const getAdmissions = async (params = {}) => {
  * Get admission by ID
  * Access: ADMIN, HOD
  */
+// export const getAdmissionById = async (id) => {
+//   if (!id) {
+//     throw new Error("Admission ID is required");
+//   }
+
+//   try {
+//     const res = await api.get(`/admissions/${id}`);
+//     return res;
+//   } catch (error) {
+//     console.error("getAdmissionById error:", error?.response?.data || error);
+//     throw error;
+//   }
+// };
 export const getAdmissionById = async (id) => {
   if (!id) {
     throw new Error("Admission ID is required");
@@ -25,9 +48,13 @@ export const getAdmissionById = async (id) => {
 
   try {
     const res = await api.get(`/admissions/${id}`);
-    return res;
+
+    return res?.data?.data?.admission; // return admission directly
   } catch (error) {
-    console.error("getAdmissionById error:", error?.response?.data || error);
+    console.error(
+      "getAdmissionById error:",
+      error?.response?.data || error
+    );
     throw error;
   }
 };
@@ -60,18 +87,21 @@ export const getLatestAdmissionByStudent = async (studentId) => {
 /**
  * Create admission
  */
-export const createAdmission = async (payload = {}) => {
-  const { studentId, courseId, sessionId } = payload;
+// export const createAdmission = async (payload = {}) => {
+//   const { studentId, courseId, sessionId } = payload;
 
-  if (!studentId) throw new Error("studentId is required");
-  if (!courseId) throw new Error("courseId is required");
-  if (!sessionId) throw new Error("sessionId is required");
+//   if (!studentId) throw new Error("studentId is required");
+//   if (!courseId) throw new Error("courseId is required");
+//   if (!sessionId) throw new Error("sessionId is required");
 
-  return api.post("/admissions", {
-    studentId,
-    courseId,
-    sessionId,
-  });
+//   return api.post("/admissions", {
+//     studentId,
+//     courseId,
+//     sessionId,
+//   });
+// };
+export const createAdmission = async (data) => {
+  return api.post("/admissions", data);
 };
 
 /**

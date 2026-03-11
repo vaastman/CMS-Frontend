@@ -46,6 +46,7 @@ const StudentAdmissionDetails = () => {
       status: data.lastAdmission?.status || "PENDING",
       paymentStatus: data.lastAdmission?.paymentStatus || "PENDING",
       student: {
+        id:data.id,
         name: data.name,
         phone: data.phone,
         reg_no: data.reg_no,

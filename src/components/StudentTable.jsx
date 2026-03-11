@@ -88,64 +88,79 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
   // }, [search, course, session, status, page, refreshKey]);
 
   useEffect(() => {
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await fetchStudents({
-        search,
-        courseId: course,
-        sessionId: session,
-        status,
-        page,
-        limit: perPage,
-      });
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetchStudents({
+          search,
+          courseId: course,
+          sessionId: session,
+          status,
+          page,
+          limit: perPage,
+        });
 
-      const response = res?.data?.data;
+        const response = res?.data?.data;
 
-      const studentsList =
-        response?.students ||
-        res?.data?.students ||
-        [];
+        const studentsList =
+          response?.students ||
+          res?.data?.students ||
+          [];
 
-      const finalList = Array.isArray(studentsList) ? studentsList : [];
+        const finalList = Array.isArray(studentsList) ? studentsList : [];
 
-      // ✅ LOG STUDENT IDS ON LOAD
-      // console.log("Loaded Students:");
-      // finalList.forEach((student) => {
-      //   console.log("Student ID:", student.id);
-      // });
+        // ✅ LOG STUDENT IDS ON LOAD
+        // console.log("Loaded Students:");
+        // finalList.forEach((student) => {
+        //   console.log("Student ID:", student.id);
+        // });
+        // ✅ LOG STUDENT DETAILS ON LOAD
+        console.log("--- Loaded Students List ---");
 
-      setStudents(finalList);
+        if (finalList.length > 0) {
+          // Option A: Detailed Table View (Best for quick scanning)
+          console.table(finalList);
 
-      const pagination =
-        response?.pagination ||
-        res?.data?.pagination ||
-        null;
+          // Option B: Individual Logs (Best for expandable object inspection)
+          finalList.forEach((student, index) => {
+            console.log(`Student [${index}] ID: ${student.id}`, student);
+          });
+        } else {
+          console.log("No students found in the response.");
+        }
 
-      if (pagination) {
-        if (pagination.totalPages) {
-          setTotalPages(pagination.totalPages);
-        } else if (pagination.total && pagination.limit) {
-          setTotalPages(Math.ceil(pagination.total / pagination.limit));
+        setStudents(finalList);
+
+        const pagination =
+          response?.pagination ||
+          res?.data?.pagination ||
+          null;
+
+        if (pagination) {
+          if (pagination.totalPages) {
+            setTotalPages(pagination.totalPages);
+          } else if (pagination.total && pagination.limit) {
+            setTotalPages(Math.ceil(pagination.total / pagination.limit));
+          } else {
+            setTotalPages(1);
+          }
         } else {
           setTotalPages(1);
         }
-      } else {
+
+      } catch (err) {
+        console.error("❌ Fetch students error:", err);
+        toast.error("Failed to load students");
+        setStudents([]);
         setTotalPages(1);
+      } finally {
+        setLoading(false);
       }
+    };
 
-    } catch (err) {
-      console.error("❌ Fetch students error:", err);
-      toast.error("Failed to load students");
-      setStudents([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
+    load();
+  }, [search, course, session, status, page, refreshKey]);
 
-  load();
-}, [search, course, session, status, page, refreshKey]);
   /* ================= CONFIRM DELETE ================= */
   const confirmDelete = async () => {
     try {

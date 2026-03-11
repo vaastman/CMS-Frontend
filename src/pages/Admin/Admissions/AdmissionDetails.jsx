@@ -50,8 +50,8 @@ const AdmissionDetails = () => {
 
   const fetchAdmission = async () => {
     try {
-      const res = await getAdmissionById(id);
-      setAdmission(res?.data?.data?.admission || null);
+     const admission = await getAdmissionById(id);
+setAdmission(admission);
     } catch {
       toast.error("Failed to load admission");
     } finally {

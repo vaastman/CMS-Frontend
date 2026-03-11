@@ -14,6 +14,7 @@ export const generatePaymentLink = async (paymentId) => {
 
 /* STUDENT PAYMENT LINK */
 export const studentGeneratePaymentLink = async (paymentId) => {
+  if (!paymentId) throw new Error("paymentId is required");
   const res = await api.post(`/payments/${paymentId}/student-generate-link`);
   return res.data;
 };
