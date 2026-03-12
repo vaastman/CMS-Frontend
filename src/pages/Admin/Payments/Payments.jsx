@@ -27,21 +27,21 @@ const Payments = () => {
     }
   };
 
- const fetchStats = async () => {
-  try {
+  const fetchStats = async () => {
+    try {
 
-    const res = await getPaymentStats();
+      const res = await getPaymentStats();
 
-    setStats(
-      res?.data?.stats ||
-      res?.data?.data?.stats ||
-      []
-    );
+      setStats(
+        res?.data?.stats ||
+        res?.data?.data?.stats ||
+        []
+      );
 
-  } catch (err) {
-    console.error(err);
-  }
-};
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   /* ================= SEARCH ================= */
 
@@ -59,19 +59,79 @@ const Payments = () => {
     (p) => p.status === "SUCCESS"
   ).length;
 
+  // export
+  const exportToCSV = () => {
+
+  if (payments.length === 0) {
+    alert("No payments to export");
+    return;
+  }
+
+  const headers = [
+    "Transaction ID",
+    "Student Name",
+    "Amount",
+    "Status",
+    "Date"
+  ];
+
+  const rows = payments.map((p) => [
+    p.txnId,
+    p.student?.name,
+    p.totalAmount,
+    p.status,
+    p.createdAt
+      ? new Date(p.createdAt).toLocaleDateString()
+      : "-"
+  ]);
+
+  const csvContent =
+    "data:text/csv;charset=utf-8," +
+    [headers, ...rows]
+      .map((e) => e.join(","))
+      .join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+
+  const link = document.createElement("a");
+
+  link.setAttribute("href", encodedUri);
+
+  link.setAttribute(
+    "download",
+    `payments_report_${Date.now()}.csv`
+  );
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+};
+
   return (
     <div className="space-y-8">
 
       {/* ================= HEADER ================= */}
+      <div className="flex justify-between items-center">
 
-      <div>
-        <h1 className="text-2xl font-semibold text-[#111827]">
-          Payments Overview
-        </h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-[#111827]">
+            Payments Overview
+          </h1>
 
-        <p className="text-sm text-gray-600">
-          Monitor student payments and transaction history
-        </p>
+          <p className="text-sm text-gray-600">
+            Monitor student payments and transaction history
+          </p>
+        </div>
+
+        <button
+          onClick={exportToCSV}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"
+        >
+          Export Report
+        </button>
+
       </div>
 
       {/* ================= STATS ================= */}
@@ -176,18 +236,17 @@ const Payments = () => {
 
                   <td className="px-6 py-4">
                     {p.createdAt
-  ? new Date(p.createdAt).toLocaleDateString()
-  : "-"}
+                      ? new Date(p.createdAt).toLocaleDateString()
+                      : "-"}
                   </td>
 
                   <td className="px-6 py-4">
 
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium
-                        ${
-                          p.status === "SUCCESS"
-                            ? "bg-green-100 text-green-600"
-                            : p.status === "FAILED"
+                        ${p.status === "SUCCESS"
+                          ? "bg-green-100 text-green-600"
+                          : p.status === "FAILED"
                             ? "bg-red-100 text-red-600"
                             : "bg-yellow-100 text-yellow-600"
                         }`}

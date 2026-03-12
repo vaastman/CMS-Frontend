@@ -91,6 +91,7 @@ import PaymentProcessing from "../pages/payment/PaymentProcessing";
 import PaymentSuccess from "../pages/payment/PaymentSuccess";
 import StudentAdmissionPayment from "../pages/payment/StudentAdmissionPayment";
 import CreateStudentAdmission from "../pages/Admin/Admissions/CreateStudentAdmission";
+import PaymentResult from "../pages/payment/PaymentResult";
 
 function AppRoutes() {
   return (
@@ -205,6 +206,10 @@ function AppRoutes() {
 <Route
   path="payment-success/:paymentId"
   element={<PaymentSuccess />}
+/>
+<Route
+  path="/payment-result"
+  element={<PaymentResult />}
 />
         {/* Academics */}
         <Route path="faculty" element={<Faculty />} />

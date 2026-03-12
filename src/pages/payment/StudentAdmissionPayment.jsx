@@ -10,6 +10,7 @@ const StudentAdmissionPayment = () => {
   const { admissionId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  
 
   const practical = location.state?.practical || false;
 
@@ -199,6 +200,7 @@ const handlePayment = async () => {
     };
 
     console.log("Payment payload:", payload);
+    localStorage.setItem("paymentAmount", total);
 
     /* STEP 1: Create Payment */
     const res = await createPayment(payload);

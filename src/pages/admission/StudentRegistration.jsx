@@ -145,16 +145,23 @@ const hasUniversity =
     };
 
     // Save for refresh safety
-    localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
+    // localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
+    localStorage.setItem(
+  "verifiedStudent",
+  JSON.stringify({
+    ...studentData,
+    studentId: studentData.studentId || studentData.id
+  })
+);
 
     toast.success("Verification successful 🎉");
 
-    const routeId =
-  studentData.reg_no ||
-  studentData.uan_no ||
-  studentData.university_roll ||
-  studentData.studentId;
-
+  //   const routeId =
+  // studentData.reg_no ||
+  // studentData.uan_no ||
+  // studentData.university_roll ||
+  // studentData.studentId;
+const routeId = studentData.studentId || studentData.id;
     navigate(`/student/details/${routeId}`, {
       state: studentData,
     });
