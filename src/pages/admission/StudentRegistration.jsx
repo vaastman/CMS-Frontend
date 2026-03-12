@@ -133,7 +133,7 @@ const StudentRegistration = () => {
               STUDENT VERIFICATION
             </legend>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <Input
                 label="REFERENCE / UAN NUMBER"
                 name="referenceNumber"
@@ -144,9 +144,9 @@ const StudentRegistration = () => {
 
             <div className="text-center my-6 font-bold text-gray-500">
               — OR —
-            </div>
+            </div> */}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="REGISTRATION NUMBER"
                 name="regNumber"
@@ -157,7 +157,7 @@ const StudentRegistration = () => {
 
             <div className="text-center my-6 font-bold text-gray-500">
               — OR —
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
