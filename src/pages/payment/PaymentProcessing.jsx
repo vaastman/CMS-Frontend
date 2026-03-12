@@ -20,22 +20,22 @@ const PaymentProcessing = () => {
 
   const student = JSON.parse(localStorage.getItem("verifiedStudent") || "{}");
 
-  // const [amount, setAmount] = useState(0);
   const [amount, setAmount] = useState(0);
+  const [transactionId, setTransactionId] = useState("");
   const [loadingPayment, setLoadingPayment] = useState(true);
 
-  /* ================= LOAD AMOUNT ================= */
+  /* ================= FETCH PAYMENT ================= */
+
   useEffect(() => {
     const fetchPayment = async () => {
       try {
         const res = await getPaymentById(paymentId);
-        console.log("PAYMENT DETAILS:", res);
 
-        // Adjust according to your backend response shape
         const payment = res?.data?.payment || res?.payment || res;
 
-        if (payment?.totalAmount !== undefined) {
-          setAmount(Number(payment.totalAmount));
+        if (payment) {
+          setAmount(Number(payment.totalAmount || 0));
+          setTransactionId(payment.transactionId || payment.txnId || payment.id);
         }
 
       } catch (err) {
@@ -45,11 +45,11 @@ const PaymentProcessing = () => {
       }
     };
 
-    if (paymentId) {
-      fetchPayment();
-    }
+    if (paymentId) fetchPayment();
+
   }, [paymentId]);
-  /* ================= DOWNLOAD PDF ================= */
+
+  /* ================= DOWNLOAD RECEIPT ================= */
 
   const downloadReceipt = () => {
 
@@ -75,19 +75,22 @@ const PaymentProcessing = () => {
 
     doc.setFontSize(12);
 
-    doc.text(`Receipt Date : ${new Date().toLocaleDateString()}`, 15, 50);
-    doc.text(`Payment ID   : ${paymentId}`, 15, 58);
+    doc.text(`Receipt Date   : ${new Date().toLocaleDateString()}`, 15, 50);
+    doc.text(`Transaction ID : ${transactionId || paymentId}`, 15, 58);
+    doc.text(`Father Name    : ${student.fatherName || "-"}`, 15, 66);
 
     /* STUDENT TABLE */
 
     autoTable(doc, {
-      startY: 70,
+      startY: 75,
       theme: "grid",
       head: [["Field", "Details"]],
       body: [
         ["Student Name", student.name || "-"],
+        ["Father Name", student.fatherName || "-"],
         ["Course", student.course?.name || "-"],
         ["Session", student.session?.name || "-"],
+        ["Transaction ID", transactionId || paymentId],
         ["Amount Paid", `INR ${amount}`],
         ["Payment Status", status]
       ],
@@ -119,10 +122,10 @@ const PaymentProcessing = () => {
       { align: "center" }
     );
 
-    doc.save(`payment_receipt_${paymentId}.pdf`);
-
-    localStorage.removeItem("paymentAmount");
+    doc.save(`payment_receipt_${transactionId || paymentId}.pdf`);
   };
+
+  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-page)] p-6">
@@ -132,7 +135,6 @@ const PaymentProcessing = () => {
         {/* STATUS ICON */}
 
         <div className="flex justify-center mb-6">
-
           {success ? (
             <div className="bg-[var(--color-success)]/10 p-4 rounded-full">
               <FaCheckCircle className="text-[var(--color-success)] text-5xl" />
@@ -142,7 +144,6 @@ const PaymentProcessing = () => {
               <FaTimesCircle className="text-[var(--color-danger)] text-5xl" />
             </div>
           )}
-
         </div>
 
         {/* TITLE */}
@@ -169,27 +170,28 @@ const PaymentProcessing = () => {
             <div className="space-y-3 text-sm">
 
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">
-                  Student Name
-                </span>
+                <span className="text-[var(--color-text-secondary)]">Student Name</span>
                 <span className="font-medium text-[var(--color-text-primary)]">
                   {student.name}
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">
-                  Course
+                <span className="text-[var(--color-text-secondary)]">Father Name</span>
+                <span className="font-medium text-[var(--color-text-primary)]">
+                  {student.fatherName || "-"}
                 </span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-[var(--color-text-secondary)]">Course</span>
                 <span className="font-medium text-[var(--color-text-primary)]">
                   {student.course?.name}
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">
-                  Session
-                </span>
+                <span className="text-[var(--color-text-secondary)]">Session</span>
                 <span className="font-medium text-[var(--color-text-primary)]">
                   {student.session?.name}
                 </span>
@@ -198,27 +200,21 @@ const PaymentProcessing = () => {
               <div className="border-t border-[var(--color-divider)] pt-3 mt-3"></div>
 
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">
-                  Payment ID
-                </span>
+                <span className="text-[var(--color-text-secondary)]">Transaction ID</span>
                 <span className="font-medium text-[var(--color-text-primary)]">
-                  {paymentId}
+                  {transactionId || paymentId}
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">
-                  Amount Paid
-                </span>
+                <span className="text-[var(--color-text-secondary)]">Amount Paid</span>
                 <span className="font-semibold text-[var(--color-primary)]">
                   {loadingPayment ? "Loading..." : `₹${amount.toLocaleString()}`}
                 </span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">
-                  Date
-                </span>
+                <span className="text-[var(--color-text-secondary)]">Date</span>
                 <span className="font-medium">
                   {new Date().toLocaleDateString()}
                 </span>

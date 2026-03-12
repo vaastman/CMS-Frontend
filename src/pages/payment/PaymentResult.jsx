@@ -11,6 +11,7 @@ const PaymentResult = () => {
   const status = params.get("status") || "FAILED";
   const txnId = params.get("txnId") || "-";
   const amount = params.get("amount") || "-";
+  const student = JSON.parse(localStorage.getItem("verifiedStudent") || "{}");
 
   const success = status === "SUCCESS";
 
@@ -47,9 +48,14 @@ const PaymentResult = () => {
 
         <div className="bg-gray-50 rounded-lg p-4 text-left text-sm mb-6">
 
-          <p><strong>Transaction ID:</strong> {txnId}</p>
+          {/* <p><strong>Transaction ID:</strong> {txnId}</p>
           <p><strong>Amount:</strong> ₹{amount}</p>
-          <p><strong>Status:</strong> {status}</p>
+          <p><strong>Status:</strong> {status}</p> */}
+          <p><strong>Student Name:</strong> {student.name || "-"}</p>
+<p><strong>Father Name:</strong> {student.fatherName || "-"}</p>
+<p><strong>Transaction ID:</strong> {txnId}</p>
+<p><strong>Amount:</strong> ₹{amount}</p>
+<p><strong>Status:</strong> {status}</p>
 
         </div>
 

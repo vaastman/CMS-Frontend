@@ -49,6 +49,7 @@ const StudentAdmissionDetails = () => {
         id:data.id,
         name: data.name,
         phone: data.phone,
+        fatherName: data.fatherName,
         reg_no: data.reg_no,
         uan_no: data.uan_no,
       },
@@ -162,7 +163,7 @@ const StudentAdmissionDetails = () => {
                 <FaUser /> Student Information
               </h3>
 
-              <div className="grid sm:grid-cols-2 gap-5">
+              {/* <div className="grid sm:grid-cols-2 gap-5">
 
                 <EditableField
                   label="Full Name"
@@ -190,7 +191,42 @@ const StudentAdmissionDetails = () => {
                   disabled
                 />
 
-              </div>
+              </div> */}
+              <div className="grid sm:grid-cols-2 gap-5">
+
+  <EditableField
+    label="Full Name"
+    value={student?.name}
+    disabled={!isEditing}
+    onChange={(val) => handleChange("name", val)}
+  />
+
+  <EditableField
+    label="Father Name"
+    value={student?.fatherName}
+    disabled
+  />
+
+  <EditableField
+    label="Phone"
+    value={student?.phone}
+    disabled={!isEditing}
+    onChange={(val) => handleChange("phone", val)}
+  />
+
+  <EditableField
+    label="Registration No"
+    value={student?.reg_no}
+    disabled
+  />
+
+  <EditableField
+    label="UAN Number"
+    value={student?.uan_no}
+    disabled
+  />
+
+</div>
 
             </div>
 
