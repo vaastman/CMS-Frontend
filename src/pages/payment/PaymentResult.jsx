@@ -52,10 +52,10 @@ const PaymentResult = () => {
           <p><strong>Amount:</strong> ₹{amount}</p>
           <p><strong>Status:</strong> {status}</p> */}
           <p><strong>Student Name:</strong> {student.name || "-"}</p>
-<p><strong>Father Name:</strong> {student.fatherName || "-"}</p>
-<p><strong>Transaction ID:</strong> {txnId}</p>
-<p><strong>Amount:</strong> ₹{amount}</p>
-<p><strong>Status:</strong> {status}</p>
+          <p><strong>Father Name:</strong> {student.fatherName || "-"}</p>
+          <p><strong>Transaction ID:</strong> {txnId}</p>
+          <p><strong>Amount:</strong> ₹{amount}</p>
+          <p><strong>Status:</strong> {status}</p>
 
         </div>
 

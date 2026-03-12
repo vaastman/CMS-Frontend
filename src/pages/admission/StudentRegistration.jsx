@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import ReCAPTCHA from "react-google-recaptcha";
 import { verifyStudent } from "@/api/student.api";
 
 const StudentRegistration = () => {
@@ -10,180 +11,107 @@ const StudentRegistration = () => {
     referenceNumber: "",
     regNumber: "",
     universityRoll: "",
-    mobile1: "",
-    mobile2: "",
-    mobile3: "",
   });
 
+  const [captchaValue, setCaptchaValue] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const isValidMobile = (mobile) => /^[6-9]\d{9}$/.test(mobile);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
+    if (name === "referenceNumber") {
+      setForm({
+        referenceNumber: value,
+        regNumber: "",
+        universityRoll: "",
+      });
+    } else if (name === "regNumber") {
+      setForm({
+        referenceNumber: "",
+        regNumber: value,
+        universityRoll: "",
+      });
+    } else {
+      setForm({
+        referenceNumber: "",
+        regNumber: "",
+        universityRoll: value,
+      });
+    }
+  };
 
-  //   if (name === "referenceNumber" || name === "mobile1") {
-  //     setForm({
-  //       referenceNumber:
-  //         name === "referenceNumber" ? value : form.referenceNumber,
-  //       mobile1: name === "mobile1" ? value : form.mobile1,
-  //       regNumber: "",
-  //       mobile2: "",
-  //     });
-  //   } else {
-  //     setForm({
-  //       regNumber: name === "regNumber" ? value : form.regNumber,
-  //       mobile2: name === "mobile2" ? value : form.mobile2,
-  //       referenceNumber: "",
-  //       mobile1: "",
-  //     });
-  //   }
-  // };
-const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleVerify = async (e) => {
+    e.preventDefault();
 
-  if (name === "referenceNumber" || name === "mobile1") {
-    setForm({
-      referenceNumber:
-        name === "referenceNumber" ? value : form.referenceNumber,
-      mobile1: name === "mobile1" ? value : form.mobile1,
+    const hasReference = form.referenceNumber.trim().length > 0;
+    const hasReg = form.regNumber.trim().length > 0;
+    const hasUniversity = form.universityRoll.trim().length > 0;
 
-      regNumber: "",
-      mobile2: "",
-      universityRoll: "",
-      mobile3: "",
-    });
-
-  } else if (name === "regNumber" || name === "mobile2") {
-    setForm({
-      regNumber: name === "regNumber" ? value : form.regNumber,
-      mobile2: name === "mobile2" ? value : form.mobile2,
-
-      referenceNumber: "",
-      mobile1: "",
-      universityRoll: "",
-      mobile3: "",
-    });
-
-  } else {
-    setForm({
-      universityRoll: name === "universityRoll" ? value : form.universityRoll,
-      mobile3: name === "mobile3" ? value : form.mobile3,
-
-      referenceNumber: "",
-      mobile1: "",
-      regNumber: "",
-      mobile2: "",
-    });
-  }
-};
-const handleVerify = async (e) => {
-  e.preventDefault();
-
-  const hasReference =
-  form.referenceNumber.trim().length > 0 &&
-  form.mobile1.trim().length > 0;
-
-const hasReg =
-  form.regNumber.trim().length > 0 &&
-  form.mobile2.trim().length > 0;
-
-const hasUniversity =
-  form.universityRoll.trim().length > 0 &&
-  form.mobile3.trim().length > 0;
-
-  if (!hasReference && !hasReg && !hasUniversity) {
-    toast.error("Enter UAN + Mobile OR Reg No + Mobile OR University Roll + Mobile");
-    return;
-  }
-
-  // Select correct mobile
-  const mobile = hasReference
-    ? form.mobile1.trim()
-    : hasReg
-    ? form.mobile2.trim()
-    : form.mobile3.trim();
-
-  if (!isValidMobile(mobile)) {
-    toast.error("Enter valid 10-digit mobile starting from 6-9");
-    return;
-  }
-
-  // Build payload
-  const payload = hasReference
-    ? {
-        uan_no: form.referenceNumber.trim().toUpperCase(),
-        phone: mobile,
-      }
-    : hasReg
-    ? {
-        reg_no: form.regNumber.trim().toUpperCase(),
-        phone: mobile,
-      }
-    : {
-        university_roll: form.universityRoll.trim().toUpperCase(),
-        phone: mobile,
-      };
-
-  try {
-    setLoading(true);
-
-    const res = await verifyStudent(payload);
-    let studentData = res?.data?.data;
-
-    if (!studentData) {
-      toast.error("Student not found");
+    if (!hasReference && !hasReg && !hasUniversity) {
+      toast.error("Enter UAN / Registration Number / University Roll");
       return;
     }
 
-    // Attach Admission Fee & Payment Status
-    studentData.lastAdmission = {
-      ...studentData.lastAdmission,
-      feeAmount: 5000,
-      paymentStatus:
-        studentData.lastAdmission?.paymentStatus || "PENDING",
-    };
-
-    // Save for refresh safety
-    // localStorage.setItem("verifiedStudent", JSON.stringify(studentData));
-    localStorage.setItem(
-  "verifiedStudent",
-  JSON.stringify({
-    ...studentData,
-    studentId: studentData.studentId || studentData.id
-  })
-);
-
-    toast.success("Verification successful 🎉");
-
-  //   const routeId =
-  // studentData.reg_no ||
-  // studentData.uan_no ||
-  // studentData.university_roll ||
-  // studentData.studentId;
-const routeId = studentData.studentId || studentData.id;
-    navigate(`/student/details/${routeId}`, {
-      state: studentData,
-    });
-
-  } catch (err) {
-    console.error("VERIFY ERROR:", err.response?.data);
-
-    if (err.response?.status === 404) {
-      toast.error("Student not found");
-    } else if (err.response?.status === 401) {
-      toast.error("Mobile number does not match");
-    } else if (err.response?.status === 400) {
-      toast.error(err.response?.data?.message || "Invalid input");
-    } else {
-      toast.error("Verification failed. Try again.");
+    if (!captchaValue) {
+      toast.error("Please complete captcha verification");
+      return;
     }
 
-  } finally {
-    setLoading(false);
-  }
-};
+    const payload = hasReference
+      ? { uan_no: form.referenceNumber.trim().toUpperCase() }
+      : hasReg
+      ? { reg_no: form.regNumber.trim().toUpperCase() }
+      : { university_roll: form.universityRoll.trim().toUpperCase() };
 
+    try {
+      setLoading(true);
+
+      const res = await verifyStudent(payload);
+      const studentData = res?.data?.data;
+
+      if (!studentData) {
+        toast.error("Student not found");
+        return;
+      }
+
+      studentData.lastAdmission = {
+        ...studentData.lastAdmission,
+        feeAmount: 5000,
+        paymentStatus:
+          studentData.lastAdmission?.paymentStatus || "PENDING",
+      };
+
+      localStorage.setItem(
+        "verifiedStudent",
+        JSON.stringify({
+          ...studentData,
+          studentId: studentData.studentId || studentData.id,
+        })
+      );
+
+      toast.success("Verification successful 🎉");
+
+      const routeId = studentData.studentId || studentData.id;
+
+      navigate(`/student/details/${routeId}`, {
+        state: studentData,
+      });
+
+    } catch (err) {
+      console.error("VERIFY ERROR:", err.response?.data);
+
+      if (err.response?.status === 404) {
+        toast.error("Student not found");
+      } else if (err.response?.status === 400) {
+        toast.error(err.response?.data?.message || "Invalid input");
+      } else {
+        toast.error("Verification failed. Try again.");
+      }
+
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center px-4">
@@ -194,7 +122,7 @@ const routeId = studentData.studentId || studentData.id;
             STUDENT REGISTRATION
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Verify student using Reference/UAN or Registration Number
+            Verify student using UAN / Registration Number / University Roll
           </p>
         </div>
 
@@ -202,27 +130,21 @@ const routeId = studentData.studentId || studentData.id;
 
           <fieldset className="border-2 border-blue-500 rounded-lg p-6">
             <legend className="px-3 text-blue-600 font-semibold">
-              REFERENCE NUMBER (SSM / PPU)
+              STUDENT VERIFICATION
             </legend>
 
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
               <Input
                 label="REFERENCE / UAN NUMBER"
                 name="referenceNumber"
                 value={form.referenceNumber}
                 onChange={handleChange}
               />
-              <Input
-                label="MOBILE NUMBER"
-                name="mobile1"
-                value={form.mobile1}
-                onChange={handleChange}
-              />
             </div>
 
             <div className="text-center my-6 font-bold text-gray-500">
               — OR —
-            </div> */}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
@@ -231,32 +153,29 @@ const routeId = studentData.studentId || studentData.id;
                 value={form.regNumber}
                 onChange={handleChange}
               />
+            </div>
+
+            <div className="text-center my-6 font-bold text-gray-500">
+              — OR —
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
-                label="MOBILE NUMBER"
-                name="mobile2"
-                value={form.mobile2}
+                label="UNIVERSITY ROLL NUMBER"
+                name="universityRoll"
+                value={form.universityRoll}
                 onChange={handleChange}
               />
             </div>
-            <div className="text-center my-6 font-bold text-gray-500">
-  — OR —
-</div>
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <Input
-    label="UNIVERSITY ROLL NUMBER"
-    name="universityRoll"
-    value={form.universityRoll}
-    onChange={handleChange}
-  />
+            {/* CAPTCHA */}
+            <div className="flex justify-center mt-8">
+              <ReCAPTCHA
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                onChange={(value) => setCaptchaValue(value)}
+              />
+            </div>
 
-  <Input
-    label="MOBILE NUMBER"
-    name="mobile3"
-    value={form.mobile3}
-    onChange={handleChange}
-  />
-</div>
           </fieldset>
 
           <div className="flex justify-end">
