@@ -41,7 +41,7 @@ const StudentAdmissionPayment = () => {
 
 if (practical) {
   fees.push({
-    head: "PRACTICLE",
+    head: "PRACTICAL",
     amount: breakdown.practicalFee
   });
 }
@@ -78,112 +78,6 @@ if (practical) {
   }, [navigate, practical]);
 
   /* ================= HANDLE PAYMENT ================= */
-
-  // const handlePayment = async () => {
-
-  //   try {
-
-  //     setLoading(true);
-
-  //     const payload = {
-  //       admissionId: admissionId,
-  //       studentId: student.studentId,
-  //       totalAmount: total,
-  //       gateway: "GETEPAY",
-  //       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-  //       breakups: feeBreakdown
-  //     };
-
-  //     const res = await createPayment(payload);
-
-  //     // const paymentId = res?.data?.payment?.id;
-  //     const paymentId = res?.data?.payment?.id || res?.data?.data?.payment?.id;
-
-  //     if (!paymentId) {
-  //       throw new Error("Payment creation failed");
-  //     }
-
-  //     const linkRes = await generatePaymentLink(paymentId);
-
-  //     // const paymentUrl = linkRes?.data?.paymentUrl;
-  //     const paymentUrl = linkRes?.paymentUrl;
-
-  //     if (!paymentUrl) {
-  //       throw new Error("Payment link generation failed");
-  //     }
-
-  //     window.location.href = paymentUrl;
-
-  //   } catch (err) {
-
-  //     console.log("FULL ERROR:", err.response?.data);
-
-  //     toast.error(
-  //       err?.response?.data?.message ||
-  //       err?.message ||
-  //       "Payment initiation failed"
-  //     );
-
-  //   } finally {
-
-  //     setLoading(false);
-
-  //   }
-
-  // };
-//   const handlePayment = async () => {
-
-//   try {
-
-//     setLoading(true);
-
-//     const payload = {
-//       admissionId: admissionId,
-//       studentId: student.studentId,
-//       totalAmount: total,
-//       gateway: "GETEPAY",
-//       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-//       breakups: feeBreakdown
-//     };
-
-//     // STEP 1 - create payment
-//     const res = await createPayment(payload);
-
-// const paymentId = res?.payment?.id;
-
-//     if (!paymentId) {
-//       throw new Error("Payment creation failed");
-//     }
-
-//     // STEP 2 - generate payment link
-//     const linkRes = await generatePaymentLink(paymentId);
-
-//     const paymentUrl = linkRes?.paymentUrl;
-
-//     if (!paymentUrl) {
-//       throw new Error("Payment link generation failed");
-//     }
-
-//     // STEP 3 - redirect to gateway
-//     window.location.href = paymentUrl;
-
-//   } catch (err) {
-
-//     console.log("FULL ERROR:", err);
-
-//     toast.error(
-//       err?.response?.data?.message ||
-//       err?.message ||
-//       "Payment initiation failed"
-//     );
-
-//   } finally {
-
-//     setLoading(false);
-
-//   }
-
-// };
 const handlePayment = async () => {
   try {
     setLoading(true);
