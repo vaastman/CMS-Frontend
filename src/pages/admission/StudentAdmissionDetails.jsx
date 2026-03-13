@@ -24,7 +24,8 @@ const StudentAdmissionDetails = () => {
   const [admission, setAdmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [practical, setPractical] = useState(false);
+  const [practical, setPractical] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
 
@@ -46,7 +47,7 @@ const StudentAdmissionDetails = () => {
       status: data.lastAdmission?.status || "PENDING",
       paymentStatus: data.lastAdmission?.paymentStatus || "PENDING",
       student: {
-        id:data.id,
+        id: data.id,
         name: data.name,
         phone: data.phone,
         fatherName: data.fatherName,
@@ -194,39 +195,39 @@ const StudentAdmissionDetails = () => {
               </div> */}
               <div className="grid sm:grid-cols-2 gap-5">
 
-  <EditableField
-    label="Full Name"
-    value={student?.name}
-    disabled={!isEditing}
-    onChange={(val) => handleChange("name", val)}
-  />
+                <EditableField
+                  label="Full Name"
+                  value={student?.name}
+                  disabled={!isEditing}
+                  onChange={(val) => handleChange("name", val)}
+                />
 
-  <EditableField
-    label="Father Name"
-    value={student?.fatherName}
-    disabled
-  />
+                <EditableField
+                  label="Father Name"
+                  value={student?.fatherName}
+                  disabled
+                />
 
-  <EditableField
-    label="Phone"
-    value={student?.phone}
-    disabled={!isEditing}
-    onChange={(val) => handleChange("phone", val)}
-  />
+                <EditableField
+                  label="Phone"
+                  value={student?.phone}
+                  disabled={!isEditing}
+                  onChange={(val) => handleChange("phone", val)}
+                />
 
-  <EditableField
-    label="Registration No"
-    value={student?.reg_no}
-    disabled
-  />
+                <EditableField
+                  label="Registration No"
+                  value={student?.reg_no}
+                  disabled
+                />
 
-  <EditableField
-    label="UAN Number"
-    value={student?.uan_no}
-    disabled
-  />
+                <EditableField
+                  label="UAN Number"
+                  value={student?.uan_no}
+                  disabled
+                />
 
-</div>
+              </div>
 
             </div>
 
@@ -268,20 +269,48 @@ const StudentAdmissionDetails = () => {
               {status === "REJECTED" && (
                 <StatusBadge color="red" icon={<FaExclamationCircle />} text="Rejected" />
               )}
-<div className="mt-4">
-  <label className="text-sm font-medium text-gray-600">
-    Practical Subject
-  </label>
+              <div className="mt-4 space-y-3">
 
-  <select
-    value={practical}
-    onChange={(e) => setPractical(e.target.value === "true")}
-    className="mt-1 w-full border px-3 py-2 rounded-lg"
-  >
-    <option value="false">No Practical</option>
-    <option value="true">Yes Practical</option>
-  </select>
-</div>
+                <label className="text-sm font-medium text-gray-600">
+                  Select Practical Subject
+                </label>
+
+                <select
+                  value={practical}
+                  onChange={(e) => {
+                    setPractical(e.target.value);
+                    setAgreed(false);
+                  }}
+                  className="mt-1 w-full border px-3 py-2 rounded-lg"
+                >
+                  <option value="">-- Select Option --</option>
+                  <option value="true">Yes Practical</option>
+                  <option value="false">No Practical</option>
+                </select>
+
+                {/* Show agreement checkbox after selection */}
+
+                {practical !== "" && (
+
+                  <div className="flex items-center gap-2 mt-2">
+
+                    <input
+                      type="checkbox"
+                      checked={agreed}
+                      onChange={(e) => setAgreed(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+
+                    <label className="text-sm text-gray-600">
+                      I confirm my practical selection is correct
+                    </label>
+
+                  </div>
+
+                )}
+
+              </div>
+
             </div>
 
             {/* ACTIONS */}
@@ -289,6 +318,7 @@ const StudentAdmissionDetails = () => {
             <div className="bg-white border rounded-xl p-6 space-y-4">
 
               <button
+                disabled
                 onClick={() =>
                   navigate(`/student/document-upload/${admission.id}/verify`)
                 }
@@ -301,11 +331,11 @@ const StudentAdmissionDetails = () => {
 
                 <button
                   onClick={() =>
-                   navigate(`/student/admission/${admission.id}/payment`, {
-  state: {
-    practical
-  }
-})
+                    navigate(`/student/admission/${admission.id}/payment`, {
+                      state: {
+                        practical
+                      }
+                    })
                   }
                   className="w-full py-3 rounded-xl bg-green-600 text-white flex items-center justify-center gap-2"
                 >

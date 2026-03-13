@@ -40,3 +40,11 @@ export const deleteStudent = (id) => {
 export const verifyStudent = (payload) => {
   return api.post("/students/verify-student", payload);
 };
+
+// New API for verifying student by university roll number
+export const verifyStudentByUniversityRoll = (payload) => {
+  return api.post(
+    "/students/verify-student-by-university-roll",
+    payload
+  );
+};

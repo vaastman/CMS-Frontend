@@ -1,72 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import ReCAPTCHA from "react-google-recaptcha";
-import { verifyStudent } from "@/api/student.api";
+import { verifyStudentByUniversityRoll } from "@/api/student.api";
 
 const StudentRegistration = () => {
+
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    referenceNumber: "",
-    regNumber: "",
-    universityRoll: "",
+    universityRoll: ""
   });
 
-  const [captchaValue, setCaptchaValue] = useState(null);
+  const [captcha, setCaptcha] = useState("");
+  const [captchaInput, setCaptchaInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  /* Remove invisible characters */
+  const cleanValue = (value) =>
+    value.replace(/\u200B/g, "").trim();
 
-    if (name === "referenceNumber") {
-      setForm({
-        referenceNumber: value,
-        regNumber: "",
-        universityRoll: "",
-      });
-    } else if (name === "regNumber") {
-      setForm({
-        referenceNumber: "",
-        regNumber: value,
-        universityRoll: "",
-      });
-    } else {
-      setForm({
-        referenceNumber: "",
-        regNumber: "",
-        universityRoll: value,
-      });
-    }
+  /* Generate captcha */
+  const generateCaptcha = () => {
+    const random = Math.floor(1000 + Math.random() * 9000);
+    setCaptcha(random.toString());
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleVerify = async (e) => {
+
     e.preventDefault();
 
-    const hasReference = form.referenceNumber.trim().length > 0;
-    const hasReg = form.regNumber.trim().length > 0;
-    const hasUniversity = form.universityRoll.trim().length > 0;
+    const roll = cleanValue(form.universityRoll);
 
-    if (!hasReference && !hasReg && !hasUniversity) {
-      toast.error("Enter UAN / Registration Number / University Roll");
+    if (!roll) {
+      toast.error("Enter University Roll Number");
       return;
     }
 
-    if (!captchaValue) {
-      toast.error("Please complete captcha verification");
+    if (!captchaInput) {
+      toast.error("Enter captcha");
       return;
     }
 
-    const payload = hasReference
-      ? { uan_no: form.referenceNumber.trim().toUpperCase() }
-      : hasReg
-      ? { reg_no: form.regNumber.trim().toUpperCase() }
-      : { university_roll: form.universityRoll.trim().toUpperCase() };
+    if (captchaInput !== captcha) {
+      toast.error("Captcha does not match");
+      generateCaptcha();
+      setCaptchaInput("");
+      return;
+    }
 
     try {
+
       setLoading(true);
 
-      const res = await verifyStudent(payload);
+      const payload = {
+        university_roll: roll.toUpperCase()
+      };
+
+      const res = await verifyStudentByUniversityRoll(payload);
+
       const studentData = res?.data?.data;
 
       if (!studentData) {
@@ -74,30 +76,30 @@ const StudentRegistration = () => {
         return;
       }
 
-      studentData.lastAdmission = {
-        ...studentData.lastAdmission,
-        feeAmount: 5000,
-        paymentStatus:
-          studentData.lastAdmission?.paymentStatus || "PENDING",
+      /* Clean returned data */
+      const cleanedStudent = {
+        ...studentData,
+        name: cleanValue(studentData.name || ""),
+        fatherName: cleanValue(studentData.fatherName || ""),
+        class_roll: cleanValue(studentData.class_roll || "")
       };
 
       localStorage.setItem(
         "verifiedStudent",
         JSON.stringify({
-          ...studentData,
-          studentId: studentData.studentId || studentData.id,
+          ...cleanedStudent,
+          studentId: cleanedStudent.id
         })
       );
 
       toast.success("Verification successful 🎉");
 
-      const routeId = studentData.studentId || studentData.id;
-
-      navigate(`/student/details/${routeId}`, {
-        state: studentData,
+      navigate(`/student/details/${cleanedStudent.id}`, {
+        state: cleanedStudent
       });
 
     } catch (err) {
+
       console.error("VERIFY ERROR:", err.response?.data);
 
       if (err.response?.status === 404) {
@@ -108,6 +110,8 @@ const StudentRegistration = () => {
         toast.error("Verification failed. Try again.");
       }
 
+      generateCaptcha();
+
     } finally {
       setLoading(false);
     }
@@ -115,70 +119,77 @@ const StudentRegistration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center px-4">
-      <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg border">
 
+      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg border">
+
+        {/* Header */}
         <div className="border-b px-8 py-5">
           <h2 className="text-red-700 font-bold text-xl tracking-wide">
             STUDENT REGISTRATION
           </h2>
+
           <p className="text-sm text-gray-500 mt-1">
-            Verify student using UAN / Registration Number / University Roll
+            Verify student using University Roll Number
           </p>
         </div>
 
-        <form onSubmit={handleVerify} className="p-8 space-y-10">
+        <form onSubmit={handleVerify} className="p-8 space-y-8">
 
           <fieldset className="border-2 border-blue-500 rounded-lg p-6">
+
             <legend className="px-3 text-blue-600 font-semibold">
               STUDENT VERIFICATION
             </legend>
 
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <Input
-                label="REFERENCE / UAN NUMBER"
-                name="referenceNumber"
-                value={form.referenceNumber}
-                onChange={handleChange}
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
 
-            <div className="text-center my-6 font-bold text-gray-500">
-              — OR —
-            </div> */}
-
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="REGISTRATION NUMBER"
-                name="regNumber"
-                value={form.regNumber}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="text-center my-6 font-bold text-gray-500">
-              — OR —
-            </div> */}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="UNIVERSITY ROLL NUMBER"
                 name="universityRoll"
                 value={form.universityRoll}
                 onChange={handleChange}
               />
+
             </div>
 
             {/* CAPTCHA */}
-            <div className="flex justify-center mt-8">
-              <ReCAPTCHA
-                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                onChange={(value) => setCaptchaValue(value)}
+
+            <div className="mt-8 space-y-3">
+
+              <label className="text-sm font-semibold text-gray-700">
+                CAPTCHA
+              </label>
+
+              <div className="flex items-center gap-4">
+
+                <div className="bg-gray-200 px-5 py-2 text-xl font-bold tracking-[8px] rounded">
+                  {captcha}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={generateCaptcha}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Refresh
+                </button>
+
+              </div>
+
+              <input
+                type="text"
+                placeholder="Enter Captcha"
+                value={captchaInput}
+                onChange={(e) => setCaptchaInput(e.target.value)}
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400"
               />
+
             </div>
 
           </fieldset>
 
           <div className="flex justify-end">
+
             <button
               type="submit"
               disabled={loading}
@@ -186,9 +197,13 @@ const StudentRegistration = () => {
             >
               {loading ? "VERIFYING..." : "VERIFY"}
             </button>
+
           </div>
+
         </form>
+
       </div>
+
     </div>
   );
 };
@@ -198,6 +213,7 @@ const Input = ({ label, ...props }) => (
     <label className="block text-sm font-semibold mb-1 text-gray-700">
       {label}
     </label>
+
     <input
       {...props}
       className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-400"
