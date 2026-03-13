@@ -208,7 +208,7 @@ const StudentAdmissionDetails = () => {
                   disabled
                 />
 
-                <EditableField
+                {/* <EditableField
                   label="Phone"
                   value={student?.phone}
                   disabled={!isEditing}
@@ -225,7 +225,7 @@ const StudentAdmissionDetails = () => {
                   label="UAN Number"
                   value={student?.uan_no}
                   disabled
-                />
+                /> */}
 
               </div>
 
@@ -269,74 +269,74 @@ const StudentAdmissionDetails = () => {
               {status === "REJECTED" && (
                 <StatusBadge color="red" icon={<FaExclamationCircle />} text="Rejected" />
               )}
-             <div className="mt-5 space-y-4">
+              <div className="mt-5 space-y-4">
 
-  {/* Important Notice */}
-  <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-300 p-4 rounded-xl shadow-sm">
+                {/* Important Notice */}
+                <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-300 p-4 rounded-xl shadow-sm">
 
-    <FaExclamationCircle className="text-yellow-600 text-xl mt-1" />
+                  <FaExclamationCircle className="text-yellow-600 text-xl mt-1" />
 
-    <div className="text-sm text-gray-700 leading-relaxed">
-      <p className="font-semibold text-yellow-800 mb-1">
-        Important Notice / महत्वपूर्ण सूचना
-      </p>
+                  <div className="text-sm text-gray-700 leading-relaxed">
+                    <p className="font-semibold text-yellow-800 mb-1">
+                      Important Notice / महत्वपूर्ण सूचना
+                    </p>
 
-      <p>
-        If any subject includes a <b>Practical (MJC / MIC or both)</b>,
-        please select <b>"Yes Practical"</b>. If there is no practical in any subject,
-        select <b>"No Practical"</b>.
-      </p>
+                    <p>
+                      If any subject includes a <b>Practical (MJC / MIC or both)</b>,
+                      please select <b>"Yes Practical"</b>. If there is no practical in any subject,
+                      select <b>"No Practical"</b>.
+                    </p>
 
-      <p className="mt-2 text-gray-800">
-        जिस छात्र के किसी भी विषय में <b>Practical (MJC / MIC या दोनों)</b> है,
-        वह <b>"Yes Practical"</b> विकल्प चुनें। यदि किसी भी विषय में Practical नहीं है,
-        तो <b>"No Practical"</b> चुनें।
-      </p>
-    </div>
+                    <p className="mt-2 text-gray-800">
+                      जिस छात्र के किसी भी विषय में <b>Practical (MJC / MIC या दोनों)</b> है,
+                      वह <b>"Yes Practical"</b> विकल्प चुनें। यदि किसी भी विषय में Practical नहीं है,
+                      तो <b>"No Practical"</b> चुनें।
+                    </p>
+                  </div>
 
-  </div>
+                </div>
 
-  {/* Practical Selection */}
-  <div className="bg-gray-50 border rounded-xl p-4">
+                {/* Practical Selection */}
+                <div className="bg-gray-50 border rounded-xl p-4">
 
-    <label className="text-sm font-semibold text-gray-700">
-      Select Practical Subject
-    </label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Select Practical Subject
+                  </label>
 
-    <select
-      value={practical}
-      onChange={(e) => {
-        setPractical(e.target.value);
-        setAgreed(false);
-      }}
-      className={`mt-2 w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400
+                  <select
+                    value={practical}
+                    onChange={(e) => {
+                      setPractical(e.target.value);
+                      setAgreed(false);
+                    }}
+                    className={`mt-2 w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400
       ${!practical ? "border-red-400 bg-red-50" : "border-gray-300"}`}
-    >
-      <option value="">-- Select Option --</option>
-      <option value="true">Yes Practical</option>
-      <option value="false">No Practical</option>
-    </select>
+                  >
+                    <option value="">-- Select Option --</option>
+                    <option value="true">Yes Practical</option>
+                    <option value="false">No Practical</option>
+                  </select>
 
-    {practical !== "" && (
-      <div className="flex items-center gap-2 mt-3">
+                  {practical !== "" && (
+                    <div className="flex items-center gap-2 mt-3">
 
-        <input
-          type="checkbox"
-          checked={agreed}
-          onChange={(e) => setAgreed(e.target.checked)}
-          className="w-4 h-4 accent-indigo-600"
-        />
+                      <input
+                        type="checkbox"
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                        className="w-4 h-4 accent-indigo-600"
+                      />
 
-        <label className="text-sm text-gray-700">
-          I confirm that my practical selection is correct.
-        </label>
+                      <label className="text-sm text-gray-700">
+                        I confirm that my practical selection is correct.
+                      </label>
 
-      </div>
-    )}
+                    </div>
+                  )}
 
-  </div>
+                </div>
 
-</div>
+              </div>
             </div>
 
             {/* ACTIONS */}
@@ -356,7 +356,7 @@ const StudentAdmissionDetails = () => {
               {paymentStatus !== "SUCCESS" ? (
 
                 <button
-                disabled={!practical || !agreed}
+                  disabled={!practical || !agreed}
                   onClick={() =>
                     navigate(`/student/admission/${admission.id}/payment`, {
                       state: {
