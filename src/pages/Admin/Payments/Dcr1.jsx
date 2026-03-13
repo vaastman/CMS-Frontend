@@ -33,7 +33,7 @@ const Dcr1 = () => {
           id: p.txnId || p.id,
           studentName: p.student?.name || "-",
           admissionNo: p.admission?.admissionNo || "-",
-          course: p.admission?.course?.name || "-",
+          course: p.admission?.course?.name || p.student?.course?.name || "-",
           semester: "-",
           date: new Date(p.createdAt).toLocaleDateString("en-IN"),
           amount: Number(p.totalAmount || 0),

@@ -4,7 +4,7 @@ import { FaCheckCircle, FaTimesCircle, FaDownload, FaHome } from "react-icons/fa
 import logo from "../../assets/nm_logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getPaymentById } from "@/api/payment.api";
+import { getPaymentStatus } from "@/api/payment.api";
 
 const PaymentProcessing = () => {
 
@@ -29,8 +29,7 @@ const PaymentProcessing = () => {
   useEffect(() => {
     const fetchPayment = async () => {
       try {
-        const res = await getPaymentById(paymentId);
-
+        const res = await getPaymentStatus(paymentId);
         const payment = res?.data?.payment || res?.payment || res;
 
         if (payment) {

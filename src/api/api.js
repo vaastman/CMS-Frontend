@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const apiBaseUrl = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
   // headers: {
   //   "Content-Type": "application/json",
   // },
@@ -55,8 +57,15 @@ api.interceptors.response.use(
         }
 
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
-          { refreshToken }
+          `${apiBaseUrl}/auth/refresh-token`,
+          { refreshToken },
+          {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          }
         );
 
         const newAccessToken = res.data?.data?.accessToken;
