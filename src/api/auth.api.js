@@ -1,4 +1,5 @@
 import api from "./api";
+
 /* ================= LOGIN ================= */
 export const adminLoginApi = (payload) => {
   return api.post("/auth/login", payload);
@@ -9,6 +10,10 @@ export const adminLoginApi = (payload) => {
 export const refreshApi = (refreshToken) => {
   return api.post("/auth/refresh-token", {
     refreshToken,
+  }, {
+    headers: {
+      Authorization: `Bearer ${refreshToken}`,
+    },
   });
 };
 
