@@ -41,7 +41,7 @@ const StudentAdmissionPayment = () => {
 
 if (practical) {
   fees.push({
-    head: "MISC",
+    head: "PRACTICLE",
     amount: breakdown.practicalFee
   });
 }

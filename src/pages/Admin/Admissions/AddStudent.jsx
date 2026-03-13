@@ -17,6 +17,7 @@ const INITIAL_FORM = {
   phone: "",
   uan_no: "",
   reg_no: "",
+  class_roll: "",
 
   fatherName: "",
   gender: "",
@@ -154,6 +155,8 @@ const uploadStudentPhoto = async (file, studentId) => {
 
     if (!form.semesterId)
       return toast.error("Select semester");
+    if (!form.class_roll.trim())
+  return toast.error("College roll number required");
 
     return true;
   };
@@ -171,6 +174,7 @@ const handleSubmit = async (e) => {
     const payload = {
       reg_no: form.reg_no?.trim(),
       uan_no: form.uan_no?.trim(),
+      class_roll: form.class_roll?.trim(),
       name: form.name?.trim(),
       email: form.email?.trim(),
       phone: form.phone?.trim(),
@@ -269,6 +273,14 @@ const handleSubmit = async (e) => {
         <Input name="name" label="Student Name *" value={form.name} onChange={handleChange} />
         <Input name="email" label="Email *" value={form.email} onChange={handleChange} />
         <Input name="phone" label="Phone *" value={form.phone} onChange={handleChange} />
+
+<Input
+  name="class_roll"
+  label="College Roll Number"
+  value={form.class_roll}
+  onChange={handleChange}
+/>
+
         <Input name="reg_no" label="Registration Number" value={form.reg_no} onChange={handleChange} />
         <Input name="uan_no" label="UAN Number *" value={form.uan_no} onChange={handleChange} />
         <Input name="fatherName" label="Father Name" value={form.fatherName} onChange={handleChange} />
