@@ -18,6 +18,7 @@ const StudentAdmissionPayment = () => {
   const [student, setStudent] = useState(null);
   const [feeBreakdown, setFeeBreakdown] = useState([]);
   const [total, setTotal] = useState(0);
+  const paymentStatus = student?.lastAdmission?.paymentStatus;
 
   /* ================= FETCH FEE ================= */
 
@@ -80,13 +81,19 @@ if (practical) {
   /* ================= HANDLE PAYMENT ================= */
 const handlePayment = async () => {
   try {
+    if (paymentStatus === "SUCCESS") {
+      toast.error("Admission fee has already been paid.");
+      navigate(-1);
+      return;
+    }
+
     setLoading(true);
 
     console.log("===== PAYMENT FLOW START =====");
 
     const payload = {
       admissionId,
-      studentId: student.studentId,
+      studentId: student.studentId || student.id,
       totalAmount: total,
       gateway: "GETEPAY",
       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
@@ -176,8 +183,14 @@ const handlePayment = async () => {
           studentName={student.name}
           feeBreakdown={feeBreakdown}
           onPay={handlePayment}
-          loading={loading}
+          loading={loading || paymentStatus === "SUCCESS"}
         />
+
+        {paymentStatus === "SUCCESS" && (
+          <p className="mt-4 text-center text-sm font-medium text-green-700">
+            You have already paid the admission fee.
+          </p>
+        )}
 
       </div>
 
