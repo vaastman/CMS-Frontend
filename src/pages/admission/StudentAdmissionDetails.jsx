@@ -91,6 +91,7 @@ const StudentAdmissionDetails = () => {
 
   const { student, course, status, paymentStatus } = admission;
   const session = admission?.session || {};
+  const isPaymentCompleted = paymentStatus === "SUCCESS";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 py-10 px-4">
@@ -353,7 +354,7 @@ const StudentAdmissionDetails = () => {
                 <FaFileAlt /> Upload Documents
               </button>
 
-              {paymentStatus !== "SUCCESS" ? (
+              {!isPaymentCompleted ? (
 
                 <button
                   disabled={!practical || !agreed}
@@ -372,7 +373,7 @@ const StudentAdmissionDetails = () => {
               ) : (
 
                 <div className="w-full py-3 rounded-xl bg-green-100 text-green-700 text-center font-semibold">
-                  Payment Completed
+                  You have already paid the admission fee
                 </div>
 
               )}
