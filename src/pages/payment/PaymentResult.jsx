@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaCheckCircle, FaTimesCircle, FaRedo, FaHome } from "react-icons/fa";
+import { FaCheckCircle, FaTimesCircle, FaRedo, FaHome, FaInfoCircle } from "react-icons/fa";
 
 const PaymentResult = () => {
 
@@ -14,6 +14,16 @@ const PaymentResult = () => {
   const student = JSON.parse(localStorage.getItem("verifiedStudent") || "{}");
 
   const success = status === "SUCCESS";
+  const retryPayment = () => {
+    const studentId = student.id || student.studentId;
+
+    if (studentId) {
+      navigate(`/student/details/${studentId}`);
+      return;
+    }
+
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
@@ -41,7 +51,7 @@ const PaymentResult = () => {
         <p className="text-gray-500 mb-6">
           {success
             ? "Your admission payment has been completed."
-            : "Your payment could not be processed."}
+            : "The payment was not completed. You can retry using the same student details."}
         </p>
 
         {/* DETAILS */}
@@ -59,13 +69,25 @@ const PaymentResult = () => {
 
         </div>
 
+        {!success && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-left text-sm text-amber-900">
+            <div className="mb-2 flex items-center gap-2 font-semibold">
+              <FaInfoCircle />
+              Payment attempt note
+            </div>
+            <p>
+              If the gateway was closed or cancelled, this failed status is expected. Keep the Transaction ID for support if needed.
+            </p>
+          </div>
+        )}
+
         {/* BUTTONS */}
 
         <div className="flex justify-center gap-3">
 
           {!success && (
             <button
-              onClick={() => navigate(-1)}
+              onClick={retryPayment}
               className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               <FaRedo /> Retry
