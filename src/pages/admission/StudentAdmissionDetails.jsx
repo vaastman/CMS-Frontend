@@ -305,13 +305,16 @@ const StudentAdmissionDetails = () => {
                   </label>
 
                   <select
-                    value={practical}
+                    value={practical === "" ? "" : String(practical)}
                     onChange={(e) => {
-                      setPractical(e.target.value);
+                      const value = e.target.value;
+                      setPractical(
+                        value === "" ? "" : value === "true"
+                      );
                       setAgreed(false);
                     }}
                     className={`mt-2 w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400
-      ${!practical ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+      ${practical === "" ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                   >
                     <option value="">-- Select Option --</option>
                     <option value="true">Yes Practical</option>
@@ -357,7 +360,7 @@ const StudentAdmissionDetails = () => {
               {!isPaymentCompleted ? (
 
                 <button
-                  disabled={!practical || !agreed}
+                  disabled={practical === "" || !agreed}
                   onClick={() =>
                     navigate(`/student/admission/${admission.id}/payment`, {
                       state: {

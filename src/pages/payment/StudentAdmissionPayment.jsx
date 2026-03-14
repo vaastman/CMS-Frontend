@@ -5,6 +5,13 @@ import { createPayment, generatePaymentLink } from "@/api/payment.api";
 import { getAdmissionFeePreview } from "@/api/admissions.api";
 import PaymentSummary from "@/components/payment/PaymentSummary";
 
+const parsePracticalValue = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value !== "string") return false;
+
+  return value.trim().toLowerCase() === "true";
+};
+
 const StudentAdmissionPayment = () => {
 
   const { admissionId } = useParams();
@@ -12,7 +19,7 @@ const StudentAdmissionPayment = () => {
   const location = useLocation();
   
 
-  const practical = location.state?.practical || false;
+  const practical = parsePracticalValue(location.state?.practical);
 
   const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState(null);
