@@ -4,7 +4,7 @@ import { assets } from "../assets/assest";
 import AnnouncementBar from "../components/AnnouncementBar";
 import NoticeAndPrincipal from "./NoticeAndPrincipal";
 import About from "./About";
-import Programs from "../components/Programs";
+// import Programs from "../components/Programs";
 import QuickLinks from "../components/QuickLinks";
 import Events from "../components/Events";
 
@@ -16,12 +16,12 @@ const Home = () => {
       <section>
         <Slider
           images={[
-            assets.slider1,
-            assets.slider2,
-            assets.slider3,
-            assets.art01,
-            assets.art02,
-            assets.art03,
+            assets.AllTeacher,
+            assets.maleTeacher,
+            assets.feamaleTeacher,
+            assets.hos,
+            // assets.art02,
+            // assets.art03,
           ]}
         />
       </section>

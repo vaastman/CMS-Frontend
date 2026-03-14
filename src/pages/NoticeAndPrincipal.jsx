@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaBullhorn } from "react-icons/fa";
 import { getNotices } from "@/api/cms.api";
-import principalImg from "../assets/image/pic02.jpg";
+import principalImg from "../assets/image/principle.jpeg";
 
 const NoticeAndPrincipal = () => {
   const [activeTab, setActiveTab] = useState("notice");
