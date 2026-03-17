@@ -12,10 +12,8 @@ const Footer = () => {
 
   return (
     <div className="w-full bg-[#032f5d] text-white px-6 sm:px-16 lg:px-24 pt-16 pb-8">
-
       {/* TOP SECTION */}
       <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr_1fr] gap-14">
-
         {/* Logo + About */}
         <div className="space-y-6">
           <img
@@ -43,16 +41,28 @@ const Footer = () => {
           </p>
 
           <ul className="flex flex-col text-base gap-3">
-            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/")}>
+            <li
+              className="cursor-pointer hover:text-blue-300 transition"
+              onClick={() => goTo("/")}
+            >
               Home
             </li>
-            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/about")}>
+            <li
+              className="cursor-pointer hover:text-blue-300 transition"
+              onClick={() => goTo("/about")}
+            >
               About Us
             </li>
-            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/admission")}>
+            <li
+              className="cursor-pointer hover:text-blue-300 transition"
+              onClick={() => goTo("/admission")}
+            >
               Admission
             </li>
-            <li className="cursor-pointer hover:text-blue-300 transition" onClick={() => goTo("/campus")}>
+            <li
+              className="cursor-pointer hover:text-blue-300 transition"
+              onClick={() => goTo("/campus")}
+            >
               Campus
             </li>
           </ul>
@@ -61,13 +71,22 @@ const Footer = () => {
           <div className="mt-6">
             <p className="text-xl font-semibold mb-3">LEGAL</p>
             <ul className="flex flex-col gap-2 text-sm opacity-90">
-              <li className="cursor-pointer hover:text-blue-300" onClick={() => goTo("/terms-conditions")}>
+              <li
+                className="cursor-pointer hover:text-blue-300"
+                onClick={() => goTo("/terms-conditions")}
+              >
                 Terms & Conditions
               </li>
-              <li className="cursor-pointer hover:text-blue-300" onClick={() => goTo("/privacy-policy")}>
+              <li
+                className="cursor-pointer hover:text-blue-300"
+                onClick={() => goTo("/privacy-policy")}
+              >
                 Privacy Policy
               </li>
-              <li className="cursor-pointer hover:text-blue-300" onClick={() => goTo("/refund-policy")}>
+              <li
+                className="cursor-pointer hover:text-blue-300"
+                onClick={() => goTo("/refund-policy")}
+              >
                 Refund Policy
               </li>
             </ul>
@@ -110,14 +129,31 @@ const Footer = () => {
             ></iframe>
           </div>
         </div>
+        {/* <div>
+          <p><i>Developed with ❤️ By</i> <a href="https://vaastman.com/">Vaasman</a></p>
+        </div> */}
       </div>
 
       {/* Bottom Bar */}
       <div className="mt-14">
         <hr className="border-gray-500" />
         <p className="text-center text-sm py-4 opacity-80">
-          © {new Date().getFullYear()} Sant Sandhya Das Mahila College —
-          All Rights Reserved.
+          © {new Date().getFullYear()} Sant Sandhya Das Mahila College — All
+          Rights Reserved.
+        </p>
+
+        <p className="text-center">
+          <span className="italic text-gray-300">
+            Crafted with ❤️ and precision by{" "}
+          </span>
+          <a
+            href="https://vaastman.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-blue-300 hover:text-white transition duration-300 underline underline-offset-4"
+          >
+            Vaasman Solutions
+          </a>
         </p>
       </div>
     </div>
