@@ -6,28 +6,28 @@ const Events = () => {
 
   const events = [
     {
-      title: "Console Gaming",
+      title: "Administrative",
       category: "tech",
       img: assets.img01,
-      desc: "Join intense console gaming battles and competitions.",
+      desc: "",
     },
     {
-      title: "Annual Sports Fest",
-      category: "sports",
+      title: "Faculties",
+      category: "tech",
       img: assets.img02,
-      desc: "Participate in exciting sports events and win medals.",
+      desc: "",
     },
     {
-      title: "Cultural Night",
+      title: "College",
       category: "cultural",
       img: assets.img03,
-      desc: "A night full of music, dance and fun celebrations.",
+      desc: "",
     },
     {
-      title: "Hackathon",
+      title: "College Campus",
       category: "tech",
       img: assets.img04,
-      desc: "Build, innovate and compete with the brightest minds.",
+      desc: "",
     },
   ];
 
