@@ -17,88 +17,50 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
 
   /* ================= STATE ================= */
   const [students, setStudents] = useState([]);
-  const [page, setPage] = useState(1);            // 1-based page index
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // delete dialog
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   const perPage = 15;
   const { course, session, status } = filters;
 
-  /* ================= RESET PAGE ON FILTER CHANGE ================= */
+  /* ================= DEBOUNCE SEARCH ================= */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  /* ================= RESET PAGE ================= */
   useEffect(() => {
     setPage(1);
-  }, [search, course, session, status]);
+  }, [debouncedSearch, course, session, status]);
 
   /* ================= FETCH STUDENTS ================= */
-  // useEffect(() => {
-  //   const load = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const res = await fetchStudents({
-  //         search,
-  //         courseId: course,
-  //         sessionId: session,
-  //         status,
-  //         page,
-  //         limit: perPage,
-  //       });
-
-  //       const response = res?.data?.data;
-
-  //       const studentsList =
-  //         response?.students ||
-  //         res?.data?.students ||
-  //         [];
-
-  //       setStudents(Array.isArray(studentsList) ? studentsList : []);
-
-  //       // ✅ SAFE pagination extraction
-  //       const pagination =
-  //         response?.pagination ||
-  //         res?.data?.pagination ||
-  //         null;
-
-  //       if (pagination) {
-  //         if (pagination.totalPages) {
-  //           setTotalPages(pagination.totalPages);
-  //         } else if (pagination.total && pagination.limit) {
-  //           setTotalPages(Math.ceil(pagination.total / pagination.limit));
-  //         } else {
-  //           setTotalPages(1);
-  //         }
-  //       } else {
-  //         setTotalPages(1);
-  //       }
-
-  //     } catch (err) {
-  //       console.error("❌ Fetch students error:", err);
-  //       toast.error("Failed to load students");
-  //       setStudents([]);
-  //       setTotalPages(1);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   load();
-  // }, [search, course, session, status, page, refreshKey]);
-
   useEffect(() => {
+    let isMounted = true;
+
     const load = async () => {
       setLoading(true);
+
       try {
         const res = await fetchStudents({
-          search,
+          search: debouncedSearch,
           courseId: course,
           sessionId: session,
           status,
           page,
           limit: perPage,
         });
+
+        if (!isMounted) return;
 
         const response = res?.data?.data;
 
@@ -107,72 +69,50 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
           res?.data?.students ||
           [];
 
-        const finalList = Array.isArray(studentsList) ? studentsList : [];
-
-        // ✅ LOG STUDENT IDS ON LOAD
-        // console.log("Loaded Students:");
-        // finalList.forEach((student) => {
-        //   console.log("Student ID:", student.id);
-        // });
-        // ✅ LOG STUDENT DETAILS ON LOAD
-        console.log("--- Loaded Students List ---");
-
-        if (finalList.length > 0) {
-          // Option A: Detailed Table View (Best for quick scanning)
-          console.table(finalList);
-
-          // Option B: Individual Logs (Best for expandable object inspection)
-          finalList.forEach((student, index) => {
-            console.log(`Student [${index}] ID: ${student.id}`, student);
-          });
-        } else {
-          console.log("No students found in the response.");
-        }
-
-        setStudents(finalList);
+        setStudents(Array.isArray(studentsList) ? studentsList : []);
 
         const pagination =
           response?.pagination ||
-          res?.data?.pagination ||
-          null;
+          res?.data?.pagination;
 
-        if (pagination) {
-          if (pagination.totalPages) {
-            setTotalPages(pagination.totalPages);
-          } else if (pagination.total && pagination.limit) {
-            setTotalPages(Math.ceil(pagination.total / pagination.limit));
-          } else {
-            setTotalPages(1);
-          }
+        if (pagination?.totalPages) {
+          setTotalPages(pagination.totalPages);
+        } else if (pagination?.total && pagination?.limit) {
+          setTotalPages(Math.ceil(pagination.total / pagination.limit));
         } else {
           setTotalPages(1);
         }
 
       } catch (err) {
-        console.error("❌ Fetch students error:", err);
+        console.error("Fetch error:", err);
         toast.error("Failed to load students");
         setStudents([]);
         setTotalPages(1);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     load();
-  }, [search, course, session, status, page, refreshKey]);
 
-  /* ================= CONFIRM DELETE ================= */
+    return () => {
+      isMounted = false;
+    };
+
+  }, [debouncedSearch, course, session, status, page, refreshKey]);
+
+  /* ================= DELETE ================= */
   const confirmDelete = async () => {
     try {
       setDeleting(true);
+
       await deleteStudent(deleteId);
 
-      toast.success("Student deleted successfully 🗑️");
+      toast.success("Student deleted 🗑️");
 
       setStudents((prev) => {
         const updated = prev.filter((s) => s.id !== deleteId);
 
-        // ✅ fix pagination edge case
         if (updated.length === 0 && page > 1) {
           setPage((p) => p - 1);
         }
@@ -181,6 +121,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
       });
 
       setDeleteId(null);
+
     } catch (err) {
       toast.error(err?.response?.data?.message || "Delete failed");
     } finally {
@@ -191,6 +132,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
   /* ================= RENDER ================= */
   return (
     <div className="rounded-2xl border overflow-hidden bg-white">
+
       <table className="w-full text-sm">
         <thead className="border-b bg-gray-50">
           <tr>
@@ -207,13 +149,13 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="6" className="text-center py-10">
+              <td colSpan="7" className="text-center py-10">
                 Loading...
               </td>
             </tr>
           ) : students.length === 0 ? (
             <tr>
-              <td colSpan="6" className="text-center py-10">
+              <td colSpan="7" className="text-center py-10">
                 No students found
               </td>
             </tr>
@@ -225,33 +167,30 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
                 onClick={() => navigate(`/admin/students/${s.id}`)}
               >
                 <td className="p-4">{s.reg_no || "N/A"}</td>
-                <td className="p-4">
-                  {s.uan_no || "N/A"}
-                </td>
+                <td>{s.uan_no || "N/A"}</td>
                 <td>{s.name}</td>
                 <td>{s.course?.name || "-"}</td>
                 <td>{s.session?.name || "-"}</td>
                 <td>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs ${statusStyles[s.status] ||
-                      "bg-gray-100 text-gray-600"
-                      }`}
+                    className={`px-3 py-1 rounded-full text-xs ${
+                      statusStyles[s.status] || "bg-gray-100 text-gray-600"
+                    }`}
                   >
                     {s.status || "N/A"}
                   </span>
                 </td>
 
-                {/* ACTIONS */}
                 <td
                   className="text-center"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex justify-center gap-4">
+                    
                     {/* EDIT */}
                     <button
                       onClick={() => onEdit(s)}
                       className="text-blue-600 hover:text-blue-800"
-                      title="Edit Student"
                     >
                       <FaEdit />
                     </button>
@@ -260,10 +199,10 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
                     <button
                       onClick={() => setDeleteId(s.id)}
                       className="text-red-600 hover:text-red-800"
-                      title="Delete Student"
                     >
                       <FaTrash />
                     </button>
+
                   </div>
                 </td>
               </tr>
@@ -272,7 +211,7 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
         </tbody>
       </table>
 
-      {/* ================= PAGINATION ================= */}
+      {/* PAGINATION */}
       {totalPages > 1 && (
         <div className="flex justify-between items-center px-4 py-3 bg-gray-50">
           <p className="text-sm">
@@ -299,11 +238,11 @@ const StudentTable = ({ search, filters, refreshKey, onEdit }) => {
         </div>
       )}
 
-      {/* ================= CONFIRM DELETE DIALOG ================= */}
+      {/* DELETE CONFIRM */}
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Student"
-        message="Are you sure you want to delete this student? This action cannot be undone."
+        message="Are you sure you want to delete this student?"
         confirmText="Delete"
         onCancel={() => setDeleteId(null)}
         onConfirm={confirmDelete}

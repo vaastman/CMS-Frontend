@@ -31,7 +31,6 @@ import maleTeacher from './image/maleteacher.jpeg';
 import Counter from './image/counter.jpeg';
 import Coridor from './image/coridor.jpeg';
 
-
 export const assets = {
     nm_logo,
     banner4,
@@ -54,7 +53,6 @@ export const assets = {
     art01,
     art02,
     art03,
-<<<<<<< HEAD
     art04,
     AllTeacher,
     principle,
@@ -66,8 +64,4 @@ export const assets = {
     maleTeacher,
     Counter,
     Coridor
-}
-=======
-    art04
-}
->>>>>>> 2226404b77472f91ababeeba9d013f320fdb2eb5
+};

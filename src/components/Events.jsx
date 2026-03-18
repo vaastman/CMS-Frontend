@@ -4,79 +4,50 @@ import { assets } from "../assets/assest";
 const Events = () => {
   const [category, setCategory] = useState("all");
 
-<<<<<<< HEAD
- const events = [
-  {
-    title: "Faculty Members",
-    category: "academic",
-    img: assets.AllTeacher,
-    desc: "Meet our dedicated faculty members who guide students with knowledge, experience, and mentorship.",
-  },
-  {
-    title: "Campus Garden",
-    category: "campus",
-    img: assets.garden,
-    desc: "A peaceful green space inside the campus where students relax, study, and enjoy nature.",
-  },
-  {
-    title: "University Campus",
-    category: "campus",
-    img: assets.campus,
-    desc: "Explore the vibrant university campus featuring modern infrastructure and a dynamic learning environment.",
-  },
-  {
-    title: "Male Faculty",
-    category: "academic",
-    img: assets.maleTeacher,
-    desc: "Our male faculty members contribute to academic excellence through teaching, research, and student mentorship.",
-  },
-  {
-    title: "Academic Corridor",
-    category: "campus",
-    img: assets.Coridor,
-    desc: "The main corridor connecting classrooms and departments, representing the active academic life of the university.",
-  },
-  {
-    title: "Female Faculty",
-    category: "academic",
-    img: assets.feamaleTeacher,
-    desc: "Our female faculty members inspire students through dedication, knowledge, and leadership in education.",
-  },
-  {
-    title: "Student Service Counter",
-    category: "services",
-    img: assets.Counter,
-    desc: "The student help desk assists with admissions, documentation, and academic support services.",
-  },
-];
-=======
   const events = [
     {
-      title: "Administrative",
-      category: "tech",
-      img: assets.img01,
-      desc: "",
+      title: "Faculty Members",
+      category: "academic",
+      img: assets.AllTeacher,
+      desc: "Meet our dedicated faculty members who guide students with knowledge, experience, and mentorship.",
     },
     {
-      title: "Faculties",
-      category: "tech",
-      img: assets.img02,
-      desc: "",
+      title: "Campus Garden",
+      category: "campus",
+      img: assets.garden,
+      desc: "A peaceful green space inside the campus where students relax, study, and enjoy nature.",
     },
     {
-      title: "College",
-      category: "cultural",
-      img: assets.img03,
-      desc: "",
+      title: "University Campus",
+      category: "campus",
+      img: assets.campus,
+      desc: "Explore the vibrant university campus featuring modern infrastructure and a dynamic learning environment.",
     },
     {
-      title: "College Campus",
-      category: "tech",
-      img: assets.img04,
-      desc: "",
+      title: "Male Faculty",
+      category: "academic",
+      img: assets.maleTeacher,
+      desc: "Our male faculty members contribute to academic excellence through teaching, research, and student mentorship.",
+    },
+    {
+      title: "Academic Corridor",
+      category: "campus",
+      img: assets.Coridor,
+      desc: "The main corridor connecting classrooms and departments, representing the active academic life of the university.",
+    },
+    {
+      title: "Female Faculty",
+      category: "academic",
+      img: assets.feamaleTeacher,
+      desc: "Our female faculty members inspire students through dedication, knowledge, and leadership in education.",
+    },
+    {
+      title: "Student Service Counter",
+      category: "services",
+      img: assets.Counter,
+      desc: "The student help desk assists with admissions, documentation, and academic support services.",
     },
   ];
->>>>>>> 2226404b77472f91ababeeba9d013f320fdb2eb5
 
   const filtered =
     category === "all"
@@ -85,12 +56,10 @@ const Events = () => {
 
   return (
     <section className="w-full px-4 py-16 bg-[var(--color-page)]">
-
+      
       {/* Heading */}
-      <h1 className="text-4xl sm:text-5xl font-serif font-bold
-                     text-center mb-12
-                     text-[var(--color-text-primary)]">
-       Campus Life & Facilities
+      <h1 className="text-4xl sm:text-5xl font-serif font-bold text-center mb-12 text-[var(--color-text-primary)]">
+        Campus Life & Facilities
       </h1>
 
       {/* Tabs */}
@@ -100,9 +69,10 @@ const Events = () => {
             key={tab}
             onClick={() => setCategory(tab)}
             className={`px-6 py-2 rounded-full border text-sm font-semibold transition
-              ${category === tab
-                ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                : "border-[var(--color-divider)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary)] hover:text-white"
+              ${
+                category === tab
+                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+                  : "border-[var(--color-divider)] text-[var(--color-text-secondary)] hover:bg-[var(--color-primary)] hover:text-white"
               }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -111,33 +81,11 @@ const Events = () => {
       </div>
 
       {/* Event Cards */}
-      <div
-        className="
-          flex gap-6
-          overflow-x-auto
-          scroll-smooth
-          no-scrollbar
-          snap-x snap-mandatory
-          pb-6
-        "
-      >
+      <div className="flex gap-6 overflow-x-auto scroll-smooth no-scrollbar snap-x snap-mandatory pb-6">
         {filtered.map((ev, i) => (
           <div
             key={i}
-            className="
-              snap-center
-              flex-shrink-0
-              w-[85%]
-              sm:w-[55%]
-              lg:w-[30%]
-              bg-[var(--color-surface)]
-              rounded-2xl
-              shadow-lg
-              p-5
-              transition
-              hover:-translate-y-2
-              hover:shadow-2xl
-            "
+            className="snap-center flex-shrink-0 w-[85%] sm:w-[55%] lg:w-[30%] bg-[var(--color-surface)] rounded-2xl shadow-lg p-5 transition hover:-translate-y-2 hover:shadow-2xl"
           >
             {/* Image */}
             <div className="overflow-hidden rounded-xl mb-5 h-56">
@@ -148,8 +96,7 @@ const Events = () => {
               />
             </div>
 
-            <h2 className="text-2xl font-bold text-center mb-2
-                           text-[var(--color-text-primary)]">
+            <h2 className="text-2xl font-bold text-center mb-2 text-[var(--color-text-primary)]">
               {ev.title}
             </h2>
 
@@ -158,21 +105,13 @@ const Events = () => {
             </p>
 
             <div className="text-center">
-              <button
-                className="px-6 py-2 rounded-md font-semibold
-                           border border-[var(--color-primary)]
-                           text-[var(--color-primary)]
-                           hover:bg-[var(--color-primary)]
-                           hover:text-white
-                           transition"
-              >
+              <button className="px-6 py-2 rounded-md font-semibold border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition">
                 View Event
               </button>
             </div>
           </div>
         ))}
       </div>
-
     </section>
   );
 };
