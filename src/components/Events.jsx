@@ -4,6 +4,7 @@ import { assets } from "../assets/assest";
 const Events = () => {
   const [category, setCategory] = useState("all");
 
+<<<<<<< HEAD
  const events = [
   {
     title: "Faculty Members",
@@ -48,6 +49,34 @@ const Events = () => {
     desc: "The student help desk assists with admissions, documentation, and academic support services.",
   },
 ];
+=======
+  const events = [
+    {
+      title: "Administrative",
+      category: "tech",
+      img: assets.img01,
+      desc: "",
+    },
+    {
+      title: "Faculties",
+      category: "tech",
+      img: assets.img02,
+      desc: "",
+    },
+    {
+      title: "College",
+      category: "cultural",
+      img: assets.img03,
+      desc: "",
+    },
+    {
+      title: "College Campus",
+      category: "tech",
+      img: assets.img04,
+      desc: "",
+    },
+  ];
+>>>>>>> 2226404b77472f91ababeeba9d013f320fdb2eb5
 
   const filtered =
     category === "all"

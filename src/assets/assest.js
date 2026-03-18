@@ -54,6 +54,7 @@ export const assets = {
     art01,
     art02,
     art03,
+<<<<<<< HEAD
     art04,
     AllTeacher,
     principle,
@@ -66,3 +67,7 @@ export const assets = {
     Counter,
     Coridor
 }
+=======
+    art04
+}
+>>>>>>> 2226404b77472f91ababeeba9d013f320fdb2eb5
