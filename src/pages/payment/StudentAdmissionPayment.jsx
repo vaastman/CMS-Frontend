@@ -12,7 +12,9 @@ const StudentAdmissionPayment = () => {
   const location = useLocation();
   
 
-  const practical = location.state?.practical || false;
+  const practical =
+    location.state?.practical === true ||
+    location.state?.practical === "true";
 
   const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState(null);
@@ -25,7 +27,7 @@ const StudentAdmissionPayment = () => {
   try {
 
     const courseId = studentData.course?.id;
-    const semester = 5;
+    const semester = 4;
 
     const res = await getAdmissionFeePreview(courseId, semester, practical);
 
@@ -39,7 +41,7 @@ const StudentAdmissionPayment = () => {
   { head: "TUITION", amount: breakdown.admissionFee }
 ];
 
-if (practical) {
+if (practical && breakdown.practicalFee > 0) {
   fees.push({
     head: "PRACTICAL",
     amount: breakdown.practicalFee
@@ -90,7 +92,7 @@ const handlePayment = async () => {
       totalAmount: total,
       gateway: "GETEPAY",
       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-      breakups: feeBreakdown
+      breakups: feeBreakdown.filter((item) => Number(item.amount) > 0)
     };
 
     console.log("Payment payload:", payload);
