@@ -11,7 +11,10 @@ import {
   FaDownload,
 } from "react-icons/fa";
 
-import { getDashboardData } from "@/api/dashboard.api";
+import {
+  getDashboardStats,
+  getLast10Admissions,
+} from "@/api/dashboard.api";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -25,19 +28,22 @@ const AdminDashboard = () => {
   });
 
   const [recentAdmissions, setRecentAdmissions] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  /* ================= FETCH DASHBOARD ================= */
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [admissionsLoading, setAdmissionsLoading] = useState(false);
+
+  const [admissionsLoaded, setAdmissionsLoaded] = useState(false);
+
+  /* ================= FETCH STATS ================= */
   useEffect(() => {
     fetchDashboard();
   }, []);
 
   const fetchDashboard = async () => {
     try {
-      setLoading(true);
+      setStatsLoading(true);
 
-      const { stats: statsData, admissions } =
-        await getDashboardData();
+      const statsData = await getDashboardStats();
 
       setStats({
         totalStudents: statsData?.totalStudents || 0,
@@ -46,21 +52,31 @@ const AdminDashboard = () => {
         pendingApprovals: statsData?.todaysAdmissions || 0,
       });
 
+    } catch (error) {
+      console.error("Dashboard load failed:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  /* ================= LOAD ADMISSIONS (LAZY) ================= */
+  useEffect(() => {
+    if (admissionsLoaded) {
+      loadAdmissions();
+    }
+  }, [admissionsLoaded]);
+
+  const loadAdmissions = async () => {
+    try {
+      setAdmissionsLoading(true);
+
+      const admissions = await getLast10Admissions();
       setRecentAdmissions(admissions || []);
 
     } catch (error) {
-      console.error("Dashboard load failed:", error);
-
-      setStats({
-        totalStudents: 0,
-        newAdmissions: 0,
-        facultyStrength: 0,
-        pendingApprovals: 0,
-      });
-
-      setRecentAdmissions([]);
+      console.error("Admissions load failed:", error);
     } finally {
-      setLoading(false);
+      setAdmissionsLoading(false);
     }
   };
 
@@ -130,7 +146,7 @@ const AdminDashboard = () => {
                   {stat.title}
                 </p>
                 <h2 className="text-3xl font-bold mt-1">
-                  {stat.value}
+                  {statsLoading ? "..." : stat.value}
                 </h2>
                 <p className={`text-xs mt-1 ${stat.danger ? "text-red-600" : "text-gray-500"}`}>
                   {stat.note}
@@ -150,7 +166,10 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
         {/* RECENT ADMISSIONS */}
-        <div className="xl:col-span-2 bg-[color:var(--color-surface)] rounded-2xl shadow-sm">
+        <div
+          className="xl:col-span-2 bg-[color:var(--color-surface)] rounded-2xl shadow-sm"
+          onMouseEnter={() => setAdmissionsLoaded(true)} // 🔥 lazy trigger
+        >
           <div className="flex items-center justify-between px-6 py-4 border-b">
             <h3 className="font-semibold">
               Recent Admission Applications
@@ -172,29 +191,50 @@ const AdminDashboard = () => {
                   <th className="px-6 py-3 text-left">Status</th>
                 </tr>
               </thead>
-              <tbody>
-                {recentAdmissions.map((app) => (
-                  <tr key={app.id} className="border-b">
-                    <td className="px-6 py-4 font-medium">
-                      {app.student?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-4">
-                      {app.course?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-4">
-                      {app.status}
-                    </td>
-                  </tr>
-                ))}
 
-                {!loading && recentAdmissions.length === 0 && (
+              <tbody>
+                {!admissionsLoaded && (
                   <tr>
-                    <td colSpan="3" className="px-6 py-6 text-center text-gray-500">
-                      No recent applications found
+                    <td colSpan="3" className="text-center py-6 text-gray-500">
+                      Hover to load admissions
                     </td>
                   </tr>
                 )}
+
+                {admissionsLoading && (
+                  <tr>
+                    <td colSpan="3" className="text-center py-6">
+                      Loading...
+                    </td>
+                  </tr>
+                )}
+
+                {!admissionsLoading &&
+                  recentAdmissions.map((app) => (
+                    <tr key={app.id} className="border-b">
+                      <td className="px-6 py-4 font-medium">
+                        {app.student?.name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        {app.course?.name || "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        {app.status}
+                      </td>
+                    </tr>
+                  ))}
+
+                {!admissionsLoading &&
+                  admissionsLoaded &&
+                  recentAdmissions.length === 0 && (
+                    <tr>
+                      <td colSpan="3" className="text-center py-6 text-gray-500">
+                        No recent applications found
+                      </td>
+                    </tr>
+                  )}
               </tbody>
+
             </table>
           </div>
         </div>

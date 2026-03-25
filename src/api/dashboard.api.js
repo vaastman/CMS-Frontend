@@ -22,14 +22,14 @@ export const getLast10Admissions = async () => {
 };
 
 /* COMBINED DATA */
-export const getDashboardData = async () => {
-  const results = await Promise.allSettled([
-    getDashboardStats(),
-    getLast10Admissions(),
-  ]);
+// export const getDashboardData = async () => {
+//   const results = await Promise.allSettled([
+//     getDashboardStats(),
+//     getLast10Admissions(),
+//   ]);
 
-  return {
-    stats: results[0].status === "fulfilled" ? results[0].value : {},
-    admissions: results[1].status === "fulfilled" ? results[1].value : [],
-  };
-};
+//   return {
+//     stats: results[0].status === "fulfilled" ? results[0].value : {},
+//     admissions: results[1].status === "fulfilled" ? results[1].value : [],
+//   };
+// };
