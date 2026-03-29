@@ -364,7 +364,7 @@ const StudentAdmissionDetails = () => {
                   onClick={() =>
                     navigate(`/student/admission/${admission.id}/payment`, {
                       state: {
-                        practical
+                        practical: practical === "true"
                       }
                     })
                   }
