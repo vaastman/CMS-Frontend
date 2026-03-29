@@ -20,7 +20,16 @@ import art01 from './art01.webp';
 import art02 from './art03.webp';
 import art03 from './art03.webp';
 import art04 from './art04.webp';
-
+import AllTeacher from './image/AllTeacher.jpeg';
+import principle from './image/principle.jpeg';
+import hos from './image/hos.jpeg';
+import t1 from './image/t1.jpeg';
+import campus from './image/campus.jpeg';
+import garden from './image/garden.jpeg';
+import feamaleTeacher from './image/feamaleteacher.jpeg';
+import maleTeacher from './image/maleteacher.jpeg';
+import Counter from './image/counter.jpeg';
+import Coridor from './image/coridor.jpeg';
 
 export const assets = {
     nm_logo,
@@ -44,5 +53,15 @@ export const assets = {
     art01,
     art02,
     art03,
-    art04
-}
+    art04,
+    AllTeacher,
+    principle,
+    hos,
+    t1,
+    campus,
+    garden,
+    feamaleTeacher,
+    maleTeacher,
+    Counter,
+    Coridor
+};

@@ -10,8 +10,8 @@ const createRow = (name, defaultValue = 0) => ({
   values: Array(8).fill(defaultValue),
 });
 
-
 const ManageFeeStructure = () => {
+
   const [partA, setPartA] = useState([
     createRow("Admission Fee", 1350),
     createRow("Tuition Fee", 600),
@@ -36,62 +36,6 @@ const ManageFeeStructure = () => {
     createRow("Handbook/Directory", 50),
   ]);
 
-const downloadPDF = () => {
-  const doc = new jsPDF();
-
-  const headers = ["Head / Item", ...semesters.map((s) => `Sem ${s}`)];
-
-  const rows = [];
-
-  const addRows = (data) => {
-    data.forEach((row) => {
-      rows.push([
-        row.name,
-        ...row.values.map((v) => `₹${Number(v).toFixed(0)}`),
-      ]);
-    });
-  };
-
-  addRows(partA);
-  addRows(partB);
-
-  rows.push([
-    "Grand Total",
-    ...semesters.map((_, i) => `₹${calculateGrandTotal(i)}`),
-  ]);
-
-  doc.setFontSize(16);
-  doc.text("Semester Fee Structure", 14, 15);
-
-  autoTable(doc, {
-    startY: 20,
-    head: [headers],
-    body: rows,
-
-    styles: {
-      fontSize: 10,
-      cellPadding: 3,
-      halign: "center",
-      valign: "middle",
-    },
-
-    headStyles: {
-      fillColor: [40, 116, 166],
-      textColor: 255,
-      fontStyle: "bold",
-    },
-
-    columnStyles: {
-      0: { halign: "left", cellWidth: 50 }, // Head column
-    },
-
-    alternateRowStyles: {
-      fillColor: [240, 240, 240],
-    },
-  });
-
-  doc.save("fee-structure.pdf");
-};
   const handleChange = (section, rowIndex, semIndex, value) => {
     const updater = section === "A" ? [...partA] : [...partB];
     updater[rowIndex].values[semIndex] = Number(value);
@@ -108,6 +52,70 @@ const downloadPDF = () => {
     return calculateTotal("A", semIndex) + calculateTotal("B", semIndex);
   };
 
+  /* ================= PDF DOWNLOAD ================= */
+
+  const downloadPDF = () => {
+
+    const doc = new jsPDF();
+
+    const headers = ["Head / Item", ...semesters.map((s) => `Sem ${s}`)];
+
+    const rows = [];
+
+    const addRows = (data) => {
+      data.forEach((row) => {
+        rows.push([
+          row.name,
+          ...row.values.map((v) => Number(v).toLocaleString("en-IN")),
+        ]);
+      });
+    };
+
+    addRows(partA);
+    addRows(partB);
+
+    rows.push([
+      "Grand Total",
+      ...semesters.map((_, i) =>
+        calculateGrandTotal(i).toLocaleString("en-IN")
+      ),
+    ]);
+
+    doc.setFontSize(16);
+    doc.text("Semester Fee Structure", 105, 15, { align: "center" });
+
+    autoTable(doc, {
+      startY: 22,
+      head: [headers],
+      body: rows,
+
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        halign: "center",
+        valign: "middle",
+      },
+
+      headStyles: {
+        fillColor: [40, 116, 166],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+
+      columnStyles: {
+        0: { halign: "left", cellWidth: 50 },
+      },
+
+      alternateRowStyles: {
+        fillColor: [240, 240, 240],
+      },
+    });
+
+    doc.save("fee-structure.pdf");
+  };
+
+  /* ================= TABLE RENDER ================= */
+
   const renderSection = (title, data, sectionKey) => (
     <>
       <tr className="bg-blue-50 font-semibold">
@@ -120,8 +128,10 @@ const downloadPDF = () => {
       {data.map((row, rowIndex) => (
         <tr key={rowIndex}>
           <td className="border p-2">{row.name}</td>
+
           {row.values.map((val, semIndex) => (
             <td key={semIndex} className="border p-1">
+
               <input
                 type="number"
                 value={val}
@@ -130,71 +140,94 @@ const downloadPDF = () => {
                 }
                 className="w-full text-center border rounded px-1 py-1"
               />
+
             </td>
           ))}
         </tr>
       ))}
 
-      {/* Section Total */}
       <tr className="bg-gray-100 font-semibold">
         <td className="border p-2">Total {title}</td>
+
         {semesters.map((_, i) => (
           <td key={i} className="border p-2 text-center">
-            ₹{calculateTotal(sectionKey, i)}
+            ₹{calculateTotal(sectionKey, i).toLocaleString("en-IN")}
           </td>
         ))}
+
       </tr>
     </>
   );
 
+  /* ================= UI ================= */
+
   return (
+
     <div className="p-6">
+
       <h2 className="text-2xl font-bold mb-6 text-[color:var(--color-primary)]">
         Semester Fee Structure
       </h2>
 
       <div className="overflow-auto bg-white border rounded-xl shadow">
+
         <table className="min-w-full text-sm border-collapse">
+
           <thead className="bg-gray-200">
+
             <tr>
               <th className="border p-2 text-left">Head / Item</th>
+
               {semesters.map((sem, i) => (
                 <th key={i} className="border p-2 text-center">
                   Sem {sem}
                 </th>
               ))}
+
             </tr>
+
           </thead>
 
           <tbody>
+
             {renderSection("Part A", partA, "A")}
             {renderSection("Part B", partB, "B")}
 
-            {/* Grand Total */}
             <tr className="bg-green-200 font-bold">
+
               <td className="border p-2">Grand Total</td>
+
               {semesters.map((_, i) => (
                 <td key={i} className="border p-2 text-center">
-                  ₹{calculateGrandTotal(i)}
+                  ₹{calculateGrandTotal(i).toLocaleString("en-IN")}
                 </td>
               ))}
+
             </tr>
+
           </tbody>
+
         </table>
+
       </div>
 
       <div className="mt-6">
-      <button
-  onClick={downloadPDF}
-  className="flex items-center gap-2 px-6 py-2 rounded-lg text-white"
-  style={{ backgroundColor: "var(--color-primary)" }}
->
-  <FaSave />
-  Save Fee Structure
-</button>
+
+        <button
+          onClick={downloadPDF}
+          className="flex items-center gap-2 px-6 py-2 rounded-lg text-white"
+          style={{ backgroundColor: "var(--color-primary)" }}
+        >
+          <FaSave />
+          Save Fee Structure
+        </button>
+
       </div>
+
     </div>
+
   );
+
 };
 
 export default ManageFeeStructure;

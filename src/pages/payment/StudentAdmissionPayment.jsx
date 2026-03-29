@@ -5,21 +5,26 @@ import { createPayment, generatePaymentLink } from "@/api/payment.api";
 import { getAdmissionFeePreview } from "@/api/admissions.api";
 import PaymentSummary from "@/components/payment/PaymentSummary";
 
+const parsePracticalValue = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value !== "string") return false;
+
+  return value.trim().toLowerCase() === "true";
+};
+
 const StudentAdmissionPayment = () => {
 
   const { admissionId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   
-
-  const practical =
-    location.state?.practical === true ||
-    location.state?.practical === "true";
+  const practical = parsePracticalValue(location.state?.practical);
 
   const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState(null);
   const [feeBreakdown, setFeeBreakdown] = useState([]);
   const [total, setTotal] = useState(0);
+  const paymentStatus = student?.lastAdmission?.paymentStatus;
 
   /* ================= FETCH FEE ================= */
 
@@ -82,13 +87,19 @@ if (practical && breakdown.practicalFee > 0) {
   /* ================= HANDLE PAYMENT ================= */
 const handlePayment = async () => {
   try {
+    if (paymentStatus === "SUCCESS") {
+      toast.error("Admission fee has already been paid.");
+      navigate(-1);
+      return;
+    }
+
     setLoading(true);
 
     console.log("===== PAYMENT FLOW START =====");
 
     const payload = {
       admissionId,
-      studentId: student.studentId,
+      studentId: student.studentId || student.id,
       totalAmount: total,
       gateway: "GETEPAY",
       txnId: `TXN-${Date.now()}-${Math.floor(Math.random()*1000)}`,
@@ -178,8 +189,14 @@ const handlePayment = async () => {
           studentName={student.name}
           feeBreakdown={feeBreakdown}
           onPay={handlePayment}
-          loading={loading}
+          loading={loading || paymentStatus === "SUCCESS"}
         />
+
+        {paymentStatus === "SUCCESS" && (
+          <p className="mt-4 text-center text-sm font-medium text-green-700">
+            You have already paid the admission fee.
+          </p>
+        )}
 
       </div>
 

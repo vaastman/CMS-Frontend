@@ -77,7 +77,10 @@ const StudentAdmissionPayment = () => {
           <div className="flex justify-between mb-4">
             <span className="font-semibold">Admission Fee</span>
             <span className="font-bold text-green-600">
-              ₹{admission.feeAmount}
+              ₹{admission.feeAmount || 500}
+            </span>
+            <span className="font-semibold">Late Fee</span>
+            <span className="font-bold text-red-500"> ₹{admission.lateFee || 0}
             </span>
           </div>
 
