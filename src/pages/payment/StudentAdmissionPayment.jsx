@@ -28,9 +28,43 @@ const StudentAdmissionPayment = () => {
 
   /* ================= FETCH FEE ================= */
 
- const fetchFee = async (studentData) => {
-  try {
+//  const fetchFee = async (studentData) => {
+//   try {
 
+//     const courseId = studentData.course?.id;
+//     const semester = 4;
+
+//     const res = await getAdmissionFeePreview(courseId, semester, practical);
+
+//     const breakdown = res?.data?.feeBreakdown;
+
+//     if (!breakdown) {
+//       throw new Error("Fee breakdown missing from API");
+//     }
+
+//    const fees = [
+//   { head: "TUITION", amount: breakdown.admissionFee }
+// ];
+
+// if (practical && breakdown.practicalFee > 0) {
+//   fees.push({
+//     head: "PRACTICAL",
+//     amount: breakdown.practicalFee
+//   });
+// }
+
+//     setFeeBreakdown(fees);
+//     setTotal(breakdown.totalFee);
+
+//   } catch (error) {
+
+//     console.error("Fee fetch error:", error);
+//     toast.error("Failed to fetch fee");
+
+//   }
+// };
+const fetchFee = async (studentData) => {
+  try {
     const courseId = studentData.course?.id;
     const semester = 4;
 
@@ -42,28 +76,29 @@ const StudentAdmissionPayment = () => {
       throw new Error("Fee breakdown missing from API");
     }
 
-   const fees = [
-  { head: "TUITION", amount: breakdown.admissionFee }
-];
+    const fees = [
+      { head: "TUITION", amount: breakdown.admissionFee }
+    ];
 
-if (practical && breakdown.practicalFee > 0) {
-  fees.push({
-    head: "PRACTICAL",
-    amount: breakdown.practicalFee
-  });
-}
+    let calculatedTotal = breakdown.admissionFee; // ✅ ADD THIS
+
+    if (practical && breakdown.practicalFee > 0) {
+      fees.push({
+        head: "PRACTICAL",
+        amount: breakdown.practicalFee
+      });
+
+      calculatedTotal += breakdown.practicalFee; // ✅ ADD THIS
+    }
 
     setFeeBreakdown(fees);
-    setTotal(breakdown.totalFee);
+    setTotal(calculatedTotal); // ✅ CHANGE HERE
 
   } catch (error) {
-
     console.error("Fee fetch error:", error);
     toast.error("Failed to fetch fee");
-
   }
 };
-
   /* ================= LOAD STUDENT ================= */
 
   useEffect(() => {
