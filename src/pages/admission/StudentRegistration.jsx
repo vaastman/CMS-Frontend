@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { verifyStudentByClassRoll } from "@/api/student.api";
+import { verifyStudentByUniversityRoll } from "@/api/student.api";
 
 const StudentRegistration = () => {
 
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    classRoll: ""
+    universityRoll: ""
   });
 
   const [captcha, setCaptcha] = useState("");
@@ -40,10 +40,10 @@ const StudentRegistration = () => {
 
     e.preventDefault();
 
-    const roll = cleanValue(form.classRoll);
+    const roll = cleanValue(form.universityRoll);
 
     if (!roll) {
-      toast.error("Enter Class Roll Number");
+      toast.error("Enter University Roll Number");
       return;
     }
 
@@ -64,10 +64,10 @@ const StudentRegistration = () => {
       setLoading(true);
 
       const payload = {
-        class_roll: roll.toUpperCase()
+        university_roll: roll.toUpperCase()
       };
 
-      const res = await verifyStudentByClassRoll(payload);
+      const res = await verifyStudentByUniversityRoll(payload);
 
       const studentData = res?.data?.data;
 
@@ -80,9 +80,7 @@ const StudentRegistration = () => {
       const cleanedStudent = {
         ...studentData,
         name: cleanValue(studentData.name || ""),
-        fatherName: cleanValue(
-          studentData.fatherName || studentData.father_name || ""
-        ),
+        fatherName: cleanValue(studentData.fatherName || ""),
         class_roll: cleanValue(studentData.class_roll || "")
       };
 
@@ -131,7 +129,7 @@ const StudentRegistration = () => {
           </h2>
 
           <p className="text-sm text-gray-500 mt-1">
-            Verify student using Class Roll Number
+            Verify student using University Roll Number
           </p>
         </div>
 
@@ -146,10 +144,9 @@ const StudentRegistration = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
 
               <Input
-                label="CLASS ROLL NUMBER"
-                name="classRoll"
-                value={form.classRoll}
-                placeholder="Enter Class Roll Number"
+                label="UNIVERSITY ROLL NUMBER"
+                name="universityRoll"
+                value={form.universityRoll}
                 onChange={handleChange}
               />
 
