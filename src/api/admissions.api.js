@@ -155,8 +155,8 @@ export const getAdmissionFeePreview = async (
     const res = await api.get("/admissions/fee-preview", {
       params: {
         courseId,
-        semester,
-        practical,
+        semesterValue: semester,   
+        practicalValue: practical, 
       },
     });
 
