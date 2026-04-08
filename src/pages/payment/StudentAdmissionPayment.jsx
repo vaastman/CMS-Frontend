@@ -28,9 +28,8 @@ const StudentAdmissionPayment = () => {
 
   /* ================= FETCH FEE ================= */
 
-//  const fetchFee = async (studentData) => {
+// const fetchFee = async (studentData) => {
 //   try {
-
 //     const courseId = studentData.course?.id;
 //     const semester = 4;
 
@@ -42,61 +41,94 @@ const StudentAdmissionPayment = () => {
 //       throw new Error("Fee breakdown missing from API");
 //     }
 
-//    const fees = [
-//   { head: "TUITION", amount: breakdown.admissionFee }
-// ];
+//     const fees = [
+//       { head: "TUITION", amount: breakdown.admissionFee }
+//     ];
 
-// if (practical && breakdown.practicalFee > 0) {
-//   fees.push({
-//     head: "PRACTICAL",
-//     amount: breakdown.practicalFee
-//   });
-// }
+//     let calculatedTotal = breakdown.admissionFee; // ✅ ADD THIS
+
+//     if (practical && breakdown.practicalFee > 0) {
+//       fees.push({
+//         head: "PRACTICAL",
+//         amount: breakdown.practicalFee
+//       });
+
+//       calculatedTotal += breakdown.practicalFee; // ✅ ADD THIS
+//     }
 
 //     setFeeBreakdown(fees);
-//     setTotal(breakdown.totalFee);
+//     setTotal(calculatedTotal); // ✅ CHANGE HERE
 
 //   } catch (error) {
-
 //     console.error("Fee fetch error:", error);
 //     toast.error("Failed to fetch fee");
-
 //   }
 // };
+
 const fetchFee = async (studentData) => {
   try {
     const courseId = studentData.course?.id;
-    const semester = 4;
+
+    // ✅ Dynamic semester (NO hardcoding)
+    const semester =
+      studentData?.lastAdmission?.semester?.number ||
+      studentData?.currentSemester ||
+      studentData?.semester;
+
+    if (!courseId || !semester) {
+      throw new Error("Missing courseId or semester");
+    }
 
     const res = await getAdmissionFeePreview(courseId, semester, practical);
 
     const breakdown = res?.data?.feeBreakdown;
 
+    console.log("BACKEND BREAKDOWN:", breakdown);
+
     if (!breakdown) {
       throw new Error("Fee breakdown missing from API");
     }
 
-    const fees = [
-      { head: "TUITION", amount: breakdown.admissionFee }
-    ];
+    const fees = [];
 
-    let calculatedTotal = breakdown.admissionFee; // ✅ ADD THIS
+    // ✅ TUITION (required)
+    if (breakdown.admissionFee > 0) {
+      fees.push({
+        head: "TUITION",
+        amount: breakdown.admissionFee
+      });
+    }
 
-    if (practical && breakdown.practicalFee > 0) {
+    // ✅ PRACTICAL (only if exists)
+    if (breakdown.practicalFee > 0) {
       fees.push({
         head: "PRACTICAL",
         amount: breakdown.practicalFee
       });
-
-      calculatedTotal += breakdown.practicalFee; // ✅ ADD THIS
     }
 
+    // ✅ LATE FEE → map to MISC (backend supported)
+    if (breakdown.lateFee > 0) {
+      fees.push({
+        head: "MISC",
+        amount: breakdown.lateFee
+      });
+    }
+
+    // ✅ FINAL STATE (NO MANUAL CALCULATION)
     setFeeBreakdown(fees);
-    setTotal(calculatedTotal); // ✅ CHANGE HERE
+    setTotal(breakdown.totalFee);
 
   } catch (error) {
     console.error("Fee fetch error:", error);
-    toast.error("Failed to fetch fee");
+
+    // Better error message
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to fetch fee";
+
+    toast.error(message);
   }
 };
   /* ================= LOAD STUDENT ================= */
