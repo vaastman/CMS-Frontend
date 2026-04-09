@@ -91,6 +91,7 @@ const fetchFee = async (studentData) => {
 
     const fees = [];
 
+<<<<<<< HEAD
     // ✅ TUITION (required)
     if (breakdown.admissionFee > 0) {
       fees.push({
@@ -101,10 +102,31 @@ const fetchFee = async (studentData) => {
 
     // ✅ PRACTICAL (only if exists)
     if (breakdown.practicalFee > 0) {
+=======
+    let calculatedTotal = breakdown.admissionFee;
+
+    // Add practical fee if applicable
+    if (practical && breakdown.practicalFee > 0) {
+>>>>>>> a78304e (updated with late fee)
       fees.push({
         head: "PRACTICAL",
         amount: breakdown.practicalFee
       });
+<<<<<<< HEAD
+=======
+
+      calculatedTotal += breakdown.practicalFee;
+    }
+
+    // Always add late fee (miscellaneous fee)
+    if (breakdown.lateFee > 0) {
+      fees.push({
+        head: "MISC",
+        amount: breakdown.lateFee
+      });
+
+      calculatedTotal += breakdown.lateFee;
+>>>>>>> a78304e (updated with late fee)
     }
 
     // ✅ LATE FEE → map to MISC (backend supported)
@@ -117,7 +139,11 @@ const fetchFee = async (studentData) => {
 
     // ✅ FINAL STATE (NO MANUAL CALCULATION)
     setFeeBreakdown(fees);
+<<<<<<< HEAD
     setTotal(breakdown.totalFee);
+=======
+    setTotal(calculatedTotal);
+>>>>>>> a78304e (updated with late fee)
 
   } catch (error) {
     console.error("Fee fetch error:", error);
