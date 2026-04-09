@@ -20,6 +20,12 @@ const StudentAdmissionPayment = () => {
   
   const practical = parsePracticalValue(location.state?.practical);
 
+  console.log("===== PRACTICAL VALUE DEBUG =====");
+  console.log("location.state:", location.state);
+  console.log("location.state?.practical:", location.state?.practical);
+  console.log("Parsed practical (boolean):", practical);
+  console.log("=================================");
+
   const [loading, setLoading] = useState(false);
   const [student, setStudent] = useState(null);
   const [feeBreakdown, setFeeBreakdown] = useState([]);
@@ -28,48 +34,11 @@ const StudentAdmissionPayment = () => {
 
   /* ================= FETCH FEE ================= */
 
-// const fetchFee = async (studentData) => {
-//   try {
-//     const courseId = studentData.course?.id;
-//     const semester = 4;
-
-//     const res = await getAdmissionFeePreview(courseId, semester, practical);
-
-//     const breakdown = res?.data?.feeBreakdown;
-
-//     if (!breakdown) {
-//       throw new Error("Fee breakdown missing from API");
-//     }
-
-//     const fees = [
-//       { head: "TUITION", amount: breakdown.admissionFee }
-//     ];
-
-//     let calculatedTotal = breakdown.admissionFee; // ✅ ADD THIS
-
-//     if (practical && breakdown.practicalFee > 0) {
-//       fees.push({
-//         head: "PRACTICAL",
-//         amount: breakdown.practicalFee
-//       });
-
-//       calculatedTotal += breakdown.practicalFee; // ✅ ADD THIS
-//     }
-
-//     setFeeBreakdown(fees);
-//     setTotal(calculatedTotal); // ✅ CHANGE HERE
-
-//   } catch (error) {
-//     console.error("Fee fetch error:", error);
-//     toast.error("Failed to fetch fee");
-//   }
-// };
-
-const fetchFee = async (studentData) => {
+  const fetchFee = async (studentData) => {
   try {
     const courseId = studentData.course?.id;
 
-    // ✅ Dynamic semester (NO hardcoding)
+    // ✅ Dynamic semester
     const semester =
       studentData?.lastAdmission?.semester?.number ||
       studentData?.currentSemester ||
@@ -91,64 +60,44 @@ const fetchFee = async (studentData) => {
 
     const fees = [];
 
-<<<<<<< HEAD
-    // ✅ TUITION (required)
+    let calculatedTotal = 0;
+
+    // ✅ TUITION
     if (breakdown.admissionFee > 0) {
       fees.push({
         head: "TUITION",
-        amount: breakdown.admissionFee
+        amount: breakdown.admissionFee,
       });
+
+      calculatedTotal += breakdown.admissionFee;
     }
 
-    // ✅ PRACTICAL (only if exists)
-    if (breakdown.practicalFee > 0) {
-=======
-    let calculatedTotal = breakdown.admissionFee;
-
-    // Add practical fee if applicable
+    // ✅ PRACTICAL (only if selected)
     if (practical && breakdown.practicalFee > 0) {
->>>>>>> a78304e (updated with late fee)
       fees.push({
         head: "PRACTICAL",
-        amount: breakdown.practicalFee
+        amount: breakdown.practicalFee,
       });
-<<<<<<< HEAD
-=======
 
       calculatedTotal += breakdown.practicalFee;
     }
 
-    // Always add late fee (miscellaneous fee)
+    // ✅ LATE FEE → MISC
     if (breakdown.lateFee > 0) {
       fees.push({
         head: "MISC",
-        amount: breakdown.lateFee
+        amount: breakdown.lateFee,
       });
 
       calculatedTotal += breakdown.lateFee;
->>>>>>> a78304e (updated with late fee)
     }
 
-    // ✅ LATE FEE → map to MISC (backend supported)
-    if (breakdown.lateFee > 0) {
-      fees.push({
-        head: "MISC",
-        amount: breakdown.lateFee
-      });
-    }
-
-    // ✅ FINAL STATE (NO MANUAL CALCULATION)
     setFeeBreakdown(fees);
-<<<<<<< HEAD
-    setTotal(breakdown.totalFee);
-=======
     setTotal(calculatedTotal);
->>>>>>> a78304e (updated with late fee)
 
   } catch (error) {
     console.error("Fee fetch error:", error);
 
-    // Better error message
     const message =
       error?.response?.data?.message ||
       error?.message ||
@@ -157,6 +106,93 @@ const fetchFee = async (studentData) => {
     toast.error(message);
   }
 };
+
+
+// const fetchFee = async (studentData) => {
+//   try {
+//     const courseId = studentData.course?.id;
+
+//     // Dynamic semester (NO hardcoding)
+//     const semester =
+//       studentData?.lastAdmission?.semester?.number ||
+//       studentData?.currentSemester ||
+//       studentData?.semester;
+
+//     if (!courseId || !semester) {
+//       throw new Error("Missing courseId or semester");
+//     }
+
+//     console.log("===== FEE FETCH DEBUG =====");
+//     console.log("practical (boolean):", practical);
+//     console.log("practical type:", typeof practical);
+//     console.log("courseId:", courseId);
+//     console.log("semester:", semester);
+//     console.log("===========================");
+
+//     const res = await getAdmissionFeePreview(courseId, semester, practical);
+
+//     const breakdown = res?.data?.feeBreakdown;
+
+//     console.log("BACKEND BREAKDOWN:", breakdown);
+
+//     if (!breakdown) {
+//       throw new Error("Fee breakdown missing from API");
+//     }
+
+//     const fees = [];
+
+//     // TUITION (required)
+//     if (breakdown.admissionFee > 0) {
+//       fees.push({
+//         head: "TUITION",
+//         amount: breakdown.admissionFee
+//       });
+//     }
+
+//     console.log("Before PRACTICAL check:");
+//     console.log("  practical =", practical, "(type:", typeof practical + ")");
+//     console.log("  breakdown.practicalFee =", breakdown.practicalFee);
+//     console.log("  Condition result:", practical && breakdown.practicalFee > 0);
+
+//     // PRACTICAL (only if practical is selected AND fee exists)
+//     if (practical && breakdown.practicalFee > 0) {
+//       fees.push({
+//         head: "PRACTICAL",
+//         amount: breakdown.practicalFee
+//       });
+//       console.log("✅ PRACTICAL FEE ADDED:", breakdown.practicalFee);
+//     } else {
+//       console.log("❌ PRACTICAL FEE NOT ADDED");
+//     }
+
+//     // LATE FEE → map to MISC (backend supported)
+//     if (breakdown.lateFee > 0) {
+//       fees.push({
+//         head: "MISC",
+//         amount: breakdown.lateFee
+//       });
+//     }
+
+//     console.log("FINAL FEES ARRAY:", fees);
+//     console.log("TOTAL FROM BACKEND:", breakdown.totalFee);
+//     console.log("===========================");
+
+//     // FINAL STATE (use backend totalFee)
+//     setFeeBreakdown(fees);
+//     setTotal(breakdown.totalFee);
+
+//   } catch (error) {
+//     console.error("Fee fetch error:", error);
+
+//     // Better error message
+//     const message =
+//       error?.response?.data?.message ||
+//       error?.message ||
+//       "Failed to fetch fee";
+
+//     toast.error(message);
+//   }
+// };
   /* ================= LOAD STUDENT ================= */
 
   useEffect(() => {
