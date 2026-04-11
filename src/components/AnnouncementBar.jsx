@@ -3,11 +3,11 @@ import { FaPause, FaPlay } from "react-icons/fa";
 
 const announcements = [
   "Welcome to SSDM College, Barh",
-  "Regarding admission form 3rd sem-2025",
-  "Notice Regarding Mop-Up Admission Round of sem-1 (2025)",
-  "Notice Regarding Admission in UG Regular Sem-1 (2025)",
-  "Regarding Admission of 2nd sem-2025",
-  "Regarding Admission Payment of 4th Sem. (2025)",
+  "Regarding admission form 6th sem-2026",
+  "Notice Regarding Mop-Up Admission Round of sem-1 (2026)",
+  "Notice Regarding Admission in UG Regular Sem-1 (2026)",
+  "Regarding Admission of 4th sem-2026",
+  "Regarding Admission Payment of 5th Sem. (2026)",
 ];
 
 const AnnouncementBar = () => {
