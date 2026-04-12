@@ -36,23 +36,18 @@ const PaymentSummary = ({
       {/* Fee Breakdown */}
       <div className="space-y-3">
 
-        {feeBreakdown.map((fee, index) => {
-          // Map backend head to user-friendly label
-          const displayLabel = fee.head === "MISC" ? "Late Fee" : fee.head;
-          
-          return (
-            <div
-              key={index}
-              className="flex justify-between items-center border-b pb-2"
-            >
-              <span className="text-slate-600">{displayLabel}</span>
+        {feeBreakdown.map((fee, index) => (
+          <div
+            key={index}
+            className="flex justify-between items-center border-b pb-2"
+          >
+            <span className="text-slate-600">{fee.head}</span>
 
-              <span className="font-semibold text-slate-800">
-                ₹{fee.amount.toLocaleString("en-IN")}
-              </span>
-            </div>
-          );
-        })}
+            <span className="font-semibold text-slate-800">
+              ₹{fee.amount.toLocaleString("en-IN")}
+            </span>
+          </div>
+        ))}
 
       </div>
 
