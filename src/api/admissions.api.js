@@ -155,15 +155,10 @@ export const getAdmissionFeePreview = async (
     const res = await api.get("/admissions/fee-preview", {
       params: {
         courseId,
-        semesterValue: semester,   // ✅ Match backend parameter name
-        practicalValue: practical, // ✅ Match backend parameter name
+        semester,
+        practical,
       },
     });
-
-    console.log("===== API CALL DEBUG =====");
-    console.log("Frontend practical (boolean):", practical);
-    console.log("Sending practicalValue:", practical);
-    console.log("===========================");
 
     return res.data;
   } catch (error) {

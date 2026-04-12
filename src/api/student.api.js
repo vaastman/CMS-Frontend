@@ -41,6 +41,10 @@ export const verifyStudent = (payload) => {
   return api.post("/students/verify-student", payload);
 };
 
-export const verifyStudentByClassRoll = (payload) => {
-  return api.post("/students/verify-student-by-class-roll", payload);
+// New API for verifying student by university roll number
+export const verifyStudentByUniversityRoll = (payload) => {
+  return api.post(
+    "/students/verify-student-by-university-roll",
+    payload
+  );
 };
