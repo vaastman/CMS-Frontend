@@ -3,52 +3,23 @@ import { createCertificate } from "@/api/certificate.api";
 import { toast } from "react-toastify";
 
 const CertificateForm = () => {
-  const [isOldStudent, setIsOldStudent] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  /* ================= CURRENT STUDENT ================= */
-
-  const [currentForm, setCurrentForm] = useState({
+  const [form, setForm] = useState({
     studentId: "",
     departmentId: "",
     certificateType: "",
     purpose: "",
   });
 
-  /* ================= OLD STUDENT ================= */
-
-  const [oldForm, setOldForm] = useState({
-    degree: "",
-    course: "",
-    subject: "",
-    certificateType: "",
-    rollNo: "",
-    name: "",
-    fatherName: "",
-    motherName: "",
-    gender: "Male",
-    dob: "",
-    domicile: "",
-  });
-
   const certificateFees = {
     BONAFIDE: 200,
     CLC: 500,
-    Bonafide: 200,
-    Character: 300,
+    CHARACTER: 300,
   };
 
-  /* ================= INPUT HANDLERS ================= */
-
-  const handleOldChange = (e) => {
-    setOldForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleCurrentChange = (e) => {
-    setCurrentForm((prev) => ({
+  const handleChange = (e) => {
+    setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -56,275 +27,152 @@ const CertificateForm = () => {
 
   /* ================= SUBMIT ================= */
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    let payload;
-
-    if (isOldStudent) {
-      // OLD STUDENT FORMAT
-      payload = {
-        type: oldForm.certificateType.toUpperCase(),
-        purpose: "Old student certificate request",
-
-        // optional data (backend may ignore)
-        studentDetails: {
-          degree: oldForm.degree,
-          course: oldForm.course,
-          subject: oldForm.subject,
-          rollNo: oldForm.rollNo,
-          name: oldForm.name,
-          fatherName: oldForm.fatherName,
-          motherName: oldForm.motherName,
-          gender: oldForm.gender,
-          dob: oldForm.dob,
-          domicile: oldForm.domicile
-        }
+      const payload = {
+        studentId: form.studentId,
+        departmentId: form.departmentId,
+        type: form.certificateType,
+        purpose: form.purpose,
       };
 
-    } else {
-      // CURRENT STUDENT FORMAT
-      payload = {
-        studentId: currentForm.studentId,
-        departmentId: currentForm.departmentId,
-        type: currentForm.certificateType,
-        purpose: currentForm.purpose
-      };
+      console.log("Payload:", payload);
+
+      await createCertificate(payload);
+
+      toast.success("Certificate request submitted successfully");
+    } catch (error) {
+      console.error(error.response?.data);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to submit certificate request"
+      );
+    } finally {
+      setLoading(false);
     }
-
-    console.log("Payload:", payload);
-
-    await createCertificate(payload);
-
-    toast.success("Certificate request submitted successfully");
-
-  } catch (error) {
-    console.error(error.response?.data);
-    toast.error(
-      error.response?.data?.message || "Failed to submit certificate request"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center px-4 py-10">
-      <div className="w-full max-w-5xl bg-white rounded-2xl p-8">
+      <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8">
 
-        {/* Toggle */}
+        {/* Heading */}
+        <h2 className="text-2xl font-bold text-center mb-8">
+          Certificate Request
+        </h2>
 
-        <div className="flex justify-center mb-10">
-          <div className="flex bg-gray-100 p-1 rounded-full">
+        <form onSubmit={handleSubmit} className="space-y-6">
 
-            <button
-              type="button"
-              onClick={() => setIsOldStudent(false)}
-              className={`px-6 py-2 rounded-full ${
-                !isOldStudent
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600"
-              }`}
-            >
-              Current Student
-            </button>
+          {/* IDs Section */}
+          <div className="grid md:grid-cols-2 gap-5">
 
-            <button
-              type="button"
-              onClick={() => setIsOldStudent(true)}
-              className={`px-6 py-2 rounded-full ${
-                isOldStudent
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600"
-              }`}
-            >
-              Old Student
-            </button>
+            <Input
+              label="Student ID (UUID)"
+              name="studentId"
+              value={form.studentId}
+              onChange={handleChange}
+            />
+
+            <Input
+              label="Department ID (UUID)"
+              name="departmentId"
+              value={form.departmentId}
+              onChange={handleChange}
+            />
 
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Certificate Type */}
+          <SelectField
+            label="Certificate Type"
+            name="certificateType"
+            value={form.certificateType}
+            onChange={handleChange}
+            options={["BONAFIDE", "CLC","CHARACTER"]}
+          />
 
-          {/* CURRENT STUDENT */}
+          {/* Purpose */}
+          <Textarea
+            label="Purpose"
+            name="purpose"
+            value={form.purpose}
+            onChange={handleChange}
+          />
 
-          {!isOldStudent && (
-            <div>
-              <h2 className="font-semibold mb-4">Current Student</h2>
-
-              <div className="grid md:grid-cols-2 gap-4">
-
-                <Input
-                  label="Student ID"
-                  name="studentId"
-                  value={currentForm.studentId}
-                  onChange={handleCurrentChange}
-                />
-
-                <Input
-                  label="Department ID"
-                  name="departmentId"
-                  value={currentForm.departmentId}
-                  onChange={handleCurrentChange}
-                />
-
-                <SelectField
-                  label="Certificate Type"
-                  name="certificateType"
-                  value={currentForm.certificateType}
-                  onChange={handleCurrentChange}
-                  options={["BONAFIDE", "CLC"]}
-                />
-
-                <Input
-                  label="Purpose"
-                  name="purpose"
-                  value={currentForm.purpose}
-                  onChange={handleCurrentChange}
-                />
-
-              </div>
-            </div>
-          )}
-
-          {/* OLD STUDENT */}
-
-          {isOldStudent && (
-            <div>
-              <h2 className="font-semibold mb-4">Old Student</h2>
-
-              <div className="grid md:grid-cols-2 gap-4">
-
-                <Input
-                  label="Roll No"
-                  name="rollNo"
-                  value={oldForm.rollNo}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Student Name"
-                  name="name"
-                  value={oldForm.name}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Father Name"
-                  name="fatherName"
-                  value={oldForm.fatherName}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Mother Name"
-                  name="motherName"
-                  value={oldForm.motherName}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Domicile"
-                  name="domicile"
-                  value={oldForm.domicile}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  type="date"
-                  label="Date of Birth"
-                  name="dob"
-                  value={oldForm.dob}
-                  onChange={handleOldChange}
-                />
-
-                <SelectField
-                  label="Certificate Type"
-                  name="certificateType"
-                  value={oldForm.certificateType}
-                  onChange={handleOldChange}
-                  options={["Bonafide", "CLC", "Character"]}
-                />
-
-              </div>
-            </div>
-          )}
-
-          {/* Fee Display */}
-
-          {((isOldStudent && oldForm.certificateType) ||
-            (!isOldStudent && currentForm.certificateType)) && (
-
-            <div className="bg-blue-50 p-4 rounded flex justify-between">
-
+          {/* Fee */}
+          {form.certificateType && (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex justify-between items-center">
               <span>Certificate Fee</span>
-
-              <span className="font-semibold">
-                ₹{
-                  certificateFees[
-                    isOldStudent
-                      ? oldForm.certificateType
-                      : currentForm.certificateType
-                  ]
-                }
+              <span className="font-bold text-blue-700 text-lg">
+                ₹{certificateFees[form.certificateType]}
               </span>
-
             </div>
           )}
 
           {/* Submit */}
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg"
+            className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-lg font-medium"
           >
-            {loading ? "Submitting..." : "Submit & Proceed to Payment"}
+            {loading ? "Submitting..." : "Submit & Proceed"}
           </button>
-
         </form>
       </div>
     </div>
   );
 };
 
-/* Reusable Components */
+/* ================= COMPONENTS ================= */
 
-const Input = ({ label, type = "text", name, value, onChange }) => (
+const Input = ({ label, name, value, onChange }) => (
   <div>
-    <label className="block text-sm mb-1">{label}</label>
+    <label className="block text-sm mb-1 text-gray-600">{label}</label>
     <input
-      type={type}
+      type="text"
       name={name}
       value={value}
       onChange={onChange}
       required
-      className="w-full border rounded px-3 py-2"
+      className="w-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 outline-none"
     />
   </div>
 );
 
 const SelectField = ({ label, name, value, onChange, options }) => (
   <div>
-    <label className="block text-sm mb-1">{label}</label>
+    <label className="block text-sm mb-1 text-gray-600">{label}</label>
     <select
       name={name}
       value={value}
       onChange={onChange}
       required
-      className="w-full border rounded px-3 py-2"
+      className="w-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 outline-none"
     >
       <option value="">Select</option>
-
       {options.map((opt) => (
         <option key={opt} value={opt}>
           {opt}
         </option>
       ))}
     </select>
+  </div>
+);
+
+const Textarea = ({ label, name, value, onChange }) => (
+  <div>
+    <label className="block text-sm mb-1 text-gray-600">{label}</label>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={4}
+      className="w-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg px-3 py-2 outline-none"
+    />
   </div>
 );
 
