@@ -27,7 +27,7 @@ const AdmissionHome = () => {
         const formatted = windows.map((w) => ({
           id: w.id,
           title: w.title,
-          courseName: "UG SEM-VI",
+          courseName: "UG SEM-IV",
           startDate: new Date(w.startDate),
           endDate: new Date(w.endDate),
         }));
