@@ -1,330 +1,372 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createCertificate } from "@/api/certificate.api";
 import { toast } from "react-toastify";
+import {
+  DEPARTMENT_OPTIONS,
+  COURSE_OPTIONS,
+  SEMESTER_OPTIONS,
+  SESSION_OPTIONS,
+  CERTIFICATE_TYPES,
+  CERTIFICATE_FEES,
+} from "@/utils/certificate.constants";
 
 const CertificateForm = () => {
-  const [isOldStudent, setIsOldStudent] = useState(true);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  /* ================= CURRENT STUDENT ================= */
-
-  const [currentForm, setCurrentForm] = useState({
-    studentId: "",
-    departmentId: "",
-    certificateType: "",
-    purpose: "",
-  });
-
-  /* ================= OLD STUDENT ================= */
-
-  const [oldForm, setOldForm] = useState({
-    degree: "",
-    course: "",
-    subject: "",
-    certificateType: "",
-    rollNo: "",
+  const [formData, setFormData] = useState({
     name: "",
     fatherName: "",
     motherName: "",
-    gender: "Male",
+    universityRoll: "",
+    registrationNo: "",
+    collegeRoll: "",
+    courseName: "",
+    departmentName: "",
+    semester: "",
+    session: "",
     dob: "",
-    domicile: "",
+    examMonth: "",
+    examYear: "",
+    resultDivision: "",
+    character: "",
+    purpose: "",
+    certificateType: "",
   });
 
-  const certificateFees = {
-    BONAFIDE: 200,
-    CLC: 500,
-    Bonafide: 200,
-    Character: 300,
-  };
-
-  /* ================= INPUT HANDLERS ================= */
-
-  const handleOldChange = (e) => {
-    setOldForm((prev) => ({
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+    // Clear error for this field
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
-  const handleCurrentChange = (e) => {
-    setCurrentForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.name.trim()) errors.name = "Student name is required";
+    else if (formData.name.trim().length < 3) errors.name = "Name must be at least 3 characters";
+
+    if (!formData.fatherName.trim()) errors.fatherName = "Father's name is required";
+    else if (formData.fatherName.trim().length < 3) errors.fatherName = "Father's name must be at least 3 characters";
+
+    if (!formData.certificateType) errors.certificateType = "Certificate type is required";
+    if (!formData.courseName) errors.courseName = "Course is required";
+    if (!formData.departmentName) errors.departmentName = "Department is required";
+    if (!formData.semester) errors.semester = "Semester is required";
+    if (!formData.session) errors.session = "Session is required";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  /* ================= SUBMIT ================= */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    setLoading(true);
-
-    let payload;
-
-    if (isOldStudent) {
-      // OLD STUDENT FORMAT
-      payload = {
-        type: oldForm.certificateType.toUpperCase(),
-        purpose: "Old student certificate request",
-
-        // optional data (backend may ignore)
-        studentDetails: {
-          degree: oldForm.degree,
-          course: oldForm.course,
-          subject: oldForm.subject,
-          rollNo: oldForm.rollNo,
-          name: oldForm.name,
-          fatherName: oldForm.fatherName,
-          motherName: oldForm.motherName,
-          gender: oldForm.gender,
-          dob: oldForm.dob,
-          domicile: oldForm.domicile
-        }
-      };
-
-    } else {
-      // CURRENT STUDENT FORMAT
-      payload = {
-        studentId: currentForm.studentId,
-        departmentId: currentForm.departmentId,
-        type: currentForm.certificateType,
-        purpose: currentForm.purpose
-      };
+    // Validate form
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form");
+      return;
     }
 
-    console.log("Payload:", payload);
+    try {
+      setLoading(true);
+      setFormErrors({});
 
-    await createCertificate(payload);
+      const payload = {
+        type: formData.certificateType,
+        name: formData.name.trim(),
+        fatherName: formData.fatherName.trim(),
+        motherName: formData.motherName.trim() || undefined,
+        courseName: formData.courseName,
+        departmentName: formData.departmentName,
+        semester: formData.semester,
+        session: formData.session,
+        dob: formData.dob || undefined,
+        universityRoll: formData.universityRoll.trim() || undefined,
+        registrationNo: formData.registrationNo.trim() || undefined,
+        collegeRoll: formData.collegeRoll.trim() || undefined,
+        examMonth: formData.examMonth.trim() || undefined,
+        examYear: formData.examYear.trim() || undefined,
+        resultDivision: formData.resultDivision.trim() || undefined,
+        character: formData.character.trim() || undefined,
+        purpose: formData.purpose.trim() || undefined,
+      };
 
-    toast.success("Certificate request submitted successfully");
+      const response = await createCertificate(payload);
+      const certificateId = response.data.certificateId;
 
-  } catch (error) {
-    console.error(error.response?.data);
-    toast.error(
-      error.response?.data?.message || "Failed to submit certificate request"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Certificate application submitted successfully!");
+
+      // Navigate to confirmation page
+      navigate("/certificate/confirmation", {
+        state: {
+          certificateId,
+          certificateData: formData,
+          amount: CERTIFICATE_FEES[formData.certificateType],
+        },
+      });
+    } catch (error) {
+      console.error("Certificate submission error:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to submit certificate request";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center px-4 py-10">
-      <div className="w-full max-w-5xl bg-white rounded-2xl p-8">
+    <div className="min-h-screen bg-gray-50 px-4 py-10">
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
+          Apply for Certificate
+        </h1>
+        <p className="text-center text-gray-600 mb-8">
+          Fill in the details to apply for your certificate
+        </p>
 
-        {/* Toggle */}
-
-        <div className="flex justify-center mb-10">
-          <div className="flex bg-gray-100 p-1 rounded-full">
-
-            <button
-              type="button"
-              onClick={() => setIsOldStudent(false)}
-              className={`px-6 py-2 rounded-full ${
-                !isOldStudent
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600"
-              }`}
-            >
-              Current Student
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsOldStudent(true)}
-              className={`px-6 py-2 rounded-full ${
-                isOldStudent
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600"
-              }`}
-            >
-              Old Student
-            </button>
-
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Personal Information */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              Personal Information
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input
+                label="Student Name *"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="Father's Name *"
+                name="fatherName"
+                value={formData.fatherName}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="Mother's Name"
+                name="motherName"
+                value={formData.motherName}
+                onChange={handleChange}
+              />
+              <Input
+                type="date"
+                label="Date of Birth"
+                name="dob"
+                value={formData.dob}
+                onChange={handleChange}
+              />
+            </div>
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-
-          {/* CURRENT STUDENT */}
-
-          {!isOldStudent && (
-            <div>
-              <h2 className="font-semibold mb-4">Current Student</h2>
-
-              <div className="grid md:grid-cols-2 gap-4">
-
-                <Input
-                  label="Student ID"
-                  name="studentId"
-                  value={currentForm.studentId}
-                  onChange={handleCurrentChange}
-                />
-
-                <Input
-                  label="Department ID"
-                  name="departmentId"
-                  value={currentForm.departmentId}
-                  onChange={handleCurrentChange}
-                />
-
-                <SelectField
-                  label="Certificate Type"
-                  name="certificateType"
-                  value={currentForm.certificateType}
-                  onChange={handleCurrentChange}
-                  options={["BONAFIDE", "CLC"]}
-                />
-
-                <Input
-                  label="Purpose"
-                  name="purpose"
-                  value={currentForm.purpose}
-                  onChange={handleCurrentChange}
-                />
-
-              </div>
+          {/* Academic Information */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              Academic Information
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Input
+                label="University Roll No"
+                name="universityRoll"
+                value={formData.universityRoll}
+                onChange={handleChange}
+                placeholder="Enter university roll number"
+              />
+              <Input
+                label="Registration No"
+                name="registrationNo"
+                value={formData.registrationNo}
+                onChange={handleChange}
+                placeholder="Enter registration number"
+              />
+              <Input
+                label="College Roll No"
+                name="collegeRoll"
+                value={formData.collegeRoll}
+                onChange={handleChange}
+                placeholder="Enter college roll number"
+              />
+              <SelectField
+                label="Course *"
+                name="courseName"
+                value={formData.courseName}
+                onChange={handleChange}
+                options={COURSE_OPTIONS}
+                required
+                error={formErrors.courseName}
+              />
+              <SelectField
+                label="Department *"
+                name="departmentName"
+                value={formData.departmentName}
+                onChange={handleChange}
+                options={DEPARTMENT_OPTIONS}
+                required
+                error={formErrors.departmentName}
+              />
+              <SelectField
+                label="Semester *"
+                name="semester"
+                value={formData.semester}
+                onChange={handleChange}
+                options={SEMESTER_OPTIONS}
+                required
+                error={formErrors.semester}
+              />
+              <SelectField
+                label="Session *"
+                name="session"
+                value={formData.session}
+                onChange={handleChange}
+                options={SESSION_OPTIONS}
+                required
+                error={formErrors.session}
+              />
             </div>
-          )}
+          </div>
 
-          {/* OLD STUDENT */}
-
-          {isOldStudent && (
-            <div>
-              <h2 className="font-semibold mb-4">Old Student</h2>
-
-              <div className="grid md:grid-cols-2 gap-4">
-
-                <Input
-                  label="Roll No"
-                  name="rollNo"
-                  value={oldForm.rollNo}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Student Name"
-                  name="name"
-                  value={oldForm.name}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Father Name"
-                  name="fatherName"
-                  value={oldForm.fatherName}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Mother Name"
-                  name="motherName"
-                  value={oldForm.motherName}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  label="Domicile"
-                  name="domicile"
-                  value={oldForm.domicile}
-                  onChange={handleOldChange}
-                />
-
-                <Input
-                  type="date"
-                  label="Date of Birth"
-                  name="dob"
-                  value={oldForm.dob}
-                  onChange={handleOldChange}
-                />
-
-                <SelectField
-                  label="Certificate Type"
-                  name="certificateType"
-                  value={oldForm.certificateType}
-                  onChange={handleOldChange}
-                  options={["Bonafide", "CLC", "Character"]}
-                />
-
-              </div>
+          {/* Certificate Details */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              Certificate Details
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <SelectField
+                label="Certificate Type *"
+                name="certificateType"
+                value={formData.certificateType}
+                onChange={handleChange}
+                options={CERTIFICATE_TYPES.map((type) => ({
+                  value: type.value,
+                  label: `${type.label} (₹${type.fee})`,
+                }))}
+                required
+                error={formErrors.certificateType}
+              />
+              <Input
+                label="Purpose"
+                name="purpose"
+                value={formData.purpose}
+                onChange={handleChange}
+                placeholder="e.g., For scholarship application"
+              />
             </div>
-          )}
+          </div>
 
           {/* Fee Display */}
-
-          {((isOldStudent && oldForm.certificateType) ||
-            (!isOldStudent && currentForm.certificateType)) && (
-
-            <div className="bg-blue-50 p-4 rounded flex justify-between">
-
-              <span>Certificate Fee</span>
-
-              <span className="font-semibold">
-                ₹{
-                  certificateFees[
-                    isOldStudent
-                      ? oldForm.certificateType
-                      : currentForm.certificateType
-                  ]
-                }
-              </span>
-
+          {formData.certificateType && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700 font-medium">
+                  Certificate Fee ({formData.certificateType})
+                </span>
+                <span className="text-2xl font-bold text-blue-600">
+                  ₹{CERTIFICATE_FEES[formData.certificateType]}
+                </span>
+              </div>
             </div>
           )}
 
-          {/* Submit */}
-
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg"
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-semibold transition duration-200"
           >
-            {loading ? "Submitting..." : "Submit & Proceed to Payment"}
+            {loading ? "Submitting..." : "Proceed to Payment"}
           </button>
-
         </form>
       </div>
     </div>
   );
 };
 
-/* Reusable Components */
-
-const Input = ({ label, type = "text", name, value, onChange }) => (
+/* Reusable Input Component */
+const Input = ({
+  label,
+  type = "text",
+  name,
+  value,
+  onChange,
+  required = false,
+  placeholder,
+  error,
+}) => (
   <div>
-    <label className="block text-sm mb-1">{label}</label>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
     <input
       type={type}
       name={name}
       value={value}
       onChange={onChange}
-      required
-      className="w-full border rounded px-3 py-2"
+      required={required}
+      placeholder={placeholder}
+      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+        error
+          ? "border-red-500 bg-red-50"
+          : "border-gray-300"
+      }`}
     />
+    {error && (
+      <p className="mt-1 text-xs text-red-600">{error}</p>
+    )}
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options }) => (
+/* Reusable Select Component */
+const SelectField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options = [],
+  required = false,
+  error,
+}) => (
   <div>
-    <label className="block text-sm mb-1">{label}</label>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
     <select
       name={name}
       value={value}
       onChange={onChange}
-      required
-      className="w-full border rounded px-3 py-2"
+      required={required}
+      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+        error
+          ? "border-red-500 bg-red-50"
+          : "border-gray-300"
+      }`}
     >
-      <option value="">Select</option>
-
+      <option value="">Select an option</option>
       {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
         </option>
       ))}
     </select>
+    {error && (
+      <p className="mt-1 text-xs text-red-600">{error}</p>
+    )}
   </div>
 );
 

@@ -1,65 +1,67 @@
 import api from "./api";
 
 /* ===========================
-   Create Certificate Request
+   Student: Apply for Certificate
 =========================== */
 export const createCertificate = async (payload) => {
-  const res = await api.post("/certificates", payload);
+  const res = await api.post("/certificates/apply", payload);
   return res.data;
 };
 
 /* ===========================
-   Get All Certificates (Admin)
+   Student: Create Payment for Certificate
+=========================== */
+export const createCertificatePayment = async (payload) => {
+  const res = await api.post("/certificates/payment/create", payload);
+  return res.data;
+};
+
+/* ===========================
+   Admin: Get All Certificate Applications
 =========================== */
 export const getCertificates = async (params = {}) => {
-  try {
-    const res = await api.get("/certificates", { params });
-    return res.data;
-  } catch (error) {
-    console.error("Get Certificates Error:", error.response?.data);
-    throw error;
-  }
+  const res = await api.get("/certificates/admin", { params });
+  return res.data;
 };
 
 /* ===========================
-   Get Single Certificate
+   Admin: Get Single Application
 =========================== */
 export const getCertificateById = async (id) => {
-  const res = await api.get(`/certificates/${id}`);
+  const res = await api.get(`/certificates/admin/${id}`);
   return res.data;
 };
 
 /* ===========================
-   Update Certificate Status
+   Admin: Update Application
 =========================== */
-export const updateCertificateStatus = async (id, payload) => {
-  const res = await api.patch(`/certificates/${id}/status`, payload);
+export const updateCertificate = async (id, payload) => {
+  const res = await api.patch(`/certificates/admin/${id}`, payload);
   return res.data;
 };
 
 /* ===========================
-   Issue Certificate
+   Admin: Approve Application
 =========================== */
-export const issueCertificate = async (id) => {
-  const res = await api.post(`/certificates/${id}/issue`);
+export const approveCertificate = async (id) => {
+  const res = await api.patch(`/certificates/admin/${id}/approve`);
   return res.data;
 };
 
 /* ===========================
-   Download Certificate
+   Admin: Reject Application
+=========================== */
+export const rejectCertificate = async (id, remarks) => {
+  const res = await api.patch(`/certificates/admin/${id}/reject`, { remarks });
+  return res.data;
+};
+
+/* ===========================
+   Download Certificate PDF
 =========================== */
 export const downloadCertificate = async (id) => {
-  const res = await api.get(`/certificates/${id}/download`, {
+  const res = await api.get(`/certificates/admin/${id}/download`, {
     responseType: "blob"
   });
-
-  return res.data;
-};
-
-/* ===========================
-   Delete Certificate
-=========================== */
-export const deleteCertificate = async (id) => {
-  const res = await api.delete(`/certificates/${id}`);
   return res.data;
 };

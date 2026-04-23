@@ -1,44 +1,70 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   getCertificates,
-  updateCertificateStatus,
-  issueCertificate,
+  approveCertificate,
+  rejectCertificate,
   downloadCertificate,
 } from "@/api/certificate.api";
 import { toast } from "react-toastify";
 
 const statusStyles = {
-  PENDING: "bg-yellow-100 text-yellow-700",
-  APPROVED: "bg-blue-100 text-blue-700",
-  REJECTED: "bg-red-100 text-red-700",
-  ISSUED: "bg-green-100 text-green-700",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  APPROVED: "bg-blue-100 text-blue-800",
+  REJECTED: "bg-red-100 text-red-800",
+  ISSUED: "bg-green-100 text-green-800",
 };
 
 const AdminCertificates = () => {
+  const navigate = useNavigate();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    issued: 0,
+    rejected: 0,
+  });
+
+  // Filters
+  const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterType, setFilterType] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
 
   const fetchCertificates = async () => {
     try {
       setLoading(true);
 
-      const res = await getCertificates();
+      const params = {
+        page,
+        limit,
+        status: filterStatus !== "ALL" ? filterStatus : undefined,
+        type: filterType !== "ALL" ? filterType : undefined,
+        search: searchTerm || undefined,
+        appliedFrom: dateRange.from || undefined,
+        appliedTo: dateRange.to || undefined,
+        sortBy: "appliedAt",
+        sortOrder: "desc",
+      };
 
-      console.log("Certificates API Response:", res);
+      const response = await getCertificates(params);
+      setCertificates(response.data.certificates);
+      setTotalPages(response.totalPages);
 
-      const list =
-        res?.data?.certificateRequests ||
-        res?.certificateRequests ||
-        [];
-
-      setCertificates(list);
-
+      // Calculate stats from total
+      setStats({
+        total: response.total,
+        pending: 0,
+        issued: 0,
+        rejected: 0,
+      });
     } catch (error) {
-      console.log("API ERROR:", error?.response?.data);
-
-      toast.error(
-        error?.response?.data?.message || "Failed to load certificates"
-      );
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to load certificates");
     } finally {
       setLoading(false);
     }
@@ -46,156 +72,255 @@ const AdminCertificates = () => {
 
   useEffect(() => {
     fetchCertificates();
-  }, []);
+  }, [page, filterStatus, filterType]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setPage(1);
+    fetchCertificates();
+  };
 
   const handleApprove = async (id) => {
+    if (!window.confirm("Are you sure you want to approve and issue this certificate?")) {
+      return;
+    }
+
     try {
-      await updateCertificateStatus(id, { status: "APPROVED" });
-      toast.success("Certificate Approved");
+      await approveCertificate(id);
+      toast.success("Certificate approved and issued successfully");
       fetchCertificates();
-    } catch {
-      toast.error("Approval failed");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Approval failed");
     }
   };
 
   const handleReject = async (id) => {
-    try {
-      await updateCertificateStatus(id, { status: "REJECTED" });
-      toast.success("Certificate Rejected");
-      fetchCertificates();
-    } catch {
-      toast.error("Rejection failed");
-    }
-  };
+    const remarks = prompt("Enter rejection remarks:");
+    if (!remarks) return;
 
-  const handleIssue = async (id) => {
     try {
-      await issueCertificate(id);
-      toast.success("Certificate Issued");
+      await rejectCertificate(id, remarks);
+      toast.success("Certificate application rejected");
       fetchCertificates();
-    } catch {
-      toast.error("Issuing failed");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Rejection failed");
     }
   };
 
   const handleDownload = async (id) => {
     try {
       const blob = await downloadCertificate(id);
-
       const url = window.URL.createObjectURL(blob);
-
       const link = document.createElement("a");
       link.href = url;
       link.download = `certificate_${id}.pdf`;
       link.click();
-
       window.URL.revokeObjectURL(url);
-    } catch {
+      toast.success("Certificate downloaded successfully");
+    } catch (error) {
+      console.error(error);
       toast.error("Download failed");
     }
   };
 
+  const handleViewDetails = (id) => {
+    navigate(`/admin/certificates/${id}`);
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-6">
-        Certificate Applications
-      </h1>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-800">Certificate Applications</h1>
+        <p className="text-gray-600 mt-1">Manage and process certificate requests</p>
+      </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard label="Total Applications" value={stats.total} color="blue" />
+        <StatCard label="Pending" value={stats.pending} color="yellow" />
+        <StatCard label="Issued" value={stats.issued} color="green" />
+        <StatCard label="Rejected" value={stats.rejected} color="red" />
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow p-4 space-y-4">
+        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <input
+            type="text"
+            placeholder="Search by name, roll no..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+          
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="ALL">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="ISSUED">Issued</option>
+          </select>
+
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="ALL">All Types</option>
+            <option value="BONAFIDE">Bonafide</option>
+            <option value="CLC">CLC</option>
+            <option value="CHARACTER">Character</option>
+          </select>
+
+          <input
+            type="date"
+            value={dateRange.from}
+            onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+            className="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 font-semibold transition"
+          >
+            Apply Filters
+          </button>
+        </form>
+      </div>
+
+      {/* Table */}
       <div className="bg-white rounded-xl shadow overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="p-4 text-left">Student</th>
-              <th>Reg No</th>
-              <th>Certificate</th>
-              <th>Department</th>
-              <th>Status</th>
-              <th className="text-center">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {loading ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading certificates...</p>
+          </div>
+        ) : certificates.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No certificate applications found
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
               <tr>
-                <td colSpan="6" className="text-center py-6">
-                  Loading...
-                </td>
+                <th className="p-4 text-left">Name</th>
+                <th className="p-4 text-left">Type</th>
+                <th className="p-4 text-left">University Roll</th>
+                <th className="p-4 text-left">Status</th>
+                <th className="p-4 text-left">Payment</th>
+                <th className="p-4 text-left">Applied Date</th>
+                <th className="p-4 text-center">Actions</th>
               </tr>
-            ) : certificates.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center py-6">
-                  No certificate applications found
-                </td>
-              </tr>
-            ) : (
-              certificates.map((cert) => (
-                <tr key={cert.id} className="border-b">
-
-                  <td className="p-4">{cert.student?.name || "-"}</td>
-
-                  <td>{cert.student?.reg_no || "-"}</td>
-
-                  <td>{cert.type || cert.certificateType || "-"}</td>
-
-                  <td>{cert.department?.name || "-"}</td>
-
-                  <td>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs ${
-                        statusStyles[cert.status] ||
-                        "bg-gray-100 text-gray-600"
-                      }`}
-                    >
+            </thead>
+            <tbody>
+              {certificates.map((cert) => (
+                <tr key={cert.id} className="border-b hover:bg-gray-50">
+                  <td className="p-4 font-medium">{cert.name}</td>
+                  <td className="p-4">{cert.type}</td>
+                  <td className="p-4">{cert.universityRoll || "-"}</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusStyles[cert.status]}`}>
                       {cert.status}
                     </span>
                   </td>
-
-                  <td className="text-center space-x-2">
-
-                    {cert.status === "PENDING" && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(cert.id)}
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-xs"
-                        >
-                          Approve
-                        </button>
-
-                        <button
-                          onClick={() => handleReject(cert.id)}
-                          className="px-3 py-1 bg-red-600 text-white rounded text-xs"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-
-                    {cert.status === "APPROVED" && (
-                      <button
-                        onClick={() => handleIssue(cert.id)}
-                        className="px-3 py-1 bg-green-600 text-white rounded text-xs"
-                      >
-                        Issue
-                      </button>
-                    )}
-
-                    {cert.status === "ISSUED" && (
-                      <button
-                        onClick={() => handleDownload(cert.id)}
-                        className="px-3 py-1 bg-gray-800 text-white rounded text-xs"
-                      >
-                        Download
-                      </button>
-                    )}
-
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      cert.payment?.status === "SUCCESS"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}>
+                      {cert.payment?.status || "N/A"}
+                    </span>
                   </td>
-
+                  <td className="p-4">
+                    {new Date(cert.appliedAt).toLocaleDateString("en-IN")}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => handleViewDetails(cert.id)}
+                        className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                      >
+                        View
+                      </button>
+                      {cert.status === "PENDING" && cert.payment?.status === "SUCCESS" && (
+                        <>
+                          <button
+                            onClick={() => handleApprove(cert.id)}
+                            className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(cert.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {cert.status === "ISSUED" && cert.pdfUrl && (
+                        <button
+                          onClick={() => handleDownload(cert.id)}
+                          className="px-3 py-1 bg-gray-800 text-white rounded text-xs hover:bg-gray-900"
+                        >
+                          Download
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 p-4">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
+    </div>
+  );
+};
+
+const StatCard = ({ label, value, color }) => {
+  const colorClasses = {
+    blue: "bg-blue-50 border-blue-200 text-blue-700",
+    yellow: "bg-yellow-50 border-yellow-200 text-yellow-700",
+    green: "bg-green-50 border-green-200 text-green-700",
+    red: "bg-red-50 border-red-200 text-red-700",
+  };
+
+  return (
+    <div className={`rounded-xl border p-4 ${colorClasses[color]}`}>
+      <p className="text-sm opacity-75">{label}</p>
+      <p className="text-3xl font-bold mt-1">{value}</p>
     </div>
   );
 };

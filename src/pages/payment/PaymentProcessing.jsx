@@ -73,6 +73,20 @@ const PaymentProcessing = () => {
           setGatewayReference(payment.referenceNo || payment.bankTxnNo || "");
           setPaymentStatus(actualStatus);
 
+          // Check if this is a certificate payment
+          if (payment.certificateId) {
+            // Redirect to certificate-specific pages
+            if (actualStatus === "SUCCESS") {
+              navigate(`/certificate/payment-success/${paymentId}`, { replace: true });
+            } else if (actualStatus === "FAILED") {
+              navigate("/certificate/payment-result", {
+                state: { status: "failed", paymentId },
+                replace: true,
+              });
+            }
+            return;
+          }
+
           if (status && actualStatus && status !== actualStatus) {
             setInvalidLink(true);
             setScreenMessage("This payment link looks modified. Please use the original payment redirect.");
@@ -99,7 +113,7 @@ const PaymentProcessing = () => {
 
     fetchPayment();
 
-  }, [fallbackTxnId, paymentId, status]);
+  }, [fallbackTxnId, navigate, paymentId, status]);
 
   const success = !invalidLink && paymentStatus === "SUCCESS";
   const showFailureState = !invalidLink && !loadingPayment && paymentStatus && paymentStatus !== "SUCCESS";
