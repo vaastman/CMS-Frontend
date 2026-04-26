@@ -22,25 +22,44 @@ const Dcr2 = () => {
 
   const [transactions, setTransactions] = useState([]);
 
+  const getCollectionAmount = (value, nestedAmount) => {
+    if (typeof value === "number" || typeof value === "string") {
+      return Number(value) || 0;
+    }
+    if (value && typeof value === "object" && "amount" in value) {
+      return Number(value.amount) || 0;
+    }
+    return Number(nestedAmount) || 0;
+  };
+
   const fetchDCR2Data = async () => {
     try {
       setLoading(true);
       const response = await getDcr2Report();
-      const report = response.data.report;
+      const report = response?.data?.report || {};
+      const summary = report?.summary || {};
+      const collectionsData = report?.collections || {};
+      const recentPayments = report?.last10Payments || [];
 
       setStats({
-        totalApplications: report.summary.totalApplications || 0,
-        approved: report.summary.approved || 0,
-        pending: report.summary.pending || 0,
-        rejected: report.summary.rejected || 0,
+        totalApplications: summary.totalApplications || 0,
+        approved: summary.approved ?? summary.approvedApplications ?? 0,
+        pending: summary.pending ?? summary.pendingApplications ?? 0,
+        rejected: summary.rejected ?? summary.rejectedApplications ?? 0,
       });
 
       setCollections({
-        todayCollection: report.collections.todayCollection || 0,
-        totalCollection: report.collections.totalCollection || 0,
+        todayCollection: getCollectionAmount(
+          collectionsData.todayCollection,
+          collectionsData.todaysCollection?.amount
+        ),
+        totalCollection: getCollectionAmount(
+          collectionsData.totalCollection,
+          collectionsData.totalCollectionDetails?.amount
+        ),
       });
 
-      setTransactions(report.last10Payments || []);
+      setTransactions(recentPayments);
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to load DCR2 report");
@@ -139,7 +158,10 @@ const Dcr2 = () => {
                   {transactions.map((txn, idx) => (
                     <tr key={idx} className="border-b hover:bg-gray-50">
                       <td className="p-4">
-                        {new Date(txn.date).toLocaleDateString("en-IN")}
+                        {txn.displayDate ||
+                          (txn.date && !Number.isNaN(new Date(txn.date).getTime())
+                            ? new Date(txn.date).toLocaleDateString("en-IN")
+                            : "Invalid Date")}
                       </td>
                       <td className="p-4">
                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
@@ -148,7 +170,7 @@ const Dcr2 = () => {
                       </td>
                       <td className="p-4 font-medium">{txn.name}</td>
                       <td className="p-4 text-right font-semibold">
-                        ₹{Number(txn.amount).toFixed(2)}
+                        ₹{(Number(txn.amount) || 0).toFixed(2)}
                       </td>
                       <td className="p-4 text-xs">{txn.txnId}</td>
                       <td className="p-4">

@@ -115,6 +115,28 @@ const CertificateDetails = () => {
     );
   }
 
+  const certificateNoValue =
+    certificate.certificateNo ||
+    (certificate.status === "PENDING"
+      ? "Will be generated after approval"
+      : certificate.status === "REJECTED"
+      ? "Not generated"
+      : "-");
+
+  const issuedDateValue = certificate.issuedAt
+    ? new Date(certificate.issuedAt).toLocaleString("en-IN")
+    : certificate.status === "PENDING"
+    ? "Will be set when approved"
+    : certificate.status === "REJECTED"
+    ? "Not issued"
+    : "-";
+
+  const remarksValue =
+    certificate.remarks ||
+    (certificate.status === "REJECTED"
+      ? "No rejection remarks added"
+      : "No remarks");
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
@@ -184,17 +206,14 @@ const CertificateDetails = () => {
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">Certificate Information</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <DetailItem label="Certificate Type" value={certificate.type} />
-          <DetailItem label="Certificate No" value={certificate.certificateNo} />
+          <DetailItem label="Certificate No" value={certificateNoValue} />
           <DetailItem
             label="Applied Date"
             value={new Date(certificate.appliedAt).toLocaleString("en-IN")}
           />
-          <DetailItem
-            label="Issued Date"
-            value={certificate.issuedAt ? new Date(certificate.issuedAt).toLocaleString("en-IN") : "-"}
-          />
+          <DetailItem label="Issued Date" value={issuedDateValue} />
           <DetailItem label="Purpose" value={certificate.purpose} />
-          <DetailItem label="Remarks" value={certificate.remarks} />
+          <DetailItem label="Remarks" value={remarksValue} />
         </div>
       </div>
 

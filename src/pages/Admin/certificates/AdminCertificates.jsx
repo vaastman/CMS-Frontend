@@ -52,15 +52,31 @@ const AdminCertificates = () => {
       };
 
       const response = await getCertificates(params);
-      setCertificates(response.data.certificates);
-      setTotalPages(response.totalPages);
+      const fetchedCertificates =
+        response?.data?.certificates ||
+        response?.certificates ||
+        [];
 
-      // Calculate stats from total
+      const apiStats = response?.data?.stats || response?.stats || response?.meta?.stats;
+      const fallbackStats = fetchedCertificates.reduce(
+        (acc, cert) => {
+          acc.total += 1;
+          if (cert.status === "PENDING") acc.pending += 1;
+          if (cert.status === "APPROVED") acc.approved += 1;
+          if (cert.status === "ISSUED") acc.issued += 1;
+          if (cert.status === "REJECTED") acc.rejected += 1;
+          return acc;
+        },
+        { total: 0, pending: 0, approved: 0, issued: 0, rejected: 0 }
+      );
+
+      setCertificates(fetchedCertificates);
+      setTotalPages(response?.totalPages || response?.meta?.totalPages || 1);
       setStats({
-        total: response.total,
-        pending: 0,
-        issued: 0,
-        rejected: 0,
+        total: apiStats?.total ?? response?.total ?? fallbackStats.total,
+        pending: apiStats?.pending ?? fallbackStats.pending,
+        issued: apiStats?.issued ?? fallbackStats.issued,
+        rejected: apiStats?.rejected ?? fallbackStats.rejected,
       });
     } catch (error) {
       console.error(error);
