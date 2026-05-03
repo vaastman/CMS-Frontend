@@ -86,7 +86,12 @@ import RefundPolicy from "../pages/RefundPolicy";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsConditions from "../pages/TermsConditions";
 import ApplyCertificate from "../pages/Student Support/Certificate/ApplyCertificate";
+import CertificateForm from "../pages/Student Support/Certificate/CertificateForm";
+import CertificateConfirmation from "../pages/Student Support/Certificate/CertificateConfirmation";
+import CertificatePaymentSuccess from "../pages/Student Support/Certificate/CertificatePaymentSuccess";
+import CertificatePaymentResult from "../pages/Student Support/Certificate/CertificatePaymentResult";
 import AdminCertificates from "../pages/Admin/certificates/AdminCertificates";
+import CertificateDetails from "../pages/Admin/certificates/CertificateDetails";
 import PaymentProcessing from "../pages/payment/PaymentProcessing";
 import PaymentSuccess from "../pages/payment/PaymentSuccess";
 import StudentAdmissionPayment from "../pages/payment/StudentAdmissionPayment";
@@ -144,6 +149,7 @@ function AppRoutes() {
 
         {/* Certificate */}
         <Route path="certificates" element={<AdminCertificates />} />
+        <Route path="certificates/:id" element={<CertificateDetails />} />
 
         {/* CMS */}
         <Route path="cms/gallery/create" element={<GalleryCreate />} />
@@ -226,7 +232,10 @@ function AppRoutes() {
         <Route path="student-grievance" element={<StudentGrievance />} />
 
         {/* Certificate Apply Public Route */}
-        <Route path="apply-certificate" element={<ApplyCertificate />} />
+        <Route path="apply-certificate" element={<CertificateForm />} />
+        <Route path="certificate/confirmation" element={<CertificateConfirmation />} />
+        <Route path="certificate/payment-success/:paymentId" element={<CertificatePaymentSuccess />} />
+        <Route path="certificate/payment-result" element={<CertificatePaymentResult />} />
 
         <Route path="refund-policy" element={<RefundPolicy />} />
         <Route path="privacy-policy" element={<PrivacyPolicy />} />
