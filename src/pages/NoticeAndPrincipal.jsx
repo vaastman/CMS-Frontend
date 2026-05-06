@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import principalImg from "../assets/image/principle.jpeg";
-import noticeImg from "../assets/image/Apr_Notice.jpeg";
+import noticeImg from "../assets/image/Notice_SSDM.jpeg";
 
 const NoticeAndPrincipal = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -15,11 +15,17 @@ const NoticeAndPrincipal = () => {
   }, []);
 
   const noticePoints = [
-    "परीक्षा फॉर्म भरने के बाद महाविद्यालय के काउन्टर पर आकर निम्नांकित कागजात जमा कर दें।",
-    "Semester VI के नामांकन के भुगतान रशीद",
-    "Semester V के अंकपत्र के छायाप्रति",
-    "Semester V के एडमिट कार्ड के (छायाप्रति)",
-    "Semester VI के परीक्षा फॉर्म के प्रिंट आउट",
+    "परीक्षा फॉर्म भरने के बाद महाविद्यालय के काउंटर पर आकर निम्नांकित documents जमा करा दें।",
+    "semester III/I का के अंकपत्र के छायाप्रति",
+    "Semester VI/II के नामांकन के भुगतान रशीद",
+    "परीक्षा फॉर्म का भुगतान रसीद",
+    "Aadhar Card के छायाप्रति",
+    "Apaar ID Card के छायाप्रति",
+    // "परीक्षा फॉर्म भरने के बाद महाविद्यालय के काउन्टर पर आकर निम्नांकित कागजात जमा कर दें।",
+
+    // "Semester V के अंकपत्र के छायाप्रति",
+    // "Semester V के एडमिट कार्ड के (छायाप्रति)",
+    // "Semester VI के परीक्षा फॉर्म के प्रिंट आउट",
   ];
 
   return (
