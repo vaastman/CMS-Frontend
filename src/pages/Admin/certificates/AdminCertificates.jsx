@@ -7,6 +7,7 @@ import {
   downloadCertificate,
 } from "@/api/certificate.api";
 import { toast } from "react-toastify";
+import { getCertificateTypeLabel } from "@/utils/certificate.constants";
 
 const statusStyles = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -125,13 +126,16 @@ const AdminCertificates = () => {
     }
   };
 
-  const handleDownload = async (id) => {
+  const handleDownload = async (id, variant = "primary") => {
     try {
-      const blob = await downloadCertificate(id);
+      const blob = await downloadCertificate(id, variant);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `certificate_${id}.pdf`;
+      link.download =
+        variant === "character"
+          ? `character_${id}.pdf`
+          : `certificate_${id}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
       toast.success("Certificate downloaded successfully");
@@ -191,8 +195,9 @@ const AdminCertificates = () => {
           >
             <option value="ALL">All Types</option>
             <option value="BONAFIDE">Bonafide</option>
-            <option value="CLC">CLC</option>
-            <option value="CHARACTER">Character</option>
+            <option value="CLC_CHARACTER">CLC + Character</option>
+            <option value="CLC">CLC (legacy)</option>
+            <option value="CHARACTER">Character (legacy)</option>
           </select>
 
           <input
@@ -239,7 +244,7 @@ const AdminCertificates = () => {
               {certificates.map((cert) => (
                 <tr key={cert.id} className="border-b hover:bg-gray-50">
                   <td className="p-4 font-medium">{cert.name}</td>
-                  <td className="p-4">{cert.type}</td>
+                  <td className="p-4">{getCertificateTypeLabel(cert.type)}</td>
                   <td className="p-4">{cert.universityRoll || "-"}</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusStyles[cert.status]}`}>
@@ -282,14 +287,26 @@ const AdminCertificates = () => {
                           </button>
                         </>
                       )}
-                      {cert.status === "ISSUED" && cert.pdfUrl && (
+                      {cert.status === "ISSUED" && cert.certificateNo && (
                         <button
-                          onClick={() => handleDownload(cert.id)}
+                          type="button"
+                          onClick={() => handleDownload(cert.id, "primary")}
                           className="px-3 py-1 bg-gray-800 text-white rounded text-xs hover:bg-gray-900"
                         >
-                          Download
+                          {cert.type === "CLC_CHARACTER" ? "CLC" : "Download"}
                         </button>
                       )}
+                      {cert.status === "ISSUED" &&
+                        cert.type === "CLC_CHARACTER" &&
+                        cert.characterCertificateNo && (
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(cert.id, "character")}
+                            className="px-3 py-1 bg-gray-700 text-white rounded text-xs hover:bg-gray-800"
+                          >
+                            Character
+                          </button>
+                        )}
                     </div>
                   </td>
                 </tr>

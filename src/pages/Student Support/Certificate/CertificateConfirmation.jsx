@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { createCertificatePayment } from "@/api/certificate.api";
 import { toast } from "react-toastify";
+import { getCertificateTypeLabel } from "@/utils/certificate.constants";
 
 const CertificateConfirmation = () => {
   const location = useLocation();
@@ -21,10 +22,15 @@ const CertificateConfirmation = () => {
 
       const response = await createCertificatePayment({ certificateId });
 
+      const paymentUrl = response.data?.paymentUrl;
+      if (!paymentUrl) {
+        toast.error("Could not start payment. Please try again or contact support.");
+        setProcessing(false);
+        return;
+      }
+
       toast.success("Redirecting to payment gateway...");
 
-      // Redirect to payment gateway
-      const { paymentUrl } = response.data;
       window.location.href = paymentUrl;
     } catch (error) {
       console.error(error);
@@ -69,14 +75,17 @@ const CertificateConfirmation = () => {
             )}
             <SummaryItem
               label="Certificate Type"
-              value={certificateData.certificateType}
+              value={getCertificateTypeLabel(certificateData.certificateType)}
             />
             <SummaryItem label="Course" value={certificateData.courseName} />
             <SummaryItem
               label="Department"
               value={certificateData.departmentName}
             />
-            <SummaryItem label="Semester" value={certificateData.semester} />
+            <SummaryItem
+              label="Semester / Part"
+              value={certificateData.semester}
+            />
             <SummaryItem label="Session" value={certificateData.session} />
             {certificateData.universityRoll && (
               <SummaryItem
@@ -103,7 +112,7 @@ const CertificateConfirmation = () => {
             <div className="text-right">
               <p className="text-gray-600 text-sm">Certificate Type</p>
               <p className="text-lg font-semibold text-gray-800">
-                {certificateData.certificateType}
+                {getCertificateTypeLabel(certificateData.certificateType)}
               </p>
             </div>
           </div>

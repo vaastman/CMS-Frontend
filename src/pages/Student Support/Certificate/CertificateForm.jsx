@@ -5,10 +5,11 @@ import { toast } from "react-toastify";
 import {
   DEPARTMENT_OPTIONS,
   COURSE_OPTIONS,
-  SEMESTER_OPTIONS,
+  BONAFIDE_SEMESTER_PART_OPTIONS,
   SESSION_OPTIONS,
   CERTIFICATE_TYPES,
   CERTIFICATE_FEES,
+  getCertificateTypeLabel,
 } from "@/utils/certificate.constants";
 
 const CertificateForm = () => {
@@ -38,11 +39,17 @@ const CertificateForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error for this field
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "certificateType") {
+        if (value === "CLC_CHARACTER") {
+          next.semester = "PART 3";
+        } else if (value === "BONAFIDE" && prev.certificateType === "CLC_CHARACTER") {
+          next.semester = "";
+        }
+      }
+      return next;
+    });
     if (formErrors[name]) {
       setFormErrors((prev) => {
         const newErrors = { ...prev };
@@ -56,15 +63,21 @@ const CertificateForm = () => {
     const errors = {};
 
     if (!formData.name.trim()) errors.name = "Student name is required";
-    else if (formData.name.trim().length < 3) errors.name = "Name must be at least 3 characters";
+    else if (formData.name.trim().length < 3)
+      errors.name = "Name must be at least 3 characters";
 
     if (!formData.fatherName.trim()) errors.fatherName = "Father's name is required";
-    else if (formData.fatherName.trim().length < 3) errors.fatherName = "Father's name must be at least 3 characters";
+    else if (formData.fatherName.trim().length < 3)
+      errors.fatherName = "Father's name must be at least 3 characters";
 
     if (!formData.certificateType) errors.certificateType = "Certificate type is required";
     if (!formData.courseName) errors.courseName = "Course is required";
     if (!formData.departmentName) errors.departmentName = "Department is required";
-    if (!formData.semester) errors.semester = "Semester is required";
+
+    if (formData.certificateType === "BONAFIDE") {
+      if (!formData.semester) errors.semester = "Semester or part is required";
+    }
+
     if (!formData.session) errors.session = "Session is required";
 
     setFormErrors(errors);
@@ -74,7 +87,6 @@ const CertificateForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form
     if (!validateForm()) {
       toast.error("Please fix the errors in the form");
       return;
@@ -84,6 +96,9 @@ const CertificateForm = () => {
       setLoading(true);
       setFormErrors({});
 
+      const semesterForPayload =
+        formData.certificateType === "CLC_CHARACTER" ? "PART 3" : formData.semester;
+
       const payload = {
         type: formData.certificateType,
         name: formData.name.trim(),
@@ -91,7 +106,7 @@ const CertificateForm = () => {
         motherName: formData.motherName.trim() || undefined,
         courseName: formData.courseName,
         departmentName: formData.departmentName,
-        semester: formData.semester,
+        semester: semesterForPayload,
         session: formData.session,
         dob: formData.dob || undefined,
         universityRoll: formData.universityRoll.trim() || undefined,
@@ -109,12 +124,17 @@ const CertificateForm = () => {
 
       toast.success("Certificate application submitted successfully!");
 
-      // Navigate to confirmation page
+      const fee = CERTIFICATE_FEES[formData.certificateType];
+      if (fee == null) {
+        toast.error("Invalid certificate type for payment");
+        return;
+      }
+
       navigate("/certificate/confirmation", {
         state: {
           certificateId,
-          certificateData: formData,
-          amount: CERTIFICATE_FEES[formData.certificateType],
+          certificateData: { ...formData, semester: semesterForPayload },
+          amount: fee,
         },
       });
     } catch (error) {
@@ -127,6 +147,9 @@ const CertificateForm = () => {
     }
   };
 
+  const isBonafide = formData.certificateType === "BONAFIDE";
+  const isCombined = formData.certificateType === "CLC_CHARACTER";
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
@@ -138,6 +161,47 @@ const CertificateForm = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Certificate type first */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
+              Certificate
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <SelectField
+                label="Certificate Type *"
+                name="certificateType"
+                value={formData.certificateType}
+                onChange={handleChange}
+                options={CERTIFICATE_TYPES.map((type) => ({
+                  value: type.value,
+                  label: `${type.label} (₹${type.fee})`,
+                }))}
+                required
+                error={formErrors.certificateType}
+              />
+              <Input
+                label="Purpose"
+                name="purpose"
+                value={formData.purpose}
+                onChange={handleChange}
+                placeholder="e.g., For scholarship application"
+              />
+            </div>
+          </div>
+
+          {formData.certificateType && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700 font-medium">
+                  Certificate fee ({getCertificateTypeLabel(formData.certificateType)})
+                </span>
+                <span className="text-2xl font-bold text-blue-600">
+                  ₹{CERTIFICATE_FEES[formData.certificateType]}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Personal Information */}
           <div>
             <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
@@ -219,15 +283,36 @@ const CertificateForm = () => {
                 required
                 error={formErrors.departmentName}
               />
-              <SelectField
-                label="Semester *"
-                name="semester"
-                value={formData.semester}
-                onChange={handleChange}
-                options={SEMESTER_OPTIONS}
-                required
-                error={formErrors.semester}
-              />
+
+              {isBonafide && (
+                <SelectField
+                  label="Semester / Part *"
+                  name="semester"
+                  value={formData.semester}
+                  onChange={handleChange}
+                  options={BONAFIDE_SEMESTER_PART_OPTIONS}
+                  required
+                  error={formErrors.semester}
+                />
+              )}
+
+              {isCombined && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Part (fixed for CLC + Character)
+                  </label>
+                  <input
+                    readOnly
+                    value="PART 3"
+                    className="w-full border rounded-lg px-4 py-2 bg-gray-100 border-gray-300 text-gray-800 cursor-not-allowed"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Semester / part selection is not required for CLC + Character; PART 3 is
+                    applied automatically.
+                  </p>
+                </div>
+              )}
+
               <SelectField
                 label="Session *"
                 name="session"
@@ -240,49 +325,6 @@ const CertificateForm = () => {
             </div>
           </div>
 
-          {/* Certificate Details */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
-              Certificate Details
-            </h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <SelectField
-                label="Certificate Type *"
-                name="certificateType"
-                value={formData.certificateType}
-                onChange={handleChange}
-                options={CERTIFICATE_TYPES.map((type) => ({
-                  value: type.value,
-                  label: `${type.label} (₹${type.fee})`,
-                }))}
-                required
-                error={formErrors.certificateType}
-              />
-              <Input
-                label="Purpose"
-                name="purpose"
-                value={formData.purpose}
-                onChange={handleChange}
-                placeholder="e.g., For scholarship application"
-              />
-            </div>
-          </div>
-
-          {/* Fee Display */}
-          {formData.certificateType && (
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-medium">
-                  Certificate Fee ({formData.certificateType})
-                </span>
-                <span className="text-2xl font-bold text-blue-600">
-                  ₹{CERTIFICATE_FEES[formData.certificateType]}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -296,7 +338,6 @@ const CertificateForm = () => {
   );
 };
 
-/* Reusable Input Component */
 const Input = ({
   label,
   type = "text",
@@ -320,18 +361,13 @@ const Input = ({
       required={required}
       placeholder={placeholder}
       className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
-        error
-          ? "border-red-500 bg-red-50"
-          : "border-gray-300"
+        error ? "border-red-500 bg-red-50" : "border-gray-300"
       }`}
     />
-    {error && (
-      <p className="mt-1 text-xs text-red-600">{error}</p>
-    )}
+    {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
   </div>
 );
 
-/* Reusable Select Component */
 const SelectField = ({
   label,
   name,
@@ -352,9 +388,7 @@ const SelectField = ({
       onChange={onChange}
       required={required}
       className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
-        error
-          ? "border-red-500 bg-red-50"
-          : "border-gray-300"
+        error ? "border-red-500 bg-red-50" : "border-gray-300"
       }`}
     >
       <option value="">Select an option</option>
@@ -364,9 +398,7 @@ const SelectField = ({
         </option>
       ))}
     </select>
-    {error && (
-      <p className="mt-1 text-xs text-red-600">{error}</p>
-    )}
+    {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
   </div>
 );
 

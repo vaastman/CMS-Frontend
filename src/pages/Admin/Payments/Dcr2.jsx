@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getDcr2Report, exportDcr2CSV } from "@/api/dcr2.api";
 import { toast } from "react-toastify";
+import { getCertificateTypeLabel } from "@/utils/certificate.constants";
 
 const Dcr2 = () => {
   const [loading, setLoading] = useState(false);
@@ -165,7 +166,7 @@ const Dcr2 = () => {
                       </td>
                       <td className="p-4">
                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                          {txn.certificateType}
+                          {getCertificateTypeLabel(txn.certificateType)}
                         </span>
                       </td>
                       <td className="p-4 font-medium">{txn.name}</td>

@@ -9,6 +9,7 @@ import {
 } from "@/api/certificate.api";
 import { toast } from "react-toastify";
 import CertificateEditModal from "./CertificateEditModal";
+import { getCertificateTypeLabel } from "@/utils/certificate.constants";
 
 const CertificateDetails = () => {
   const { id } = useParams();
@@ -68,13 +69,16 @@ const CertificateDetails = () => {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (variant = "primary") => {
     try {
-      const blob = await downloadCertificate(id);
+      const blob = await downloadCertificate(id, variant);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${certificate.certificateNo || "certificate"}.pdf`;
+      const isCharacter = variant === "character";
+      link.download = isCharacter
+        ? `${certificate.characterCertificateNo || "character"}.pdf`
+        : `${certificate.certificateNo || "certificate"}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
       toast.success("Certificate downloaded successfully");
@@ -196,7 +200,7 @@ const CertificateDetails = () => {
           <DetailItem label="College Roll" value={certificate.collegeRoll} />
           <DetailItem label="Course" value={certificate.courseName} />
           <DetailItem label="Department" value={certificate.departmentName} />
-          <DetailItem label="Semester" value={certificate.semester} />
+          <DetailItem label="Semester / Part" value={certificate.semester} />
           <DetailItem label="Session" value={certificate.session} />
         </div>
       </div>
@@ -205,8 +209,29 @@ const CertificateDetails = () => {
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">Certificate Information</h2>
         <div className="grid md:grid-cols-2 gap-4">
-          <DetailItem label="Certificate Type" value={certificate.type} />
-          <DetailItem label="Certificate No" value={certificateNoValue} />
+          <DetailItem
+            label="Certificate Type"
+            value={getCertificateTypeLabel(certificate.type)}
+          />
+          <DetailItem
+            label={
+              certificate.type === "CLC_CHARACTER"
+                ? "CLC certificate no."
+                : "Certificate no."
+            }
+            value={certificateNoValue}
+          />
+          {certificate.type === "CLC_CHARACTER" && (
+            <DetailItem
+              label="Character certificate no."
+              value={
+                certificate.characterCertificateNo ||
+                (certificate.status === "PENDING"
+                  ? "Will be generated after approval"
+                  : "-")
+              }
+            />
+          )}
           <DetailItem
             label="Applied Date"
             value={new Date(certificate.appliedAt).toLocaleString("en-IN")}
@@ -240,7 +265,7 @@ const CertificateDetails = () => {
       {/* Action Buttons */}
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Actions</h2>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           <button
             onClick={() => setShowEditModal(true)}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
@@ -267,13 +292,27 @@ const CertificateDetails = () => {
             </>
           )}
 
-          {certificate.status === "ISSUED" && certificate.pdfUrl && (
-            <button
-              onClick={handleDownload}
-              className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
-            >
-              📥 Download Certificate
-            </button>
+          {certificate.status === "ISSUED" && certificate.certificateNo && (
+            <>
+              <button
+                type="button"
+                onClick={() => handleDownload("primary")}
+                className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
+              >
+                {certificate.type === "CLC_CHARACTER"
+                  ? "Download CLC"
+                  : "Download certificate"}
+              </button>
+              {certificate.type === "CLC_CHARACTER" && certificate.characterCertificateNo && (
+                <button
+                  type="button"
+                  onClick={() => handleDownload("character")}
+                  className="flex-1 bg-gray-700 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition"
+                >
+                  Download Character
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

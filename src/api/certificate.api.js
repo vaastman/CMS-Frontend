@@ -59,9 +59,12 @@ export const rejectCertificate = async (id, remarks) => {
 /* ===========================
    Download Certificate PDF
 =========================== */
-export const downloadCertificate = async (id) => {
+export const downloadCertificate = async (id, variant = "primary") => {
+  const params =
+    variant === "character" ? { variant: "character" } : {};
   const res = await api.get(`/certificates/admin/${id}/download`, {
-    responseType: "blob"
+    params,
+    responseType: "blob",
   });
   return res.data;
 };

@@ -27,7 +27,7 @@ const RefundPolicy = () => {
             </h2>
             <ul className="list-disc pl-6 space-y-2">
               <li>
-                All payments made towards admissions, bonafide, CLC, internships,
+                All payments made towards admissions, bonafide, CLC + Character, internships,
                 training programs, workshops, or related services are
                 <span className="font-semibold"> non-refundable by default.</span>
               </li>

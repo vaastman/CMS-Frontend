@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "@/api/api";
 import { toast } from "react-toastify";
+import { getCertificateTypeLabel } from "@/utils/certificate.constants";
 
 const CertificatePaymentSuccess = () => {
   const { paymentId } = useParams();
@@ -110,7 +111,7 @@ const CertificatePaymentSuccess = () => {
             <ReceiptItem label="Student Name" value={payment.certificate?.name || "-"} />
             <ReceiptItem
               label="Certificate Type"
-              value={payment.certificate?.type || "-"}
+              value={getCertificateTypeLabel(payment.certificate?.type) || "-"}
             />
             <ReceiptItem
               label="Amount Paid"
