@@ -20,7 +20,11 @@ export const DEPARTMENT_OPTIONS = [
   { value: 'POLITICAL SCIENCE', label: 'Political Science' },
   { value: 'ECONOMICS', label: 'Economics' },
   { value: 'HOME SCIENCE', label: 'Home Science' },
-    { value: 'SANSKRIT', label: 'Sanskrit' },
+  { value: 'SANSKRIT', label: 'Sanskrit' },
+  { value: 'PHILOSOPHY', label: 'Philosophy' },
+  { value: 'PA', label: 'P.A' },
+  { value: 'AIAS', label: 'A.I.A.S' },
+  { value: 'LSW', label: 'L.S.W' },
 ];
 
 // Valid Course Names
