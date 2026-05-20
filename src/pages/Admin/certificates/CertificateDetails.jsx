@@ -6,6 +6,7 @@ import {
   rejectCertificate,
   updateCertificate,
   downloadCertificate,
+  downloadCharacter
 } from "@/api/certificate.api";
 import { toast } from "react-toastify";
 import CertificateEditModal from "./CertificateEditModal";
@@ -78,6 +79,22 @@ const CertificateDetails = () => {
       link.click();
       window.URL.revokeObjectURL(url);
       toast.success("Certificate downloaded successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Download failed");
+    }
+  };
+
+    const handleDownloadCharacter = async () => {
+    try {
+      const blob = await downloadCharacter(id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${certificate.certificateNo || "Character_Certificate"}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Character certificate downloaded successfully");
     } catch (error) {
       console.error(error);
       toast.error("Download failed");
@@ -272,7 +289,16 @@ const CertificateDetails = () => {
               onClick={handleDownload}
               className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
             >
-              📥 Download Certificate
+              📥 CLC
+            </button>
+          )}
+
+          {certificate.status === "ISSUED" && certificate.remarks && (
+            <button
+              onClick={handleDownloadCharacter}
+              className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
+            >
+              📥 Character
             </button>
           )}
         </div>

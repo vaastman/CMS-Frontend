@@ -65,3 +65,13 @@ export const downloadCertificate = async (id) => {
   });
   return res.data;
 };
+
+/* ===========================
+    Download Character PDF
+=========================== */
+export const downloadCharacter = async (id) => {
+  const res = await api.get(`/certificates/${id}/download-character`, {
+    responseType: "blob"
+  });
+  return res.data;
+}
