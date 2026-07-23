@@ -284,22 +284,44 @@ const CertificateDetails = () => {
             </>
           )}
 
-          {certificate.status === "ISSUED" && certificate.pdfUrl && (
+          {certificate.status === "ISSUED" && certificate.type === "BONAFIDE" && certificate.pdfUrl && (
             <button
               onClick={handleDownload}
               className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
             >
-              📥 CLC
+              📥 Bonafide
             </button>
           )}
 
-          {certificate.status === "ISSUED" && certificate.remarks && (
+          {certificate.status === "ISSUED" && certificate.type === "CHARACTER" && certificate.pdfUrl && (
             <button
-              onClick={handleDownloadCharacter}
+              onClick={handleDownload}
               className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
             >
               📥 Character
             </button>
+          )}
+
+          {certificate.status === "ISSUED" && (certificate.type === "CLC" || !certificate.type) && (
+            <>
+              {certificate.pdfUrl && (
+                <button
+                  onClick={handleDownload}
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
+                >
+                  📥 CLC
+                </button>
+              )}
+
+              {certificate.remarks && (
+                <button
+                  onClick={handleDownloadCharacter}
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg font-semibold transition"
+                >
+                  📥 Character
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
