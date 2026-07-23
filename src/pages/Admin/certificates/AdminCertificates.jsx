@@ -299,22 +299,43 @@ const AdminCertificates = () => {
                           </button>
                         </>
                       )}
-                      {cert.status === "ISSUED" && cert.pdfUrl && (
+                      {cert.status === "ISSUED" && cert.type === "BONAFIDE" && cert.pdfUrl && (
                         <button
                           onClick={() => handleDownload(cert.id)}
                           className="px-3 py-1 bg-gray-800 text-white rounded text-xs hover:bg-gray-900"
                         >
-                          📥 CLC
+                          📥 Bonafide
                         </button>
                       )}
-                      
-                      {cert.status === "ISSUED" && cert.remarks && (
+
+                      {cert.status === "ISSUED" && cert.type === "CHARACTER" && cert.pdfUrl && (
                         <button
-                          onClick={() => handleDownloadCharacter(cert.id)}
+                          onClick={() => handleDownload(cert.id)}
                           className="px-3 py-1 bg-gray-800 text-white rounded text-xs hover:bg-gray-900"
                         >
                           📥 Character
                         </button>
+                      )}
+
+                      {cert.status === "ISSUED" && (cert.type === "CLC" || !cert.type) && (
+                        <>
+                          {cert.pdfUrl && (
+                            <button
+                              onClick={() => handleDownload(cert.id)}
+                              className="px-3 py-1 bg-gray-800 text-white rounded text-xs hover:bg-gray-900"
+                            >
+                              📥 CLC
+                            </button>
+                          )}
+                          {cert.remarks && (
+                            <button
+                              onClick={() => handleDownloadCharacter(cert.id)}
+                              className="px-3 py-1 bg-gray-800 text-white rounded text-xs hover:bg-gray-900"
+                            >
+                              📥 Character
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>
